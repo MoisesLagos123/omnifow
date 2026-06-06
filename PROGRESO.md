@@ -91,6 +91,7 @@ Sesión enfocada en calidad visual / accesibilidad / consistencia. Cero cambios 
 - Backend: `mypy --strict` ✅ 0 errores · 246 archivos · **286 tests verde** (276 previos + 10 audit viewer)
 - Frontend: `tsc` ✅ · **162 tests verde** (157 previos + 5 audit client)
 - Migración Alembic actual: **`0009_reservas_stock` (head)** — sin migración nueva (la tabla `audit_log` ya existía)
+- **Repo GitHub público**: https://github.com/MoisesLagos123/omnifow — branch `main`, "All Rights Reserved" en README (portafolio, no uso libre).
 - Postgres en Docker · 9 módulos full-stack funcionando
 - Bug fix backend (2026-06-04): FK violation al crear Usuario (`usuario_perfil` insert antes de flush) → arreglado en `SqlUsuarioRepository.guardar` con `session.flush()` (mismo patrón que `SqlVentaRepository`)
 - Skill `ui-ux-pro-max` instalada en `.claude/skills/ui-ux-pro-max/` (auto-disponible vía slash skill, también CLI `python .claude/skills/ui-ux-pro-max/scripts/search.py "<query>"`)
