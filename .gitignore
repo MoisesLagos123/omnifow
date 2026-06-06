@@ -44,3 +44,12 @@ Thumbs.db
 *.tar
 *.tar.gz
 *.7z
+
+# Documentación operativa local (guías de deploy con secretos / pasos
+# manuales). No va al repo público — son notas personales del operador.
+docs/deploy/
+docs/notas-personales/
+
+# Claves JWT de producción (deben generarse localmente y subirse a Render
+# como Secret Files, NUNCA al repo).
+backend/keys-prod/
