@@ -50,6 +50,7 @@ import {
   CXC_CONSULTAR_PERMS,
   DEVOLUCION_CONSULTAR_PERMS,
   DOCUMENTO_CONSULTAR_PERMS,
+  REPORTES_VER_PERMS,
 } from "../../auth/menuPermissions";
 
 export function AuthenticatedLayout() {
@@ -76,6 +77,7 @@ export function AuthenticatedLayout() {
   const canCxC = useAnyPermission(CXC_CONSULTAR_PERMS);
   const canDevoluciones = useAnyPermission(DEVOLUCION_CONSULTAR_PERMS);
   const canDocumentos = useAnyPermission(DOCUMENTO_CONSULTAR_PERMS);
+  const canReportes = useAnyPermission(REPORTES_VER_PERMS);
   const canCompras = canProveedores || canCompraCrear || canCompraConsultar || canCxP;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(
@@ -406,10 +408,10 @@ export function AuthenticatedLayout() {
               </div>
             )}
 
-            {/* FINANZAS — cobros pendientes a clientes (CxC).
+            {/* FINANZAS — cobros pendientes a clientes (CxC) y reportes.
                 CxP queda dentro del módulo Compras porque viene del ciclo
                 de compras a proveedor. */}
-            {canCxC && (
+            {(canCxC || canReportes) && (
               <p className={styles.sectionLabel}>Finanzas</p>
             )}
 
@@ -419,6 +421,15 @@ export function AuthenticatedLayout() {
                 icon={<Receipt size={18} aria-hidden="true" />}
               >
                 Cuentas por cobrar
+              </NavItem>
+            )}
+
+            {canReportes && (
+              <NavItem
+                to={ROUTES.REPORTES}
+                icon={<BarChart3 size={18} aria-hidden="true" />}
+              >
+                Reportes
               </NavItem>
             )}
 
@@ -472,11 +483,6 @@ export function AuthenticatedLayout() {
               </div>
             )}
 
-            <p className={styles.sectionLabel}>Próximamente</p>
-            <ComingSoonItem
-              icon={<BarChart3 size={18} aria-hidden="true" />}
-              label="Reportes"
-            />
           </nav>
         </aside>
 
@@ -536,21 +542,3 @@ function NavItem({
   );
 }
 
-function ComingSoonItem({
-  icon,
-  label,
-}: {
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <span
-      className={`${styles.navItem} ${styles.disabled}`}
-      aria-disabled="true"
-    >
-      <span className={styles.navIcon}>{icon}</span>
-      <span className={styles.navLabel}>{label}</span>
-      <span className={styles.soonTag}>Pronto</span>
-    </span>
-  );
-}

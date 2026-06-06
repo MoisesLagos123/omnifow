@@ -2322,3 +2322,29 @@ def build_obtener_documento_uc(
         detalles=SqlDetalleVentaRepository(uow),
         pagos=SqlPagoRepository(uow),
     )
+
+
+# -------- Reportes --------
+
+from erp.application.use_cases.reportes.resumen_financiero import (
+    ResumenFinancieroUseCase,
+)
+from erp.application.use_cases.reportes.top_productos import TopProductosUseCase
+
+
+def build_resumen_financiero_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ResumenFinancieroUseCase:
+    from erp.adapters.repositories.sql.reporte_repository import SqlReporteRepository
+
+    session = session_factory()
+    return ResumenFinancieroUseCase(reporte=SqlReporteRepository(session))
+
+
+def build_top_productos_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> TopProductosUseCase:
+    from erp.adapters.repositories.sql.reporte_repository import SqlReporteRepository
+
+    session = session_factory()
+    return TopProductosUseCase(reporte=SqlReporteRepository(session))

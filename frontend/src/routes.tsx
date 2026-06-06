@@ -47,6 +47,7 @@ import { DevolucionesPage } from "./modules/devoluciones/DevolucionesPage";
 import { DevolucionDetallePage } from "./modules/devoluciones/DevolucionDetallePage";
 import { DocumentosPage } from "./modules/documentos/DocumentosPage";
 import { DocumentoDetalle } from "./modules/documentos/DocumentoDetalle";
+import { ReportesPage } from "./modules/reportes/ReportesPage";
 import { CajaOperacionPage } from "./modules/caja/CajaOperacionPage";
 import { SesionesPage } from "./modules/caja/SesionesPage";
 import { SesionDetallePage } from "./modules/caja/SesionDetallePage";
@@ -71,6 +72,7 @@ const CXP_READ_PERMS = ["cxp.consultar", "cxp.gestionar"] as const;
 const CXC_READ_PERMS = ["cxc.consultar", "cxc.gestionar"] as const;
 const DEVOLUCION_READ_PERMS = ["devolucion.consultar", "devolucion.crear"] as const;
 const DOCUMENTO_CONSULTAR_PERMS = ["documento.consultar"] as const;
+const REPORTES_VER_PERMS = ["reportes.ver"] as const;
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   return (
@@ -298,6 +300,17 @@ function DocumentoConsultarGuard({ children }: { children: React.ReactNode }) {
   return (
     <RequirePermission
       anyOf={DOCUMENTO_CONSULTAR_PERMS}
+      fallback={<Navigate to={ROUTES.HOME} replace />}
+    >
+      {children}
+    </RequirePermission>
+  );
+}
+
+function ReportesGuard({ children }: { children: React.ReactNode }) {
+  return (
+    <RequirePermission
+      anyOf={REPORTES_VER_PERMS}
       fallback={<Navigate to={ROUTES.HOME} replace />}
     >
       {children}
@@ -610,6 +623,12 @@ export function AppRoutes() {
           element={
             <DocumentoConsultarGuard><DocumentoDetalle /></DocumentoConsultarGuard>
           }
+        />
+
+        {/* Reportes financieros */}
+        <Route
+          path={ROUTES.REPORTES}
+          element={<ReportesGuard><ReportesPage /></ReportesGuard>}
         />
       </Route>
       <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

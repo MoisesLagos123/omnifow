@@ -1332,3 +1332,86 @@ class EmitirGuiaDespachoResponse(BaseModel):
     estado_sii: str
     emitido_en: datetime
     detalles: list[DetalleGuiaDespachoResponse]
+
+
+# ---------------------------------------------------------------------------
+# Reportes Financieros
+# ---------------------------------------------------------------------------
+
+
+class PeriodoResponse(BaseModel):
+    fecha_desde: date
+    fecha_hasta: date
+
+
+class IngresosResponse(BaseModel):
+    ventas_bruto_clp: int
+    ventas_neto_clp: int
+    ventas_iva_clp: int
+    devoluciones_bruto_clp: int
+    devoluciones_neto_clp: int
+    devoluciones_iva_clp: int
+    ingresos_netos_clp: int
+
+
+class CostosResponse(BaseModel):
+    cogs_clp: int
+    cogs_devoluciones_clp: int
+    cogs_neto_clp: int
+
+
+class EgresosResponse(BaseModel):
+    compras_bruto_clp: int
+    compras_iva_clp: int
+    gastos_caja_clp: int
+
+
+class UtilidadResponse(BaseModel):
+    bruta_clp: int
+    neta_clp: int
+    margen_bruto_pct: float
+    margen_neto_pct: float
+
+
+class IvaReporteResponse(BaseModel):
+    debito_clp: int
+    credito_clp: int
+    neto_clp: int
+
+
+class VolumenResponse(BaseModel):
+    ventas_count: int
+    devoluciones_count: int
+    ticket_promedio_clp: int
+
+
+class ResumenFinancieroResponse(BaseModel):
+    periodo: PeriodoResponse
+    sucursal_id: UUID | None
+    ingresos: IngresosResponse
+    costos: CostosResponse
+    egresos: EgresosResponse
+    utilidad: UtilidadResponse
+    iva: IvaReporteResponse
+    volumen: VolumenResponse
+
+
+class TopProductoItemResponse(BaseModel):
+    producto_id: UUID
+    producto_sku: str
+    producto_nombre: str
+    categoria_nombre: str | None
+    cantidad_vendida: int
+    cantidad_devuelta: int
+    cantidad_neta: int
+    total_bruto_clp: int
+    total_neto_clp: int
+    participacion_pct: float
+
+
+class TopProductosResponse(BaseModel):
+    periodo: PeriodoResponse
+    sucursal_id: UUID | None
+    ordenar_por: str
+    items: list[TopProductoItemResponse]
+    total_periodo_clp: int

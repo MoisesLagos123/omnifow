@@ -687,12 +687,12 @@ Hoy el sistema emite documentos tributarios **solo internamente** (folio + datos
 - [ ] Use Case: Estado de cuenta por cliente/proveedor
 
 ## Finanzas y Reportes
-- [ ] Cálculo de Utilidad Bruta
-- [ ] Cálculo de Utilidad Neta
-- [ ] Cálculo dinámico de IVA (19% Chile)
-- [ ] Reporte de ingresos/egresos por período
-- [ ] Reporte de productos más vendidos
-- [ ] Reporte por sucursal
+- [x] Cálculo de Utilidad Bruta
+- [x] Cálculo de Utilidad Neta
+- [x] Cálculo dinámico de IVA (19% Chile)
+- [x] Reporte de ingresos/egresos por período (`ResumenFinancieroUseCase` + endpoint)
+- [x] Reporte de productos más vendidos (`TopProductosUseCase` + endpoint)
+- [x] Reporte por sucursal (filtro `sucursal_id` en ambos reportes)
 
 ## Frontend (React)
 - [x] Setup Vite + React + TypeScript
@@ -776,7 +776,7 @@ Hoy el sistema emite documentos tributarios **solo internamente** (folio + datos
 - [x] Atajos de teclado en POS (2026-06-04): F1 (modal de ayuda), F2 (foco buscador), F3 (foco RUT cliente), F4 (confirmar venta), Alt+T (toggle Boleta/Factura), Alt+B (vaciar carrito). Modal de ayuda discoverable con `<dl>/<dt>/<dd>` + `<Kbd>` visible en botón Confirmar; `aria-keyshortcuts="F4"`
 - [x] Accesibilidad WCAG AA (2026-06-04): `--color-text-subtle` light corregido (3.5:1 → 4.6:1); colores de estado warning/success/info recalibrados (Tailwind-700) para pasar contraste sobre blanco y sobre soft fill; skip-link a `<main>` con `tabIndex={-1}`; `.sr-only` utility global; Modal close 32→40px, hamburger 36→40px (touch targets); `aria-hidden="true"` en todos los íconos decorativos
 - [x] Theme tokens extendidos (2026-06-04): nuevos `--shadow-xs`, `--shadow-xl`, `--space-7`, `--color-surface-strong`, `--color-surface-sunken`. Sombras recalibradas. Header con `box-shadow: var(--shadow-xs)` para hairline lift al scrollear. Logo con `background: brand-soft` + padding para refuerzo de marca
-- [ ] Pantalla Reportes Financieros
+- [x] Pantalla Reportes Financieros (2026-06-06): Tabs Resumen + Top productos. KPI grid 4 cards, desglose 4 cards, tabla con barra de participación. Filtros fecha+sucursal+ordenarPor+topN. API client con tipos completos. Ruta /reportes con guard reportes.ver. Sidebar item en sección FINANZAS.
 
 ## Infraestructura
 - [x] `pyproject.toml` y `mypy.ini` (estricto)

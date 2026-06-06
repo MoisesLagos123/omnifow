@@ -68,4 +68,6 @@ export const ROUTES = {
   // Documentos tributarios
   DOCUMENTOS: "/documentos",
   DOCUMENTO_DETALLE: (id: string) => `/documentos/${id}`,
+  // Reportes financieros
+  REPORTES: "/reportes",
 } as const;

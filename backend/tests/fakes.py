@@ -2046,3 +2046,132 @@ class FakeGuiaDespachoRepo:
         if entry is None:
             return []
         return list(entry[1])
+
+
+class FakeReporteRepo:
+    """Fake configurable del ReporteRepository para tests unitarios.
+
+    Cada método retorna el valor que se le configura con `set_*`.
+    Los tests configuran los valores directamente para aislar la lógica
+    del use case de la query SQL.
+    """
+
+    def __init__(self) -> None:
+        self._ventas: dict[str, int] = {"bruto": 0, "neto": 0, "iva": 0, "count": 0}
+        self._devoluciones: dict[str, int] = {
+            "bruto": 0,
+            "neto": 0,
+            "iva": 0,
+            "count": 0,
+        }
+        self._cogs: int = 0
+        self._cogs_dev: int = 0
+        self._compras: dict[str, int] = {"bruto": 0, "iva": 0}
+        self._gastos_caja: int = 0
+        self._iva_nd: int = 0
+        self._top_productos: list[dict[str, Any]] = []
+
+    # Setters para configurar en tests
+    def set_ventas(self, **kwargs: int) -> None:
+        self._ventas.update(kwargs)
+
+    def set_devoluciones(self, **kwargs: int) -> None:
+        self._devoluciones.update(kwargs)
+
+    def set_cogs(self, value: int) -> None:
+        self._cogs = value
+
+    def set_cogs_dev(self, value: int) -> None:
+        self._cogs_dev = value
+
+    def set_compras(self, **kwargs: int) -> None:
+        self._compras.update(kwargs)
+
+    def set_gastos_caja(self, value: int) -> None:
+        self._gastos_caja = value
+
+    def set_iva_nd(self, value: int) -> None:
+        self._iva_nd = value
+
+    def set_top_productos(self, items: list[dict[str, Any]]) -> None:
+        self._top_productos = list(items)
+
+    # Protocol methods
+    def agregar_ventas_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> dict[str, int]:
+        return dict(self._ventas)
+
+    def agregar_devoluciones_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> dict[str, int]:
+        return dict(self._devoluciones)
+
+    def cogs_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> int:
+        return self._cogs
+
+    def cogs_devoluciones_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> int:
+        return self._cogs_dev
+
+    def agregar_compras_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> dict[str, int]:
+        return dict(self._compras)
+
+    def gastos_caja_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> int:
+        return self._gastos_caja
+
+    def iva_nd_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> int:
+        return self._iva_nd
+
+    def top_productos_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+        ordenar_por: str,
+        limite: int,
+    ) -> list[dict[str, Any]]:
+        items = list(self._top_productos)
+        if ordenar_por == "monto":
+            items.sort(key=lambda x: int(x.get("total_bruto_clp", 0)), reverse=True)
+        else:
+            items.sort(key=lambda x: int(x.get("cantidad_neta", 0)), reverse=True)
+        return items[:limite]

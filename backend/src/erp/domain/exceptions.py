@@ -599,3 +599,11 @@ class GuiaDespachoInvalidaError(ValidacionError):
     code = "ERR_GUIA_DESPACHO_INVALIDA"
     http_status = 422
     default_message = "Datos de guía de despacho inválidos"
+
+
+# --- Reportes ---
+
+class ReporteRangoInvalidoError(ValidacionError):
+    code = "ERR_REPORTE_RANGO_INVALIDO"
+    http_status = 422
+    default_message = "Rango de fechas inválido (fecha_desde > fecha_hasta o rango > 366 días)"

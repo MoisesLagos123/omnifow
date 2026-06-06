@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Protocol
+from typing import Any, Protocol
 from uuid import UUID
 
 from erp.domain.entities.abono_cxc import AbonoCxC
@@ -1050,3 +1050,147 @@ class GuiaDespachoRepository(Protocol):
     def obtener(self, guia_id: UUID) -> GuiaDespacho | None: ...
 
     def obtener_detalles(self, guia_id: UUID) -> list[DetalleGuiaDespacho]: ...
+
+
+# --- Reportes ---
+
+@dataclass(frozen=True)
+class AgreVentasRow:
+    """Resultado de una query de agregación de ventas/devoluciones."""
+
+    bruto: int
+    neto: int
+    iva: int
+    count: int
+
+
+@dataclass(frozen=True)
+class AgreComprasRow:
+    """Resultado de una query de agregación de compras."""
+
+    bruto: int
+    iva: int
+
+
+@dataclass(frozen=True)
+class TopProductoRow:
+    """Una fila del ranking de productos."""
+
+    producto_id: UUID
+    producto_sku: str
+    producto_nombre: str
+    categoria_nombre: str | None
+    cantidad_vendida: int
+    cantidad_devuelta: int
+    cantidad_neta: int
+    total_bruto_clp: int
+    total_neto_clp: int
+
+
+class ReporteRepository(Protocol):
+    """Puerto de lectura para queries de reportes financieros.
+
+    Todos los métodos reciben `sucursales` (frozenset vacío = todas las
+    sucursales, sin restricción).  Las fechas son `datetime` con timezone UTC
+    que cubren el rango inclusivo [desde 00:00:00, hasta 23:59:59.999999].
+    """
+
+    def agregar_ventas_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> dict[str, int]:
+        """Suma bruto/neto/iva y cuenta de ventas CONFIRMADAS en el rango.
+
+        Retorna dict con claves: ``bruto``, ``neto``, ``iva``, ``count``.
+        """
+        ...
+
+    def agregar_devoluciones_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> dict[str, int]:
+        """Suma bruto/neto/iva y cuenta de NC (devoluciones) en el rango.
+
+        Retorna dict con claves: ``bruto``, ``neto``, ``iva``, ``count``.
+        """
+        ...
+
+    def cogs_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> int:
+        """Suma costo_unitario_clp × cantidad de DetalleVenta de ventas
+        CONFIRMADAS en el rango."""
+        ...
+
+    def cogs_devoluciones_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> int:
+        """Suma costo_unitario_clp × cantidad de DetalleDevolucion
+        cuya devolución esté dentro del rango."""
+        ...
+
+    def agregar_compras_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> dict[str, int]:
+        """Suma bruto (total_clp) e iva de compras en el rango por fecha_documento.
+
+        Retorna dict con claves: ``bruto``, ``iva``.
+        """
+        ...
+
+    def gastos_caja_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> int:
+        """Suma monto_clp de MovimientoCaja tipos EGRESO_GASTO + EGRESO_RETIRO
+        en el rango.  Requiere join sesion_caja → caja para filtrar por sucursal."""
+        ...
+
+    def iva_nd_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+    ) -> int:
+        """Suma iva_clp de documentos tipo ND emitidos en el rango."""
+        ...
+
+    def top_productos_periodo(
+        self,
+        *,
+        desde: datetime,
+        hasta: datetime,
+        sucursales: frozenset[UUID],
+        ordenar_por: str,
+        limite: int,
+    ) -> list[dict[str, Any]]:
+        """Ranking de productos agrupados por producto_id.
+
+        Agrega ventas confirmadas, resta devoluciones.
+        Ordena por cantidad_neta DESC (``ordenar_por="cantidad"``)
+        o total_bruto_clp DESC (``ordenar_por="monto"``).
+        Retorna lista de dicts con claves correspondientes a TopProductoRow.
+        """
+        ...

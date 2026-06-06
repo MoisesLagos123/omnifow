@@ -98,3 +98,6 @@ export const DEVOLUCION_CREAR_PERMS = ["devolucion.crear"] as const;
 
 /** Consulta de documentos tributarios (boletas, facturas, NC, ND, guías). */
 export const DOCUMENTO_CONSULTAR_PERMS = ["documento.consultar"] as const;
+
+/** Ver reportes financieros (resumen, top productos). */
+export const REPORTES_VER_PERMS = ["reportes.ver"] as const;
