@@ -27,6 +27,7 @@ Sistema de Punto de Venta (POS) escalable con módulo financiero/contable integr
 | Idempotencia | **Sí**, header `Idempotency-Key` en operaciones mutables críticas, persistido en tabla |
 | Audit log | **Síncrono** dentro del UoW. Interfaz `AuditPublisher` lista para migrar a Outbox futuro |
 | DTE / SII v0 | **Solo emisión interna** (folio + documento). Campo `estado_sii` para integración futura. ⏸️ Integración real con SII está **en observación** — ver bloque dedicado en `PROGRESO.md`. NO operar legalmente sin completarla. |
+| Arquitectura SII | **Microservicio aparte** (`sii-service`) cuando se implemente. NO va dentro del backend POS. El POS llama por HTTP al `sii-service`, este firma + envía al SII, y notifica al POS por webhook. Diseño completo en `docs/ARQUITECTURA_SII.md`. |
 | UoW scope | **Por Use Case** — UoW se abre/cierra dentro del caso de uso, no en middleware |
 | UUID | **v7** (ordenable temporalmente — mejor performance en índices Postgres) |
 | API versioning | **Prefijo URL** `/api/v1/...` |

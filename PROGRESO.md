@@ -12,7 +12,23 @@ Checklist vivo de tareas por módulo. Marcar `- [x]` al completar. Agregar tarea
 - El producto se llama **OMNIFOW** (NO Mini ERP). El directorio del repo sigue siendo `mini erp` por historia; **no renombrar** para no romper rutas absolutas.
 - Logo: archivo PNG en `frontend/public/logo.png` (favicon + logo del header/login). Referenciado como `/logo.png`.
 
-### Última actividad confirmada (2026-06-06) — Devoluciones parciales
+### Última actividad confirmada (2026-06-06) — Decisión arquitectónica: SII como microservicio aparte
+
+**Sin código nuevo** — documento de diseño aprobado para cuando se implemente. Creado [`docs/ARQUITECTURA_SII.md`](docs/ARQUITECTURA_SII.md) (~500 líneas):
+- Justificación de separar el SII en un microservicio (aislamiento, compliance, certificado aislado, reuso, despliegue independiente).
+- Diagrama de comunicación POS ↔ SII.
+- API completa del `sii-service`: `POST /dte/emitir`, `GET /dte/{track_id}`, `POST /caf/upload`, etc.
+- Endpoint nuevo en el POS: `POST /sii/callback` con verificación HMAC.
+- Modelo de datos del `sii-service` (Postgres separado): tabla `dte_queue`, `cafs`, `sii_audit`.
+- Estados del DTE como state machine.
+- Estructura de monorepo extendida: `sii-service/` al lado de `backend/` y `frontend/`.
+- Plan F1 (skeleton + mock) → F2 (firma real) → F3 (ambiente cert) → F4 (prod) → F5 (reportes mensuales).
+- Decisiones técnicas pendientes (HTTP vs queue, cert en archivo vs HSM, almacenamiento XML, multi-tenancy).
+- Seguridad (HMAC en webhooks, cert nunca en repo, API key shared, audit log).
+
+`CLAUDE.md` actualizado con la decisión en la tabla de "Decisiones del Proyecto" — fija que cuando se implemente el SII NO va dentro del backend.
+
+### Actividad previa (2026-06-06) — Devoluciones parciales
 
 Generaliza el `AnularVentaUseCase` a un nuevo `ProcesarDevolucionUseCase` que soporta devolución parcial o total. **3er experimento multi-agente paralelo** exitoso. **372 backend / 212 frontend tests verdes · mypy 0 errores · tsc clean · migración 0013 aplicada**. También se reorganizó el sidebar (label "Compras" tenía su grupo bajo "Administración" por error de orden en el JSX, ahora cada section label tiene su contenido correcto + sección nueva "Finanzas" para CxC).
 
@@ -330,7 +346,7 @@ Buscar en el archivo: "TODO" y "fuera de alcance" para la lista completa. Los m�
 | ✅ done | ~~**Cuentas por Cobrar (CxC) + venta a crédito**~~ | 🟡 medio | Completado 2026-06-06 — 2 entidades + 4 use cases + extensión POS + 2 páginas + migración 0012. Ciclo financiero cerrado |
 | 🟢 nice-to-have | **Configuración global SII** (IVA, datos emisor, certificado) | 🟡 medio | Prerrequisito para integración real con SII |
 | ✅ done | ~~**Devoluciones parciales**~~ | 🟡 medio | Completado 2026-06-06 — `ProcesarDevolucionUseCase` reemplaza/generaliza Anular. NC parcial con folio + reembolso por método. Migración 0013 |
-| 🔭 **en observación** | **Firma electrónica SII (DTE real)** — ver bloque dedicado al final | 🔴 grande (multi-fase) | Hoy `estado_sii=PENDIENTE`; entidad lista. NO se factura/boleta legalmente hasta que se complete |
+| 🔭 **en observación** | **Firma electrónica SII (DTE real)** — microservicio aparte `sii-service`, ver `docs/ARQUITECTURA_SII.md` | 🔴 grande (multi-fase F1-F5) | Hoy `estado_sii=PENDIENTE`; entidad lista. NO se factura/boleta legalmente hasta que se complete |
 | 🔴 fuera de alcance v1 | **Persistencia formal de Idempotency-Key** (tabla) | 🟢 chico | Hoy se acepta el header pero no deduplica |
 
 ### TODOs transversales documentados
@@ -346,6 +362,7 @@ Buscar en el archivo: "TODO" y "fuera de alcance" para la lista completa. Los m�
 ### 🔭 EN OBSERVACIÓN — Integración real con SII (Chile)
 
 **Estado**: ⏸️ pendiente · **no incluido en v0** · **no agendado**
+**Decisión arquitectónica tomada (2026-06-06)**: la integración con el SII será un **microservicio aparte** (`sii-service`), NO va dentro del backend POS. Diseño completo documentado en [`docs/ARQUITECTURA_SII.md`](docs/ARQUITECTURA_SII.md): responsabilidades, endpoints, modelo de datos, manejo de fallas, plan F1-F5.
 
 Hoy el sistema emite documentos tributarios **solo internamente** (folio + datos + totales + IVA). El campo `DocumentoTributario.estado_sii` queda siempre en `PENDIENTE` porque NO se firma electrónicamente ni se envía al SII.
 
