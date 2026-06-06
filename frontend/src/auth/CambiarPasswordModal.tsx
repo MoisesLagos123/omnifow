@@ -55,10 +55,6 @@ interface Props {
 export function CambiarPasswordModal({ open, onClose }: Props) {
   const toast = useToast();
   const setSession = useAuthStore((s) => s.setSession);
-  // Email del usuario actual — necesario para que el browser asocie la
-  // password guardada a esta cuenta específica y NO ofrezca passwords
-  // de otros usuarios en el autocompletado.
-  const userEmail = useAuthStore((s) => s.user?.email ?? "");
   const [showActual, setShowActual] = useState(false);
   const [showNueva, setShowNueva] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -128,71 +124,77 @@ export function CambiarPasswordModal({ open, onClose }: Props) {
         {serverError && <ErrorAlert>{serverError}</ErrorAlert>}
 
         {/*
-          Username hint oculto — patrón W3C/WHATWG para "change password
-          forms". El browser asocia las passwords guardadas por dominio,
-          y sin un campo username explícito ofrece TODAS las cuentas
-          guardadas para `localhost`/dominio (incluyendo la de otros
-          usuarios). Este input hidden con el email del usuario actual
-          le dice al password manager: "esta password es para esta
-          cuenta", evitando el dropdown con cuentas ajenas.
-          Ref: https://www.chromium.org/developers/design-documents/create-amazing-password-forms/
+          SEGURIDAD: en un POS multi-usuario donde varias personas comparten
+          la misma máquina, NO queremos que el browser ofrezca passwords
+          guardadas en este form. Si alguien deja la sesión abierta y otro
+          accede al modal, el dropdown del password manager le permitiría
+          cambiar la contraseña sin saberla.
+
+          Combinamos varias señales para que browsers y password managers
+          (1Password, LastPass, Bitwarden, Brave/Chrome nativo) NO ofrezcan
+          autocompletado:
+            - autoComplete="new-password" en TODOS los campos password
+              (no ofrece "current-password" guardadas; algunos browsers
+              proponen "generar password" — el user puede ignorarlo)
+            - data-lpignore="true"   → LastPass
+            - data-1p-ignore="true"  → 1Password
+            - data-form-type="other" → Bitwarden / heurística genérica
+          Chrome/Brave a veces ignoran autoComplete="off" en passwords;
+          "new-password" es el valor con mejor soporte real para este caso.
         */}
-        <input
-          type="text"
-          name="username"
-          autoComplete="username"
-          value={userEmail}
-          readOnly
-          aria-hidden="true"
-          tabIndex={-1}
-          style={{
-            position: "absolute",
-            left: "-9999px",
-            width: 1,
-            height: 1,
-            opacity: 0,
-            pointerEvents: "none",
-          }}
-        />
+        {(() => {
+          // Atributos para suprimir autocompletado del password manager.
+          // Tipado laxo porque `data-*` no está en InputHTMLAttributes.
+          const sinSugerencias = {
+            autoComplete: "new-password",
+            "data-lpignore": "true",
+            "data-1p-ignore": "true",
+            "data-form-type": "other",
+            spellCheck: false,
+          } as const;
+          return (
+            <>
+              <Input
+                label="Contraseña actual"
+                type={showActual ? "text" : "password"}
+                {...sinSugerencias}
+                error={errors.password_actual?.message}
+                rightSlot={
+                  <EyeToggle
+                    show={showActual}
+                    onClick={() => setShowActual((v) => !v)}
+                    label={showActual ? "Ocultar contraseña actual" : "Mostrar contraseña actual"}
+                  />
+                }
+                {...register("password_actual")}
+              />
 
-        <Input
-          label="Contraseña actual"
-          type={showActual ? "text" : "password"}
-          autoComplete="current-password"
-          error={errors.password_actual?.message}
-          rightSlot={
-            <EyeToggle
-              show={showActual}
-              onClick={() => setShowActual((v) => !v)}
-              label={showActual ? "Ocultar contraseña actual" : "Mostrar contraseña actual"}
-            />
-          }
-          {...register("password_actual")}
-        />
+              <Input
+                label="Nueva contraseña"
+                type={showNueva ? "text" : "password"}
+                {...sinSugerencias}
+                error={errors.password_nueva?.message}
+                rightSlot={
+                  <EyeToggle
+                    show={showNueva}
+                    onClick={() => setShowNueva((v) => !v)}
+                    label={showNueva ? "Ocultar nueva contraseña" : "Mostrar nueva contraseña"}
+                  />
+                }
+                {...register("password_nueva")}
+              />
+              <PasswordStrengthMeter password={passwordNueva ?? ""} />
 
-        <Input
-          label="Nueva contraseña"
-          type={showNueva ? "text" : "password"}
-          autoComplete="new-password"
-          error={errors.password_nueva?.message}
-          rightSlot={
-            <EyeToggle
-              show={showNueva}
-              onClick={() => setShowNueva((v) => !v)}
-              label={showNueva ? "Ocultar nueva contraseña" : "Mostrar nueva contraseña"}
-            />
-          }
-          {...register("password_nueva")}
-        />
-        <PasswordStrengthMeter password={passwordNueva ?? ""} />
-
-        <Input
-          label="Confirmar nueva contraseña"
-          type="password"
-          autoComplete="new-password"
-          error={errors.password_confirmar?.message}
-          {...register("password_confirmar")}
-        />
+              <Input
+                label="Confirmar nueva contraseña"
+                type="password"
+                {...sinSugerencias}
+                error={errors.password_confirmar?.message}
+                {...register("password_confirmar")}
+              />
+            </>
+          );
+        })()}
 
         <div
           style={{
