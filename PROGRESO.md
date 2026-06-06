@@ -12,7 +12,23 @@ Checklist vivo de tareas por módulo. Marcar `- [x]` al completar. Agregar tarea
 - El producto se llama **OMNIFOW** (NO Mini ERP). El directorio del repo sigue siendo `mini erp` por historia; **no renombrar** para no romper rutas absolutas.
 - Logo: archivo PNG en `frontend/public/logo.png` (favicon + logo del header/login). Referenciado como `/logo.png`.
 
-### Última actividad confirmada (2026-06-06) — CxC (Cuentas por Cobrar) + Venta a crédito
+### Última actividad confirmada (2026-06-06) — SMTP real con Resend
+
+Cierra la tarea #19 pendiente. **Reset de contraseña ahora funciona end-to-end** cuando se activa `EMAIL_BACKEND=smtp` en producción. **354 backend tests verdes · mypy 0 errores · 299 archivos**.
+
+**Backend** (1 adapter nuevo + extensión de settings + DI singleton actualizado):
+- `SmtpEmailSender` en `infrastructure/email/smtp_email_sender.py` — implementación stdlib (`smtplib` + `email.message.EmailMessage`, sin deps nuevas). Email **multipart** con texto plano + HTML responsive (botón CTA, link de fallback, estilo profesional sin frameworks). Maneja `starttls`, login condicional (skip si user/password vacíos para relays sin auth), timeout configurable.
+- Settings extendidos en `infrastructure/config/settings.py`: `EMAIL_BACKEND` (`logging` | `smtp`, default `logging`), `SMTP_HOST` (default `smtp.resend.com`), `SMTP_PORT` (587), `SMTP_USE_TLS`, `SMTP_TIMEOUT_SECONDS`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`.
+- `_email_sender_singleton` en `dependencies.py` ahora elige adapter por `EMAIL_BACKEND`. Para activar SMTP en producción solo hace falta cambiar env vars en Render — el código NO cambia.
+- `.env.example` actualizado con las nuevas vars + comentarios explicativos para Resend (`SMTP_USER=resend`, `SMTP_PASSWORD=re_xxxx`, `EMAIL_FROM=OMNIFOW <onboarding@resend.dev>`).
+- 5 tests unit nuevos en `test_smtp_email_sender.py`: STARTTLS+login+send_message correctos, headers Subject/From/To, multipart text+html, sin login si credenciales vacías, propaga excepción si SMTP falla (el use case ya la captura).
+
+**Documentación**:
+- `docs/deploy/GUIA_DEPLOY.md` **Parte 7 actualizada** de "futuro" → pasos concretos para activar Resend en 10 min: crear cuenta, generar API key, agregar 6 env vars en Render, smoke test, troubleshooting de errores típicos (Auth failed, Connection refused, SSL error). Tabla de cuándo cambiar qué.
+
+**Proveedor probado**: Resend (free 100 emails/día, dominio compartido `onboarding@resend.dev` sin necesitar dominio propio). Por contrato del puerto `EmailSender`, **funciona con cualquier SMTP estándar** (Brevo, Mailgun, SendGrid, Gmail App Password, etc.) — solo cambian las env vars.
+
+### Actividad previa (2026-06-06) — CxC (Cuentas por Cobrar) + Venta a crédito
 
 Cierra el ciclo financiero de ventas: ahora se pueden vender boletas/facturas a crédito desde el POS y gestionar el cobro posterior con abonos. **2do experimento multi-agente paralelo** sobre el contrato `.claude/contracts/CXC_CONTRACT.md` (espejo casi exacto de CxP). **349 backend / 200 frontend tests verdes · mypy 0 errores · tsc clean · migración 0012 aplicada**.
 
@@ -175,7 +191,7 @@ Sesión enfocada en calidad visual / accesibilidad / consistencia. Cero cambios 
 6. **SII en observación**: integración real con SII está documentada pero NO implementada. `estado_sii=PENDIENTE` siempre. Ver bloque "🔭 EN OBSERVACIÓN" al final.
 
 ### Estado técnico confirmado (2026-06-06)
-- Backend: `mypy --strict` ✅ 0 errores · 298 archivos · **349 tests verde** (333 previos + 16 cxc/venta-credito)
+- Backend: `mypy --strict` ✅ 0 errores · 299 archivos · **354 tests verde** (349 previos + 5 smtp adapter)
 - Frontend: `tsc` ✅ · **200 tests verde** (190 previos + 10 cxc/credito en POS)
 - Migración Alembic actual: **`0012_cxc_venta_credito` (head)** — 2 tablas + 3 permisos seed + asignaciones a perfiles
 - **2 experimentos multi-agente exitosos**: módulos Compras (0011) y CxC (0012) con 2 agentes Sonnet paralelos cada uno sobre contratos en `.claude/contracts/*.md` — backend y frontend sincronizados sin conflictos en ambas iteraciones
@@ -211,10 +227,10 @@ Credenciales seed:
   La arquitectura ya está lista — solo falta el adapter + tests.
 
 ### Próximo paso recomendado (orden sugerido por valor)
-1. **Configuración global SII** (🟡 medio — prerrequisito para integración real con SII)
-2. **Configuración SMTP real** (🟢 chico — adapter `SmtpEmailSender` + tests) — habilita reset password end-to-end
+1. **Primer deploy** (🟢 chico — seguir `docs/deploy/GUIA_DEPLOY.md`. SMTP ya implementado, solo activar en Render con env vars de Resend)
+2. **Configuración global SII** (🟡 medio — prerrequisito para integración real con SII)
 3. **Devoluciones parciales** (🟡 medio — hoy se anula la venta completa)
-4. **Primer deploy** (🟢 chico — seguir `docs/deploy/GUIA_DEPLOY.md` local)
+4. **Reportes financieros básicos** (🟡 medio — Utilidad bruta/neta, IVA débito/crédito, top productos)
 5. ~~Refresh token + Logout~~ ✅ completado 2026-06-05
 6. ~~Audit Log viewer~~ ✅ completado 2026-06-05
 7. ~~Cambiar contraseña~~ ✅ completado 2026-06-05
@@ -277,7 +293,7 @@ Buscar en el archivo: "TODO" y "fuera de alcance" para la lista completa. Los m�
 | ✅ done | ~~**Audit Log viewer**~~ | 🟢 chico | Completado 2026-06-05 — endpoint + página con filtros + detalle JSON |
 | ✅ done | ~~**Cambiar contraseña**~~ | 🟢 chico | Completado 2026-06-05 — backend + modal en dropdown del usuario |
 | ✅ done | ~~**Forgot password + Reset por email**~~ | 🟢 chico | Completado 2026-06-05 — usa `LoggingEmailSender` (dev). SMTP real pendiente ⬇ |
-| 🟢 pendiente | **Configuración SMTP real** | 🟢 chico | `SmtpEmailSender` + env vars. Hoy el reset usa logging-only. Arquitectura lista, solo falta el adapter |
+| ✅ done | ~~**Configuración SMTP real**~~ | 🟢 chico | Completado 2026-06-06 — `SmtpEmailSender` + settings + tests + guía Resend en docs/deploy. Activar con `EMAIL_BACKEND=smtp` |
 | ✅ done | ~~**Compras + Proveedores + CxP**~~ | 🟡 medio | Completado 2026-06-05 — 5 entidades + 13 use cases + 8 endpoints + 8 páginas + migración 0011. Ciclo de costos cerrado |
 | ✅ done | ~~**Cuentas por Cobrar (CxC) + venta a crédito**~~ | 🟡 medio | Completado 2026-06-06 — 2 entidades + 4 use cases + extensión POS + 2 páginas + migración 0012. Ciclo financiero cerrado |
 | 🟢 nice-to-have | **Configuración global SII** (IVA, datos emisor, certificado) | 🟡 medio | Prerrequisito para integración real con SII |

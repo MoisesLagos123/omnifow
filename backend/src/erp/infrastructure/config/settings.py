@@ -53,6 +53,22 @@ class Settings(BaseSettings):
         60, alias="RESET_PASSWORD_TTL_MINUTES"
     )
 
+    # ---- Email ----
+    # `logging` = LoggingEmailSender (dev — escribe el link al log de uvicorn).
+    # `smtp`    = SmtpEmailSender (prod — envía emails reales por SMTP).
+    email_backend: str = Field("logging", alias="EMAIL_BACKEND")
+    smtp_host: str = Field("smtp.resend.com", alias="SMTP_HOST")
+    smtp_port: int = Field(587, alias="SMTP_PORT")
+    smtp_user: str = Field("", alias="SMTP_USER")
+    smtp_password: str = Field("", alias="SMTP_PASSWORD")
+    smtp_use_tls: bool = Field(True, alias="SMTP_USE_TLS")
+    smtp_timeout_seconds: int = Field(10, alias="SMTP_TIMEOUT_SECONDS")
+    # Dirección remitente (RFC 5322). Para Resend gratis: usar el dominio
+    # compartido `onboarding@resend.dev` mientras no tengas dominio propio.
+    email_from: str = Field(
+        "OMNIFOW <onboarding@resend.dev>", alias="EMAIL_FROM"
+    )
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_allow_origins.split(",") if o.strip()]

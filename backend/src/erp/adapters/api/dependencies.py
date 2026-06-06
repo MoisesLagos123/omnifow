@@ -154,12 +154,28 @@ def get_clock() -> Clock:
 
 @lru_cache
 def _email_sender_singleton() -> "EmailSender":
-    """Singleton del EmailSender.
+    """Singleton del EmailSender — elegido por `EMAIL_BACKEND` en settings.
 
-    Hoy retorna `LoggingEmailSender` (logging-only, ideal para dev/portfolio).
-    Para producción, cambiar acá la implementación a un `SmtpEmailSender` que
-    use las credenciales SMTP del .env.
+    - `EMAIL_BACKEND=logging` (default) → `LoggingEmailSender` que escribe
+      el link al log de uvicorn. Ideal para dev/demos sin SMTP.
+    - `EMAIL_BACKEND=smtp` → `SmtpEmailSender` real. Requiere `SMTP_HOST`,
+      `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`. Probado con
+      Resend (free 100 emails/día) — `smtp.resend.com:587` con STARTTLS.
     """
+    settings = get_settings()
+    if settings.email_backend.lower() == "smtp":
+        from erp.infrastructure.email import SmtpEmailSender
+
+        return SmtpEmailSender(
+            host=settings.smtp_host,
+            port=settings.smtp_port,
+            user=settings.smtp_user,
+            password=settings.smtp_password,
+            from_addr=settings.email_from,
+            use_tls=settings.smtp_use_tls,
+            timeout_seconds=settings.smtp_timeout_seconds,
+        )
+
     from erp.infrastructure.email import LoggingEmailSender
 
     return LoggingEmailSender()
