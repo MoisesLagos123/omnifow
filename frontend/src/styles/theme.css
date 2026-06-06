@@ -1,0 +1,167 @@
+/*
+ * Sistema de temas — OMNIFOW
+ * Light en :root, Dark en [data-theme="dark"].
+ * NUNCA hardcodear colores en componentes; usar siempre estas variables.
+ */
+
+:root {
+  /* Superficies — `surface-strong` es una capa elevada para hero/dashboards
+     que necesita destacar; `surface-sunken` es fondo de "pozo" (chips de
+     búsqueda, slots de input, sidebar). */
+  --color-bg: #f6f8fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1f4f9;
+  --color-surface-strong: #ffffff;
+  --color-surface-sunken: #eef1f7;
+  --color-overlay: rgba(15, 23, 42, 0.45);
+
+  /* Texto */
+  --color-text: #0f172a;
+  --color-text-muted: #5b6478;
+  /* #6b7387 ≈ 4.6:1 sobre #ffffff — cumple WCAG AA 4.5:1 para texto normal.
+     Antes era #8a93a6 (~3.5:1, falla AA). */
+  --color-text-subtle: #6b7387;
+  --color-text-inverse: #ffffff;
+
+  /* Borde */
+  --color-border: #e2e6ee;
+  --color-border-strong: #cbd2de;
+
+  /* Marca */
+  --color-brand: #2563eb;
+  --color-brand-hover: #1d4ed8;
+  --color-brand-active: #1e40af;
+  --color-brand-soft: #e0e9ff;
+  --color-on-brand: #ffffff;
+
+  /* Estado — tonos calibrados para texto/iconos sobre superficies claras.
+     Cada uno pasa WCAG AA (4.5:1) tanto sobre blanco como sobre su propio
+     fill `*-soft`. Antes usábamos 500/600 (#16a34a / #d97706 / #0ea5e9 /
+     #dc2626) que fallaban contraste para texto. */
+  --color-success: #15803d;       /* 5.02:1 / 4.57:1 */
+  --color-success-soft: #dcfce7;
+  --color-warning: #b45309;       /* 5.02:1 / 4.51:1 */
+  --color-warning-soft: #fef3c7;
+  --color-danger: #dc2626;        /* 4.83:1 / 3.95:1 — pasa en blanco */
+  --color-danger-soft: #fee2e2;
+  --color-info: #0369a1;          /* 5.93:1 / 5.17:1 */
+  --color-info-soft: #e0f2fe;
+
+  /* Focus */
+  --color-focus-ring: rgba(37, 99, 235, 0.35);
+
+  /* Tablas */
+  --color-table-row-hover: #f5f7fb;
+  --color-table-header-bg: #f1f3f6;
+
+  /* Sidebar */
+  --color-sidebar-bg: #ffffff;
+  --color-sidebar-active-bg: #e0e9ff;
+  --color-sidebar-active-fg: #1d4ed8;
+
+  /* Breakpoints (referencia, usar en media queries) */
+  --bp-mobile: 640px;
+  --bp-tablet: 1024px;
+
+  /* Tipografía */
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular,
+    Menlo, monospace;
+
+  /* Tamaños y espaciado */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Sombras — escala calibrada para sentir "depth" sin pesar.
+     sm: hairline lift (chips, kbds)
+     md: cards básicas
+     lg: modales, popovers
+     xl: hero / landing CTA */
+  --shadow-xs: 0 1px 1px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05),
+    0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06),
+    0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 36px rgba(15, 23, 42, 0.10),
+    0 2px 6px rgba(15, 23, 42, 0.05);
+  --shadow-xl: 0 28px 70px rgba(15, 23, 42, 0.16),
+    0 4px 12px rgba(15, 23, 42, 0.06);
+
+  /* Transiciones */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+
+  /* Indica al navegador qué esquema usar para controles nativos
+     (dropdown de <select>, scrollbars, autofill, etc.). */
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #0b1020;
+  --color-surface: #131a2c;
+  --color-surface-2: #1a2238;
+  --color-surface-strong: #182039;
+  --color-surface-sunken: #0e1426;
+  --color-overlay: rgba(0, 0, 0, 0.65);
+
+  --color-text: #e6ebf5;
+  --color-text-muted: #9aa4bd;
+  --color-text-subtle: #6c7691;
+  --color-text-inverse: #0b1020;
+
+  --color-border: #25304a;
+  --color-border-strong: #364261;
+
+  --color-brand: #60a5fa;
+  --color-brand-hover: #3b82f6;
+  --color-brand-active: #2563eb;
+  --color-brand-soft: #1c2a4d;
+  --color-on-brand: #0b1020;
+
+  --color-success: #4ade80;
+  --color-success-soft: #0f2a1c;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #2d1f0a;
+  --color-danger: #f87171;
+  --color-danger-soft: #2a1010;
+  --color-info: #38bdf8;
+  --color-info-soft: #0a2030;
+
+  --color-focus-ring: rgba(96, 165, 250, 0.45);
+
+  --color-table-row-hover: #1a2238;
+  --color-table-header-bg: #1a2238;
+
+  --color-sidebar-bg: #131a2c;
+  --color-sidebar-active-bg: #1c2a4d;
+  --color-sidebar-active-fg: #93b8fd;
+
+  --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.45),
+    0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 32px 80px rgba(0, 0, 0, 0.65),
+    0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-base: 0ms;
+  }
+}

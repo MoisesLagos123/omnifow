@@ -1,0 +1,46 @@
+# Secretos (críticos — repo público)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+# Pero sí queremos versionar la plantilla
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+dist/
+.vite/
+*.log
+
+# Claude Code (skills instaladas + settings personales — viven en otros repos
+# o son específicos de la máquina del dev).
+.claude/
+
+# Worktrees temporales generados por agentes.
+.worktrees/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Backups locales (zip/rar de respaldo viejo)
+*.rar
+*.zip
+*.tar
+*.tar.gz
+*.7z

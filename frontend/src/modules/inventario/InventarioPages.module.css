@@ -1,0 +1,287 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 1200px;
+}
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 1100px;
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+.headActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  align-items: end;
+  flex-wrap: wrap;
+}
+.searchSlot { flex: 1; min-width: 220px; }
+.errorWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+.mono { font-family: var(--font-mono); font-size: 0.85rem; }
+.muted { color: var(--color-text-muted); font-size: 0.85rem; }
+.numeric { font-variant-numeric: tabular-nums; }
+
+.formCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.formCard form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+.formRow3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-3);
+}
+@media (max-width: 720px) {
+  .formRow, .formRow3 { grid-template-columns: 1fr; }
+}
+.formActions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-2);
+}
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-3) 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.bigPriceRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+.bigPrice {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.priceLabel { color: var(--color-text-muted); font-size: 0.85rem; }
+.deltaPos { color: var(--color-success); font-weight: 600; font-size: 0.9rem; }
+.deltaNeg { color: var(--color-danger); font-weight: 600; font-size: 0.9rem; }
+.deltaNeutral { color: var(--color-text-muted); font-weight: 500; font-size: 0.9rem; }
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.statLabel { font-size: 0.78rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.statValue { font-size: 1.25rem; font-weight: 700; color: var(--color-text); font-variant-numeric: tabular-nums; }
+
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+.itemsTable th, .itemsTable td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.itemsTable th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  background: var(--color-table-header-bg);
+}
+.itemsTable td .innerInput {
+  width: 100%;
+}
+.itemsTableActions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.summaryFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-variant-numeric: tabular-nums;
+}
+.summaryFoot strong { font-size: 1.05rem; color: var(--color-text); }
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: var(--space-3) var(--space-4);
+  font-size: 0.92rem;
+}
+.detailGrid dt { color: var(--color-text-muted); font-weight: 500; }
+.detailGrid dd { margin: 0; color: var(--color-text); }
+@media (max-width: 640px) {
+  .detailGrid { grid-template-columns: 1fr; gap: var(--space-1) var(--space-2); }
+  .detailGrid dt { margin-top: var(--space-2); }
+}
+
+.tabHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.movPos { color: var(--color-success); font-weight: 600; font-variant-numeric: tabular-nums; }
+.movNeg { color: var(--color-danger); font-weight: 600; font-variant-numeric: tabular-nums; }
+.movNeutral { color: var(--color-text); font-variant-numeric: tabular-nums; }
+
+/* Control de vencimiento (ProductoForm) */
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+}
+.legend {
+  padding: 0 var(--space-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+  font-size: 0.92rem;
+  color: var(--color-text);
+}
+.checkbox {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--color-brand);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Lotes (detalle de producto) y Por vencer */
+.dangerText { color: var(--color-danger); font-weight: 600; font-variant-numeric: tabular-nums; }
+.warningText { color: var(--color-warning); font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+.kpiCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.kpiCardDanger { border-left-color: var(--color-danger); }
+.kpiCardWarning { border-left-color: var(--color-warning); }
+.kpiCardBrand { border-left-color: var(--color-brand); }
+.kpiLabel {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.kpiValue {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.kpiValueDanger { color: var(--color-danger); }
+.kpiValueWarning { color: var(--color-warning); }
+.tooltipCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: help;
+}
+
+/* Campos de lote en una sub-fila de recepción */
+.loteFields {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr 1fr;
+  align-items: end;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-md);
+}
+.loteFields > :first-child { align-self: center; }
+@media (max-width: 720px) {
+  .loteFields { grid-template-columns: 1fr; align-items: stretch; }
+}

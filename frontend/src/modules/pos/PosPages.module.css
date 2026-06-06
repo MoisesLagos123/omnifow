@@ -1,0 +1,678 @@
+/* ---------- Layout general de páginas POS ---------- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 1400px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.headActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.mono { font-family: var(--font-mono); font-size: 0.85rem; }
+.muted { color: var(--color-text-muted); font-size: 0.85rem; }
+.numeric { font-variant-numeric: tabular-nums; }
+
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.errorWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+/* ---------- Banner sin caja / sin sucursal ---------- */
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-warning-soft);
+  border: 1px solid var(--color-warning);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+}
+
+.bannerIcon {
+  color: var(--color-warning);
+  flex-shrink: 0;
+}
+
+.bannerText { flex: 1; }
+
+.bannerTitle {
+  margin: 0;
+  font-weight: 600;
+}
+
+.bannerSub {
+  margin: 2px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+/* ---------- POS — layout dos columnas ---------- */
+
+.posGrid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* En tablet vertical / mobile pasa a stack */
+@media (max-width: 960px) {
+  .posGrid { grid-template-columns: 1fr; }
+}
+
+.posColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ---------- Selector contexto (sucursal + caja) ---------- */
+
+.contextRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.contextRow > * { min-width: 180px; }
+
+/* ---------- Búsqueda de productos ---------- */
+
+.searchCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.searchInputWrap {
+  position: relative;
+}
+
+.searchInputWrap input {
+  font-size: 1.1rem !important;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.searchHint {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.searchResults {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.searchResultItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  text-align: left;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+}
+
+.searchResultItem:last-child { border-bottom: none; }
+
+.searchResultItem:hover,
+.searchResultItem.active {
+  background: var(--color-table-row-hover);
+}
+
+.searchResultItem:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+.searchResultSku {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.searchResultInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.searchResultNombre {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchResultMeta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.searchResultPrecio {
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.searchEmpty {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+/* ---------- Carrito ---------- */
+
+.cartCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.cartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cartTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.cartEmpty {
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.cartTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cartTable th,
+.cartTable td {
+  padding: var(--space-2) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+
+.cartTable th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-table-header-bg);
+}
+
+.cartTable td.right,
+.cartTable th.right { text-align: right; font-variant-numeric: tabular-nums; }
+
+.cartProductoCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cartProductoSku {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.qtyCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.qtyBtn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.qtyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qtyBtn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.qtyInputInline {
+  width: 60px;
+  text-align: center;
+  padding: 4px;
+  font-family: var(--font-mono);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.removeBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.removeBtn:hover {
+  background: var(--color-danger-soft);
+}
+
+.cartFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--color-border-strong);
+}
+
+.cartFootTotal {
+  font-weight: 700;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Cliente / RUT ---------- */
+
+.clienteCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rutRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
+  align-items: end;
+}
+
+.clienteInfo {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-success-soft);
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.clienteRazon {
+  font-weight: 600;
+}
+
+.clienteGiro {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.clienteNoEncontrado {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-soft);
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ---------- Pago ---------- */
+
+.payCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.payRow {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: var(--space-2);
+  align-items: end;
+}
+
+@media (max-width: 600px) {
+  .payRow { grid-template-columns: 1fr; }
+}
+
+.payRowExtra {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: var(--space-2);
+}
+
+@media (max-width: 600px) {
+  .payRowExtra { grid-template-columns: 1fr; }
+}
+
+/* ---------- Totales panel ---------- */
+
+.totals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+}
+
+.totalLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.totalLabel {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.totalValue {
+  font-variant-numeric: tabular-nums;
+}
+
+.totalGrande {
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.totalsDivider {
+  height: 1px;
+  background: var(--color-border-strong);
+  margin: 2px 0;
+}
+
+.diffOk {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.diffBad {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.vueltoLabel {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.faltaLabel {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+/* ---------- Documento select ---------- */
+
+.docToggle {
+  display: inline-flex;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.docToggleBtn {
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.docToggleBtn.active {
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+}
+
+.docToggleBtn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+/* ---------- Botón confirmar ---------- */
+
+.confirmBar {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-surface);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.confirmBtn {
+  font-size: 1.05rem !important;
+  padding: 14px 24px !important;
+}
+
+/* ---------- Modal de éxito ---------- */
+
+.receiptPreview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.receiptActions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.atajos {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-left: var(--space-3);
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--color-border);
+}
+.atajos > kbd { margin-right: 2px; }
+
+/* Lista de atajos dentro del modal de ayuda (dl/dt/dd) */
+.shortcutList {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.shortcutRow {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.shortcutRow:last-child { border-bottom: none; }
+.shortcutRow dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+.shortcutRow dd {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+/* ---------- VentaDetalle ---------- */
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .detailGrid { grid-template-columns: 1fr; }
+}
+
+.detailHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.totalsCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+}
+
+.kpiLabel {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.kpiValue {
+  font-weight: 700;
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.warnText {
+  color: var(--color-warning);
+  font-weight: 500;
+}
+
+/* --- Reservas de stock (badges en celda de cantidad) --- */
+.reservaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.reservaBadge.ok {
+  color: var(--color-success);
+}
+
+.reservaBadge.loading {
+  color: var(--color-info);
+}
+
+.reservaError {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--color-danger);
+}
+
+@keyframes pos-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: pos-spin 1s linear infinite;
+}

@@ -1,0 +1,161 @@
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Card } from "../../components/ui/Card";
+import { ErrorAlert } from "../../components/ui/ErrorAlert";
+import { ThemeToggle } from "../../components/ui/ThemeToggle";
+import { ApiError, NetworkError, authApi } from "../../api/client";
+import { useAuth } from "../../auth/useAuth";
+import { loginSchema, type LoginFormValues } from "./loginSchema";
+import styles from "./LoginPage.module.css";
+
+function mapErrorToMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    switch (err.code) {
+      case "ERR_AUTH_INVALIDA":
+        return "Email o contraseña incorrectos.";
+      case "ERR_AUTH_BLOQUEADA":
+        return "Tu cuenta está bloqueada temporalmente. Intenta más tarde o contacta a un administrador.";
+      default:
+        return "Algo salió mal. Inténtalo de nuevo en unos momentos.";
+    }
+  }
+  if (err instanceof NetworkError) {
+    return "No se pudo conectar con el servidor. Revisa tu conexión.";
+  }
+  return "Algo salió mal. Inténtalo de nuevo en unos momentos.";
+}
+
+export function LoginPage() {
+  const { isAuthenticated, setSession } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [showPassword, setShowPassword] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [shake, setShake] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const {
+    register,
+    handleSubmit,
+    setFocus,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    mode: "onTouched",
+    defaultValues: { email: "", password: "" },
+  });
+
+  useEffect(() => {
+    setFocus("email");
+  }, [setFocus]);
+
+  if (isAuthenticated) {
+    const from =
+      (location.state as { from?: { pathname?: string } } | null)?.from
+        ?.pathname ?? "/";
+    return <Navigate to={from} replace />;
+  }
+
+  async function onSubmit(values: LoginFormValues): Promise<void> {
+    setServerError(null);
+    try {
+      const result = await authApi.login(values);
+      setSession(result);
+      navigate("/", { replace: true });
+    } catch (err) {
+      const msg = mapErrorToMessage(err);
+      setServerError(msg);
+      setShake(true);
+      window.setTimeout(() => setShake(false), 350);
+    }
+  }
+
+  return (
+    <main className={styles.page}>
+      <div className={styles.toggleSlot}>
+        <ThemeToggle />
+      </div>
+
+      <div className={styles.cardWrap}>
+        <Card className={`${styles.card} ${shake ? styles.shake : ""}`}>
+          <header className={styles.header}>
+            <div className={styles.brand} aria-hidden="true">
+              <img src="/logo.png" alt="" className={styles.brandMark} />
+            </div>
+            <h1 id="login-title" className={styles.title}>
+              OMNIFOW
+            </h1>
+            <p className={styles.subtitle}>Inicia sesión para continuar</p>
+          </header>
+
+          <form
+            ref={formRef}
+            onSubmit={handleSubmit(onSubmit)}
+            aria-labelledby="login-title"
+            noValidate
+            className={styles.form}
+          >
+            {serverError && <ErrorAlert>{serverError}</ErrorAlert>}
+
+            <Input
+              label="Email"
+              type="email"
+              autoComplete="username"
+              inputMode="email"
+              placeholder="tu@empresa.cl"
+              error={errors.email?.message}
+              {...register("email")}
+            />
+
+            <Input
+              label="Contraseña"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              error={errors.password?.message}
+              rightSlot={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className={styles.eyeBtn}
+                  aria-label={
+                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
+                  aria-pressed={showPassword}
+                  tabIndex={0}
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} aria-hidden="true" />
+                  ) : (
+                    <Eye size={18} aria-hidden="true" />
+                  )}
+                </button>
+              }
+              {...register("password")}
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              loading={isSubmitting}
+              leftIcon={!isSubmitting ? <LogIn size={18} /> : undefined}
+            >
+              {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
+            </Button>
+          </form>
+        </Card>
+
+        <p className={styles.footer}>
+          OMNIFOW &middot; Sistema POS &middot; Chile
+        </p>
+      </div>
+    </main>
+  );
+}

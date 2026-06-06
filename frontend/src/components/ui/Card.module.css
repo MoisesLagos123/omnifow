@@ -1,0 +1,19 @@
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-6);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+/* Variante "flat" — sin sombra, solo borde. Para listas/tabs internas
+   donde no queremos cards apiladas visualmente compitiendo. */
+.flat {
+  box-shadow: none;
+}
+
+/* Variante "elevated" — más presencia, para hero/dashboard tops. */
+.elevated {
+  box-shadow: var(--shadow-md);
+}

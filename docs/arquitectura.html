@@ -1,0 +1,1804 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mini ERP — Arquitectura, Patrones y Seguridad</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
+<style>
+:root{
+  --bg:#0f1115; --panel:#161a22; --panel2:#1c2230; --border:#252b38;
+  --text:#e8ecf1; --muted:#9aa3b2; --accent:#7ab7ff; --accent2:#9ae6b4;
+  --warn:#f5c071; --danger:#ff8585; --code:#0c0f15;
+  --shadow:0 4px 20px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code,pre,kbd{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+pre{background:var(--code);padding:14px 16px;border-radius:8px;overflow:auto;border:1px solid var(--border);font-size:12.5px}
+:not(pre)>code{background:#222b3a;color:#cfe7ff;padding:1px 6px;border-radius:4px;font-size:.9em}
+
+.layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+aside{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--panel);border-right:1px solid var(--border);padding:18px 14px}
+aside h1{font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 6px 10px}
+aside .search{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 10px;font-size:13px;margin-bottom:10px}
+aside ul{list-style:none;padding:0;margin:0}
+aside li{margin:1px 0}
+aside a{display:block;padding:6px 10px;border-radius:6px;color:#cfd6e4;font-size:13px}
+aside a:hover{background:var(--panel2);text-decoration:none}
+aside a.active{background:#22324b;color:#fff}
+aside .group{margin-top:8px;font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;padding:6px 10px}
+
+main{padding:30px 40px;max-width:1100px;margin:0 auto}
+h1.title{font-size:28px;margin:0 0 6px}
+h1.title small{color:var(--muted);font-weight:400;font-size:14px;display:block;margin-top:6px}
+section{padding:18px 0;border-bottom:1px solid var(--border)}
+section h2{font-size:22px;margin:8px 0 14px;display:flex;align-items:center;gap:10px}
+section h2 .num{display:inline-block;background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:13px;color:var(--accent)}
+section h3{font-size:16px;margin-top:22px;color:#dfe7f1;border-left:3px solid var(--accent);padding-left:10px}
+section h4{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent2);margin-top:18px}
+.muted{color:var(--muted)}
+
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0;box-shadow:var(--shadow)}
+.card h3{margin-top:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:900px){.row{grid-template-columns:1fr}.layout{grid-template-columns:1fr}aside{position:static;height:auto}main{padding:18px}}
+
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.04em}
+tr:hover td{background:var(--panel2)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;background:#22324b;color:#cfe7ff;margin-right:4px}
+.tag.warn{background:#3a2f12;color:var(--warn)}
+.tag.ok{background:#1d3924;color:var(--accent2)}
+.tag.bad{background:#3a1d1d;color:var(--danger)}
+
+details{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:10px 0}
+details>summary{cursor:pointer;font-weight:600;color:#cfe7ff;outline:none}
+details[open]>summary{margin-bottom:10px}
+
+blockquote{border-left:3px solid var(--accent);padding:6px 14px;margin:12px 0;color:#dbe3ee;background:var(--panel);border-radius:6px}
+
+.callout{padding:12px 14px;border-radius:8px;margin:12px 0;border:1px solid;font-size:13px}
+.callout.info{background:#0d2238;border-color:#1e4368;color:#cfe7ff}
+.callout.warn{background:#2b1f0c;border-color:#5d4318;color:#ffe2a8}
+.callout.bad{background:#2a1313;border-color:#5b1f1f;color:#ffd1d1}
+.callout.ok{background:#0e2718;border-color:#1f5132;color:#c4f1d3}
+
+.mermaid{background:#fff;border-radius:8px;padding:14px;margin:14px 0;border:1px solid var(--border)}
+
+.kvs{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px;margin:8px 0}
+.kvs b{color:var(--muted);font-weight:500}
+
+.toc-toggle{display:none}
+@media print{aside{display:none}.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <h1>Mini ERP — Doc</h1>
+  <input class="search" id="search" placeholder="Filtrar secciones…" />
+  <ul id="toc">
+    <li class="group">Visión</li>
+    <li><a href="#resumen">Resumen ejecutivo</a></li>
+    <li><a href="#decisiones">Decisiones cerradas</a></li>
+    <li class="group">Arquitectura</li>
+    <li><a href="#capas">Clean Architecture</a></li>
+    <li><a href="#flujo">Flujo de un request</a></li>
+    <li><a href="#modulos">Mapa de módulos</a></li>
+    <li class="group">Patrones</li>
+    <li><a href="#patrones">Catálogo de patrones</a></li>
+    <li><a href="#repository">Repository</a></li>
+    <li><a href="#uow">Unit of Work</a></li>
+    <li><a href="#specification">Specification</a></li>
+    <li><a href="#factory">Factory</a></li>
+    <li><a href="#strategy">Strategy</a></li>
+    <li><a href="#events">Domain Events</a></li>
+    <li><a href="#mapper">Mapper</a></li>
+    <li><a href="#decorator">Decorator (RBAC)</a></li>
+    <li><a href="#cqs">CQS</a></li>
+    <li class="group">Datos</li>
+    <li><a href="#erd">ERD</a></li>
+    <li><a href="#ddl">DDL Postgres</a></li>
+    <li><a href="#concurrencia">Concurrencia & Locking</a></li>
+    <li><a href="#idempotencia">Idempotencia</a></li>
+    <li class="group">Seguridad</li>
+    <li><a href="#sec-overview">Modelo de seguridad</a></li>
+    <li><a href="#uc-login">UC: Login</a></li>
+    <li><a href="#uc-refresh">UC: Refresh token</a></li>
+    <li><a href="#uc-rbac">UC: RBAC en use case</a></li>
+    <li><a href="#uc-audit">UC: Audit log</a></li>
+    <li><a href="#uc-bloqueo">UC: Bloqueo cuenta</a></li>
+    <li><a href="#headers">Headers HTTP</a></li>
+    <li class="group">Operacional</li>
+    <li><a href="#errores">Catálogo de errores</a></li>
+    <li><a href="#observabilidad">Observabilidad</a></li>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#cicd">CI/CD</a></li>
+    <li><a href="#next">Próximos pasos</a></li>
+  </ul>
+</aside>
+
+<main>
+<h1 class="title">Arquitectura, Patrones y Seguridad
+<small>Mini ERP — POS multi-sucursal con módulo financiero · Chile / SII · CLP · v0 documental</small>
+</h1>
+
+<!-- ============================================================ -->
+<section id="resumen">
+<h2><span class="num">1</span> Resumen ejecutivo</h2>
+<p>Sistema POS web con backend Python (<b>FastAPI + SQLAlchemy + Postgres</b>) y frontend <b>React + TypeScript</b>, diseñado bajo <b>Clean Architecture</b> con énfasis en:</p>
+<div class="row">
+  <div class="card"><h3>Pilares</h3>
+    <ul>
+      <li><b>Atomicidad</b> en operaciones financieras (Unit of Work).</li>
+      <li><b>Trazabilidad total</b> — cada acción sensible queda en audit log con usuario nominativo.</li>
+      <li><b>RBAC por perfiles</b> configurables, no usuarios genéricos.</li>
+      <li><b>Multi-sucursal</b> desde el día 1.</li>
+      <li><b>Pagos mixtos</b> (efectivo + tarjeta + transferencia en una sola venta).</li>
+      <li><b>Documentos tributarios</b> Chile/SII con folios pesimistamente bloqueados.</li>
+    </ul>
+  </div>
+  <div class="card"><h3>Lo que NO entra en v0</h3>
+    <ul>
+      <li>Integración real con SII (firma + envío DTE) — solo emisión interna.</li>
+      <li>Modo offline en el POS — la app es web online.</li>
+      <li>Multi-moneda — solo CLP.</li>
+      <li>Multi-tenant (un solo emisor por instalación).</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="decisiones">
+<h2><span class="num">2</span> Decisiones cerradas</h2>
+<table>
+<thead><tr><th>Tema</th><th>Decisión</th></tr></thead>
+<tbody>
+<tr><td>País / jurisdicción</td><td>Chile · SII · IVA 19%</td></tr>
+<tr><td>Moneda</td><td>CLP $ · sin decimales en presentación · <code>Decimal</code> internamente</td></tr>
+<tr><td>Documentos</td><td>Boleta, Factura, Nota de Crédito, Nota de Débito, Guía de Despacho</td></tr>
+<tr><td>Multi-sucursal</td><td>Sí, desde el inicio</td></tr>
+<tr><td>Pagos mixtos</td><td>Sí — efectivo / transferencia / débito / crédito</td></tr>
+<tr><td>Devoluciones</td><td>Sí — generan Nota de Crédito + reversos</td></tr>
+<tr><td>Backend</td><td>Python 3.11+ · FastAPI · SQLAlchemy · Postgres</td></tr>
+<tr><td>Frontend</td><td>React + Vite + TypeScript (web SPA)</td></tr>
+<tr><td>Auth</td><td>JWT RS256 · Access 15min · Refresh 7d persistido en DB</td></tr>
+<tr><td>Concurrencia stock</td><td><span class="tag warn">FOR UPDATE</span> pesimista</td></tr>
+<tr><td>Folios SII</td><td><span class="tag warn">FOR UPDATE</span> sobre <code>RangoFolios</code></td></tr>
+<tr><td>Idempotencia</td><td><code>Idempotency-Key</code> header en mutables críticos</td></tr>
+<tr><td>Audit log</td><td>Síncrono dentro del UoW</td></tr>
+<tr><td>UoW scope</td><td>Por Use Case</td></tr>
+<tr><td>UUID</td><td>v7 (ordenable)</td></tr>
+<tr><td>API</td><td>Prefijo <code>/api/v1/</code></td></tr>
+<tr><td>Errores</td><td><code>code</code> + <code>message</code> en español</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section id="capas">
+<h2><span class="num">3</span> Clean Architecture · Capas</h2>
+<p>Cuatro capas concéntricas. <b>La dependencia siempre apunta hacia adentro</b>: ninguna capa interna conoce a una externa. Las interfaces (puertos) viven en las capas internas; las implementaciones (adapters) en las externas.</p>
+
+<div class="mermaid">
+flowchart LR
+    subgraph Externo[Frameworks &amp; Drivers]
+        FA[FastAPI / Uvicorn]
+        DB[(PostgreSQL)]
+        SQLA[SQLAlchemy]
+        Argon[Argon2id]
+        JWTLib[PyJWT]
+        Logs[Logging JSON]
+    end
+    subgraph Adapters[Interface Adapters]
+        Ctrl[Controllers /api/v1]
+        Repo[Repos SQLAlchemy]
+        Sec[Argon2 / JWT impl]
+        Map[Mappers ORM ↔ Entidad]
+        DTOh[DTOs HTTP - Pydantic]
+    end
+    subgraph App[Application]
+        UC[Use Cases]
+        Ports[Ports / Interfaces]
+        Svc[Domain Services]
+    end
+    subgraph Dom[Domain]
+        Ent[Entities]
+        VO[Value Objects]
+        Evt[Domain Events]
+        Exc[Exceptions]
+    end
+    Ctrl --&gt; UC
+    UC --&gt; Ports
+    UC --&gt; Ent
+    UC --&gt; Svc
+    Repo -.implementa.-&gt; Ports
+    Sec -.implementa.-&gt; Ports
+    Repo --&gt; SQLA
+    SQLA --&gt; DB
+    Ctrl --&gt; FA
+    Sec --&gt; Argon
+    Sec --&gt; JWTLib
+    Map --&gt; Ent
+</div>
+
+<table>
+<thead><tr><th>Capa</th><th>Conoce a</th><th>Contiene</th></tr></thead>
+<tbody>
+<tr><td><b>Domain</b></td><td>Nada externo (stdlib + Decimal/UUID)</td><td>Entidades, Value Objects, Domain Events, Excepciones tipadas</td></tr>
+<tr><td><b>Application</b></td><td>Domain</td><td>Use Cases, Ports (interfaces), Domain Services, Commands/Results</td></tr>
+<tr><td><b>Adapters</b></td><td>Application + Domain</td><td>Controllers FastAPI, Repos SQLAlchemy, JWT/Argon2 impls, Mappers, DTOs HTTP</td></tr>
+<tr><td><b>Infrastructure</b></td><td>Todas las anteriores</td><td>FastAPI, engine SQLAlchemy, migraciones Alembic, observabilidad, config</td></tr>
+</tbody>
+</table>
+
+<div class="callout info"><b>Regla práctica:</b> si necesitas <code>import erp.infrastructure.*</code> desde <code>domain/</code> o <code>application/</code>, has roto la regla. Los puertos invierten esa dependencia.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="flujo">
+<h2><span class="num">4</span> Flujo de un request HTTP</h2>
+<p>Ejemplo: <code>POST /api/v1/ventas</code> con header <code>Idempotency-Key</code>.</p>
+
+<div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant C as Cliente (React)
+    participant FA as FastAPI Middleware
+    participant Ctrl as VentasController
+    participant Idem as IdempotencyGuard
+    participant Auth as JWT Guard
+    participant Perm as @requires_permission
+    participant UC as ProcesarVentaUseCase
+    participant UoW as Unit of Work
+    participant Stk as InventarioRepo (FOR UPDATE)
+    participant Fol as AsignadorFolios (FOR UPDATE)
+    participant Doc as DocumentoRepo
+    participant Caj as MovCajaRepo
+    participant Aud as AuditPublisher
+    C->>FA: POST /api/v1/ventas + Idempotency-Key + Bearer JWT
+    FA->>Auth: validar JWT
+    Auth-->>FA: usuario_id + perfiles
+    FA->>Idem: ¿Key ya procesada?
+    Idem-->>FA: no → continuar
+    FA->>Ctrl: dispatch
+    Ctrl->>Perm: requires("venta.crear")
+    Perm-->>Ctrl: ok
+    Ctrl->>UC: execute(cmd)
+    UC->>UoW: __enter__ (BEGIN)
+    UC->>Stk: stock_disponible (FOR UPDATE)
+    Stk-->>UC: cantidades
+    UC->>Fol: reservar(sucursal, tipo)
+    Fol-->>UC: folio
+    UC->>Doc: guardar(documento)
+    UC->>Stk: registrar_egreso por detalle
+    UC->>Caj: guardar(mov) por pago efectivo
+    UC->>Aud: publicar(evento)
+    UC->>UoW: commit / __exit__
+    UoW-->>UC: ok
+    UC-->>Ctrl: Result
+    Ctrl->>Idem: persistir resultado por Key
+    Ctrl-->>C: 201 Created
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="modulos">
+<h2><span class="num">5</span> Mapa de módulos y dependencias</h2>
+<div class="mermaid">
+flowchart TD
+    Auth[Autenticación] --&gt; Adm[Administración]
+    Adm --&gt; Suc[Sucursales &amp; Cajas]
+    Adm --&gt; Inv[Inventario]
+    Adm --&gt; Cli[Clientes]
+    Adm --&gt; Prov[Proveedores]
+    Suc --&gt; Caja[Caja - operación]
+    Inv --&gt; Ventas[Ventas - POS]
+    Caja --&gt; Ventas
+    Cli --&gt; Ventas
+    Ventas --&gt; Pagos[Pagos]
+    Ventas --&gt; Doc[Documentos Tributarios]
+    Ventas --&gt; CxC[CxC]
+    Ventas --&gt; Dev[Devoluciones]
+    Dev --&gt; Doc
+    Prov --&gt; Comp[Compras]
+    Comp --&gt; Inv
+    Comp --&gt; CxP[CxP]
+    Doc --&gt; Fin[Finanzas / Reportes]
+    Caja --&gt; Fin
+    CxC --&gt; Fin
+    CxP --&gt; Fin
+    Inv --&gt; Fin
+    classDef base fill:#234,stroke:#69c
+    class Auth,Adm base
+</div>
+<div class="callout info"><b>Orden recomendado de construcción:</b> Auth → Administración → Sucursales/Cajas → Inventario → Clientes → Caja (operación) → Ventas+Pagos+Documentos → Devoluciones → Compras+CxP → CxC → Reportes.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="patrones">
+<h2><span class="num">6</span> Catálogo de patrones de diseño</h2>
+<table>
+<thead><tr><th>Patrón</th><th>Dónde</th><th>Para qué</th></tr></thead>
+<tbody>
+<tr><td>Repository</td><td><code>application/ports</code> + <code>adapters/repositories</code></td><td>Aislar persistencia del dominio</td></tr>
+<tr><td>Unit of Work</td><td><code>application/ports/unit_of_work.py</code></td><td>Atomicidad de operaciones multi-entidad</td></tr>
+<tr><td>Specification</td><td><code>domain/specifications/</code></td><td>Componer reglas de filtrado/queries complejas</td></tr>
+<tr><td>Factory</td><td><code>domain/entities/*.py</code> métodos <code>crear()</code></td><td>Construir entidades complejas con invariantes</td></tr>
+<tr><td>Strategy</td><td>Cálculo IVA, costo (FIFO/Promedio), método pago</td><td>Variantes intercambiables de algoritmo</td></tr>
+<tr><td>Domain Events</td><td><code>domain/events</code> + <code>AuditPublisher</code></td><td>Desacoplar efectos secundarios (audit, notificaciones)</td></tr>
+<tr><td>Mapper</td><td><code>infrastructure/db/mappers/</code></td><td>ORM ↔ Entidad (no anemia, no acoplamiento)</td></tr>
+<tr><td>Decorator</td><td><code>@requires_permission</code></td><td>Cross-cutting: autorización en use cases</td></tr>
+<tr><td>Outbox-ready</td><td>Interfaz <code>AuditPublisher</code></td><td>Migrar a eventos asíncronos sin tocar use cases</td></tr>
+<tr><td>CQS</td><td>Use Cases mutables vs read models</td><td>Lecturas optimizadas separadas de escrituras</td></tr>
+<tr><td>Dependency Injection</td><td>Constructor de Use Cases</td><td>Testabilidad y bajo acoplamiento</td></tr>
+<tr><td>Value Object</td><td><code>Dinero</code>, <code>RUT</code>, <code>Folio</code></td><td>Inmutabilidad + validación + igualdad por valor</td></tr>
+<tr><td>Idempotency Key</td><td>Middleware + tabla</td><td>Tolerar reintentos en mutables</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section id="repository">
+<h2><span class="num">6.1</span> Repository</h2>
+<p>Interfaz genérica en el puerto. Implementaciones concretas en <code>adapters/repositories/sql/</code> y <code>adapters/repositories/memory/</code> (para tests).</p>
+<pre><code class="language-python"># application/ports/repositories.py
+from typing import Protocol, runtime_checkable
+from uuid import UUID
+from erp.domain.entities.venta import Venta
+
+@runtime_checkable
+class VentaRepository(Protocol):
+    def guardar(self, venta: Venta) -> None: ...
+    def obtener(self, id: UUID) -> Venta: ...
+    def buscar_por_sucursal(self, sucursal_id: UUID, desde, hasta) -> list[Venta]: ...
+</code></pre>
+<div class="callout info">Usamos <b>Protocol</b> (typing) en vez de <code>ABC</code>: duck typing estructural verificado por <code>mypy --strict</code> sin obligar a heredar.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="uow">
+<h2><span class="num">6.2</span> Unit of Work</h2>
+<p>Envuelve una transacción. Use Case lo abre, ejecuta, y hace commit. Cualquier excepción → rollback automático.</p>
+<pre><code class="language-python"># application/ports/unit_of_work.py
+from typing import Protocol
+from types import TracebackType
+
+class UnitOfWork(Protocol):
+    def __enter__(self) -> "UnitOfWork": ...
+    def __exit__(
+        self, exc_type: type[BaseException] | None,
+        exc: BaseException | None, tb: TracebackType | None,
+    ) -> None: ...
+    def commit(self) -> None: ...
+    def rollback(self) -> None: ...
+</code></pre>
+<pre><code class="language-python"># adapters/repositories/sql/sqlalchemy_uow.py
+from sqlalchemy.orm import Session, sessionmaker
+
+class SqlAlchemyUnitOfWork:
+    def __init__(self, session_factory: sessionmaker):
+        self._sf = session_factory
+    def __enter__(self):
+        self.session: Session = self._sf()
+        return self
+    def __exit__(self, exc_type, exc, tb):
+        if exc_type is not None:
+            self.session.rollback()
+        self.session.close()
+    def commit(self) -> None:
+        self.session.commit()
+    def rollback(self) -> None:
+        self.session.rollback()
+</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="specification">
+<h2><span class="num">6.3</span> Specification</h2>
+<p>Encapsular criterios de búsqueda como objetos componibles. Útil para reportes y queries con filtros combinados.</p>
+<pre><code class="language-python">@dataclass(frozen=True)
+class VentasEnSucursal:
+    sucursal_id: UUID
+@dataclass(frozen=True)
+class VentasEntreFechas:
+    desde: datetime; hasta: datetime
+@dataclass(frozen=True)
+class And:
+    a: object; b: object
+
+# repo.buscar(And(VentasEnSucursal(s), VentasEntreFechas(d, h)))
+</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="factory">
+<h2><span class="num">6.4</span> Factory (en el dominio)</h2>
+<p>Métodos de clase que construyen entidades complejas con invariantes ya validadas. Reemplaza constructores con muchos parámetros.</p>
+<pre><code class="language-python">@classmethod
+def emitir_desde_venta(cls, venta: Venta, tipo: TipoDocumento, folio: Folio) -> "DocumentoTributario":
+    if venta.estado is not EstadoVenta.CONFIRMADA:
+        raise VentaInvalidaError("ERR_VENTA_NO_CONFIRMADA", "...")
+    return cls(...)
+</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="strategy">
+<h2><span class="num">6.5</span> Strategy</h2>
+<p>Algoritmos intercambiables. Ejemplo: cálculo de costo de inventario (FIFO / Promedio Ponderado) seleccionable por configuración.</p>
+<pre><code class="language-python">class CalculadoraCosto(Protocol):
+    def costo(self, producto_id: UUID, cantidad: Decimal) -> Dinero: ...
+
+class CostoPromedio:  # implementa
+    ...
+class CostoFIFO:  # implementa
+    ...
+</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="events">
+<h2><span class="num">6.6</span> Domain Events + Outbox-ready</h2>
+<p>Las entidades publican eventos cuando cambian de estado. Hoy se procesan síncronamente dentro del UoW. Mañana, si se necesita escala, se reemplaza la implementación por una que escribe a tabla <b>outbox</b> y un worker los publica.</p>
+<pre><code class="language-python">@dataclass(frozen=True)
+class VentaConfirmada:
+    venta_id: UUID; usuario_id: UUID; ts: datetime
+
+class AuditPublisher(Protocol):
+    def publicar(self, accion: str, **kwargs) -> None: ...
+
+# v0: implementación que inserta en audit_log dentro del UoW
+# v1+: misma interfaz, distinta impl que escribe a outbox
+</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="mapper">
+<h2><span class="num">6.7</span> Mapper (ORM ↔ Entidad)</h2>
+<p>Los modelos SQLAlchemy <b>no son</b> entidades de dominio. El repositorio convierte entre ambos.</p>
+<div class="row">
+<div class="card"><h4>Modelo ORM</h4><pre><code class="language-python"># infrastructure/db/models/venta_orm.py
+class VentaORM(Base):
+    __tablename__ = "ventas"
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    sucursal_id: Mapped[UUID]
+    total_clp: Mapped[int]
+    estado: Mapped[str]
+    detalles: Mapped[list["DetalleVentaORM"]] = relationship()
+</code></pre></div>
+<div class="card"><h4>Mapper</h4><pre><code class="language-python"># infrastructure/db/mappers/venta_mapper.py
+def to_entity(orm: VentaORM) -> Venta:
+    return Venta(...)
+def to_orm(ent: Venta) -> VentaORM:
+    return VentaORM(...)
+</code></pre></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="decorator">
+<h2><span class="num">6.8</span> Decorator · <code>@requires_permission</code></h2>
+<p>Cross-cutting. La autorización vive como decorador en la frontera del use case (defense in depth: igual se valida en la capa HTTP).</p>
+<pre><code class="language-python"># adapters/security/rbac_decorator.py
+from functools import wraps
+from erp.domain.exceptions import PermisoDenegadoError
+
+def requires_permission(permiso: str):
+    def deco(fn):
+        @wraps(fn)
+        def wrapper(self, cmd, *, contexto, **kw):
+            if permiso not in contexto.permisos:
+                raise PermisoDenegadoError(
+                    code="ERR_PERMISO_DENEGADO",
+                    message=f"Falta permiso: {permiso}",
+                )
+            return fn(self, cmd, contexto=contexto, **kw)
+        return wrapper
+    return deco
+
+class ProcesarVentaUseCase:
+    @requires_permission("venta.crear")
+    def execute(self, cmd, *, contexto): ...
+</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="cqs">
+<h2><span class="num">6.9</span> CQS — separar lecturas de escrituras</h2>
+<p>Los <b>writes</b> pasan por Use Cases con UoW completo. Los <b>reads</b> simples pueden ir directo a un read model (<code>ReadRepository</code>) sin abrir UoW. Reportes complejos pueden usar SQL nativo optimizado, fuera del modelo de dominio.</p>
+<div class="callout warn">No es CQRS completo (no hay buses ni proyecciones separadas). Es CQS pragmático: simplifica reads sin penalizar consistencia de writes.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="erd">
+<h2><span class="num">7</span> Modelo Entidad-Relación del Proyecto</h2>
+
+<p>El modelo se divide en <b>seis dominios funcionales</b> que se interconectan a través de claves compartidas (<code>usuario_id</code>, <code>sucursal_id</code>, <code>producto_id</code>, <code>venta_id</code>). Cada dominio se diagrama por separado para claridad; al final se muestra el ERD consolidado.</p>
+
+<h4>Leyenda de cardinalidad (notación crow's foot · Mermaid)</h4>
+<table>
+<thead><tr><th>Notación</th><th>Lectura</th></tr></thead>
+<tbody>
+<tr><td><code>||--||</code></td><td>uno y solo uno a uno y solo uno</td></tr>
+<tr><td><code>||--o{</code></td><td>uno a cero-o-muchos</td></tr>
+<tr><td><code>||--|{</code></td><td>uno a uno-o-muchos (obligatorio en lado N)</td></tr>
+<tr><td><code>||--o|</code></td><td>uno a cero-o-uno (opcional 1:1)</td></tr>
+<tr><td><code>}o--||</code></td><td>cero-o-muchos a uno y solo uno (FK obligatoria)</td></tr>
+<tr><td><code>}o--o{</code></td><td>muchos a muchos (requiere tabla pivote)</td></tr>
+</tbody>
+</table>
+
+<h3>7.1 Dominio · Identidad y Acceso</h3>
+<p>Modelo RBAC por <b>perfiles</b> configurables (no roles hardcoded). Un usuario es nominativo, tiene N perfiles, y opcionalmente está restringido a sucursales.</p>
+<div class="mermaid">
+erDiagram
+    USUARIO {
+        uuid id PK
+        string rut UK "12345678-9"
+        string email UK
+        string nombre
+        string password_hash "Argon2id"
+        bool   activo
+        smallint intentos_fallidos
+        timestamptz bloqueado_hasta
+        timestamptz password_actualizado_en
+        timestamptz creado_en
+    }
+    PERFIL {
+        uuid id PK
+        string nombre UK "Cajero, Contador..."
+        string descripcion
+        bool activo
+    }
+    PERMISO {
+        uuid id PK
+        string codigo UK "venta.crear"
+        string descripcion
+    }
+    USUARIO_PERFIL {
+        uuid usuario_id PK,FK
+        uuid perfil_id  PK,FK
+    }
+    PERFIL_PERMISO {
+        uuid perfil_id  PK,FK
+        uuid permiso_id PK,FK
+    }
+    USUARIO_SUCURSAL {
+        uuid usuario_id  PK,FK
+        uuid sucursal_id PK,FK
+    }
+    REFRESH_TOKEN {
+        uuid jti PK
+        uuid usuario_id FK
+        timestamptz emitido_en
+        timestamptz expira_en
+        timestamptz revocado_en
+        inet ip
+        string user_agent
+    }
+    INTENTO_LOGIN {
+        bigint id PK
+        string email
+        inet ip
+        timestamptz ts
+        bool exitoso
+    }
+    USUARIO ||--o{ USUARIO_PERFIL : tiene
+    PERFIL  ||--o{ USUARIO_PERFIL : agrupa
+    PERFIL  ||--o{ PERFIL_PERMISO : contiene
+    PERMISO ||--o{ PERFIL_PERMISO : asignado
+    USUARIO ||--o{ USUARIO_SUCURSAL : restringido_a
+    USUARIO ||--o{ REFRESH_TOKEN : posee
+    USUARIO ||--o{ INTENTO_LOGIN : registra
+</div>
+
+<h3>7.2 Dominio · Organización (Sucursales, Cajas, Folios)</h3>
+<p>Una sucursal aloja N bodegas y N cajas. Cada caja tiene <b>como máximo una sesión activa</b> (constraint único parcial). Los folios SII se gestionan por <code>(sucursal, tipo_documento)</code>.</p>
+<div class="mermaid">
+erDiagram
+    SUCURSAL {
+        uuid id PK
+        string codigo UK
+        string nombre
+        string rut_emisor
+        string direccion
+        string comuna
+        string region
+        bool activo
+    }
+    CAJA {
+        uuid id PK
+        uuid sucursal_id FK
+        string codigo "único por sucursal"
+        bool activo
+    }
+    SESION_CAJA {
+        uuid id PK
+        uuid caja_id FK
+        uuid usuario_apertura FK
+        bigint monto_inicial_clp
+        timestamptz abierta_en
+        timestamptz cerrada_en
+        bigint monto_final_declarado
+        bigint monto_final_calculado
+        string estado "ABIERTA|CERRADA"
+    }
+    MOVIMIENTO_CAJA {
+        uuid id PK
+        uuid sesion_caja_id FK
+        string tipo "INGRESO_VENTA|INGRESO_OTRO|EGRESO_GASTO|EGRESO_RETIRO|EGRESO_DEVOLUCION"
+        bigint monto_clp
+        uuid referencia_id "Venta|Gasto|Devolucion"
+        string descripcion
+        timestamptz fecha
+    }
+    BODEGA {
+        uuid id PK
+        uuid sucursal_id FK
+        string codigo
+        string nombre
+    }
+    RANGO_FOLIOS {
+        uuid id PK
+        uuid sucursal_id FK
+        string tipo_documento "BOLETA|FACTURA|NC|ND|GUIA"
+        int desde
+        int hasta
+        int proximo
+        bool activo
+    }
+    SUCURSAL ||--o{ CAJA : posee
+    SUCURSAL ||--o{ BODEGA : aloja
+    SUCURSAL ||--o{ RANGO_FOLIOS : asigna
+    CAJA     ||--o{ SESION_CAJA : abre
+    SESION_CAJA ||--o{ MOVIMIENTO_CAJA : registra
+</div>
+
+<h3>7.3 Dominio · Inventario</h3>
+<p>El stock se mantiene como una <b>tabla agregada</b> <code>STOCK</code> por <code>(producto, bodega)</code> con campo <code>version</code> para optimistic-locking opcional. Toda variación queda registrada en <code>MOV_INVENTARIO</code> referenciando la causa (venta, compra, devolución, ajuste, transferencia).</p>
+
+<div class="callout info">
+<b>Decisión · Costo promedio por bodega.</b> El campo <code>costo_promedio_clp</code> vive en <code>STOCK</code>, no en <code>PRODUCTO</code>: cada bodega puede recibir el mismo producto a precios distintos (compras separadas, traslados con costos diferentes), por lo que el promedio se mantiene independiente por <code>(producto, bodega)</code>. Para reportes consolidados a nivel producto, se calcula promedio ponderado on-the-fly: <code>SUM(stock.cantidad × stock.costo_promedio) / SUM(stock.cantidad)</code>.
+</div>
+
+<div class="callout info">
+<b>Decisión · Transferencias entre bodegas.</b> Una transferencia genera <b>dos filas en <code>MOV_INVENTARIO</code></b> (una <code>SALIDA</code> en bodega origen, una <code>ENTRADA</code> en bodega destino) ligadas por un <code>transferencia_id</code> común (UUID v7). Esto preserva la simetría con los demás tipos de movimiento (cada fila = un evento atómico sobre una bodega) y permite reconstruir la transferencia haciendo <code>WHERE transferencia_id = ?</code>. El costo promedio del destino se recalcula al ingresar.
+</div>
+
+<div class="mermaid">
+erDiagram
+    CATEGORIA {
+        uuid id PK
+        string nombre UK
+    }
+    PRODUCTO {
+        uuid id PK
+        string sku UK
+        string codigo_barras UK
+        string nombre
+        uuid categoria_id FK
+        bigint precio_venta_clp
+        smallint iva_porcentaje "19"
+        bool controla_vencimiento "opt-in perecible"
+        smallint dias_alerta_vencimiento "null = default global"
+        bool activo
+        int version
+    }
+    BODEGA {
+        uuid id PK
+        uuid sucursal_id FK
+        string codigo
+        string nombre
+    }
+    STOCK {
+        uuid producto_id PK,FK
+        uuid bodega_id   PK,FK
+        decimal cantidad
+        bigint  costo_promedio_clp "por bodega"
+        int     version
+    }
+    LOTE_INVENTARIO {
+        uuid id PK
+        uuid producto_id FK
+        uuid bodega_id   FK
+        string numero_lote "opcional"
+        date fecha_elaboracion "opcional"
+        date fecha_ingreso "compra/recepcion"
+        date fecha_vencimiento
+        decimal cantidad
+        bigint costo_unitario_clp
+        bool agotado
+    }
+    MOV_INVENTARIO {
+        uuid id PK
+        uuid producto_id FK
+        uuid bodega_id   FK "bodega afectada por esta fila"
+        uuid lote_id FK "nullable; FEFO en egreso de perecibles"
+        string tipo "ENTRADA|SALIDA|AJUSTE|TRANSFERENCIA"
+        decimal cantidad "siempre positiva; el tipo da el signo"
+        bigint costo_unitario_clp "snapshot al momento del movimiento"
+        string referencia_tipo "VENTA|COMPRA|DEVOLUCION|AJUSTE|TRANSFERENCIA"
+        uuid referencia_id "id del documento origen"
+        uuid transferencia_id "agrupa par SALIDA+ENTRADA"
+        uuid usuario_id FK
+        timestamptz fecha
+    }
+    CATEGORIA ||--o{ PRODUCTO : clasifica
+    PRODUCTO  ||--o{ STOCK : disponible_en
+    BODEGA    ||--o{ STOCK : almacena
+    PRODUCTO  ||--o{ LOTE_INVENTARIO : lotes_si_perecible
+    BODEGA    ||--o{ LOTE_INVENTARIO : almacena
+    PRODUCTO  ||--o{ MOV_INVENTARIO : afecta
+    BODEGA    ||--o{ MOV_INVENTARIO : ubicacion
+    LOTE_INVENTARIO ||--o{ MOV_INVENTARIO : trazado_por
+</div>
+
+<div class="callout info">
+<b>Decisión · Control de vencimiento por lotes (opt-in).</b> Cuando <code>PRODUCTO.controla_vencimiento = true</code>, cada ingreso crea/actualiza un <code>LOTE_INVENTARIO</code> con sus fechas. El <code>STOCK</code> agregado se mantiene como caché/total para valorización; los lotes aportan el detalle de vencimiento. <b>Invariante</b>: para perecibles, <code>SUM(lote.cantidad WHERE NOT agotado) == stock.cantidad</code>. El egreso usa <b>FEFO</b> (First Expired First Out): descuenta del lote que vence primero, registrando <code>mov_inventario.lote_id</code>. Productos sin control de vencimiento ignoran por completo la tabla de lotes.
+</div>
+
+<h4>Reporte "Por vencer" (control de mermas)</h4>
+<p>Endpoint <code>GET /api/v1/inventario/reportes/por-vencer?dias=&amp;sucursal_id=&amp;bodega_id=</code>. Lista lotes con <code>cantidad &gt; 0</code> dentro de la ventana, ordenados por la fecha más próxima, agrupados por urgencia:</p>
+<table>
+<thead><tr><th>Grupo</th><th>Criterio</th><th>Acción sugerida</th></tr></thead>
+<tbody>
+<tr><td>🔴 <b>Vencido</b></td><td><code>fecha_vencimiento &lt; hoy</code></td><td>Dar de baja (ajuste a 0)</td></tr>
+<tr><td>🟠 <b>Crítico</b></td><td>vence en ≤ 7 días</td><td>Liquidar / promocionar fuerte</td></tr>
+<tr><td>🟡 <b>Por vencer</b></td><td>vence en ≤ <code>dias</code> (default global, override por producto)</td><td>Rebajar precio / rotar primero</td></tr>
+</tbody>
+</table>
+<p>Cada fila muestra: producto, bodega, nº lote, cantidad, fecha de vencimiento, <b>días restantes</b> y <b>valor en riesgo</b> = <code>cantidad × costo_unitario_clp</code>. KPIs: total $ en riesgo, # lotes críticos, # vencidos.</p>
+
+<h4>Reglas de movimiento de inventario</h4>
+<table>
+<thead><tr><th>Tipo</th><th>Origen</th><th>Filas en MOV_INVENTARIO</th><th>Efecto sobre STOCK</th><th>Referencia</th></tr></thead>
+<tbody>
+<tr><td><code>ENTRADA</code></td><td>Compra</td><td>1 (en bodega de recepción)</td><td>+cantidad · recalcula <code>costo_promedio_clp</code></td><td><code>referencia_tipo='COMPRA'</code></td></tr>
+<tr><td><code>SALIDA</code></td><td>Venta</td><td>1 (en bodega que despacha)</td><td>−cantidad · costo_promedio sin cambio</td><td><code>referencia_tipo='VENTA'</code></td></tr>
+<tr><td><code>ENTRADA</code></td><td>Devolución</td><td>1 (en bodega de retorno)</td><td>+cantidad al costo original de la venta</td><td><code>referencia_tipo='DEVOLUCION'</code></td></tr>
+<tr><td><code>AJUSTE</code></td><td>Toma de inventario</td><td>1 (con <code>cantidad</code> + o −)</td><td>±cantidad · costo_promedio sin cambio</td><td><code>referencia_tipo='AJUSTE'</code></td></tr>
+<tr><td><code>TRANSFERENCIA</code></td><td>Traslado entre bodegas</td><td><b>2 filas</b> (SALIDA + ENTRADA) con mismo <code>transferencia_id</code></td><td>−cantidad en origen / +cantidad en destino · destino recalcula promedio</td><td><code>referencia_tipo='TRANSFERENCIA'</code>, <code>referencia_id</code> = id de la transferencia</td></tr>
+</tbody>
+</table>
+
+<h4>Recálculo de costo promedio (al recibir cantidad <i>q</i> a costo <i>c</i>)</h4>
+<pre><code class="language-text">stock_nuevo.cantidad        = stock.cantidad + q
+stock_nuevo.costo_promedio  = (stock.cantidad * stock.costo_promedio + q * c)
+                              / (stock.cantidad + q)
+</code></pre>
+<p class="muted">Aplica a entradas por compra, transferencia recibida y devolución de cliente. Las salidas <b>no</b> alteran el costo promedio (solo descuentan cantidad al promedio vigente).</p>
+
+<h3>7.4 Dominio · Ventas, Pagos y Documentos Tributarios</h3>
+<p><b>Núcleo del POS</b>. Una venta tiene 1..N detalles, 1..N pagos (mixto), y emite exactamente 1 documento tributario (Boleta o Factura). Si parte queda a crédito, genera CxC.</p>
+<div class="mermaid">
+erDiagram
+    CLIENTE {
+        uuid id PK
+        string rut UK
+        string razon_social
+        string giro
+        string direccion
+        string email
+        bool activo
+    }
+    VENTA {
+        uuid id PK
+        uuid sucursal_id FK
+        uuid caja_id     FK
+        uuid usuario_id  FK
+        uuid cliente_id  FK "opcional"
+        bigint subtotal_clp
+        bigint iva_clp
+        bigint total_clp
+        string estado "PENDIENTE|CONFIRMADA|ANULADA"
+        uuid documento_id FK
+        timestamptz fecha
+    }
+    DETALLE_VENTA {
+        uuid id PK
+        uuid venta_id FK
+        uuid producto_id FK
+        decimal cantidad
+        bigint precio_unitario_clp
+        bigint costo_unitario_clp "snapshot"
+        bigint iva_unitario_clp
+        bigint subtotal_clp
+    }
+    PAGO {
+        uuid id PK
+        uuid venta_id FK
+        string tipo "EFECTIVO|TRANSFERENCIA|DEBITO|CREDITO"
+        bigint monto_clp
+        string referencia_externa "nro autorización"
+        string ultimos_4 "tarjeta"
+    }
+    DOCUMENTO_TRIBUTARIO {
+        uuid id PK
+        string tipo "BOLETA|FACTURA|NC|ND|GUIA"
+        int folio
+        uuid sucursal_id FK
+        string rut_emisor
+        string rut_receptor
+        string razon_social_receptor
+        uuid venta_id FK
+        uuid documento_referencia_id FK "NC/ND apunta al original"
+        bigint subtotal_clp
+        bigint iva_clp
+        bigint total_clp
+        string estado_sii "PENDIENTE|ENVIADO|ACEPTADO|RECHAZADO"
+        timestamptz emitido_en
+    }
+    CUENTA_POR_COBRAR {
+        uuid id PK
+        uuid cliente_id FK
+        uuid venta_id   FK
+        bigint monto_total_clp
+        bigint saldo_clp
+        date vence_en
+        string estado "PENDIENTE|PAGADA|VENCIDA"
+    }
+    ABONO_CXC {
+        uuid id PK
+        uuid cuenta_por_cobrar_id FK
+        bigint monto_clp
+        string tipo_pago "EFECTIVO|TRANSFERENCIA|DEBITO|CREDITO"
+        timestamptz fecha
+        uuid usuario_id FK
+    }
+    CLIENTE ||--o{ VENTA : compra
+    VENTA   ||--|{ DETALLE_VENTA : compone
+    DETALLE_VENTA }o--|| PRODUCTO : refiere
+    VENTA   ||--|{ PAGO : recibe
+    VENTA   ||--|| DOCUMENTO_TRIBUTARIO : emite
+    DOCUMENTO_TRIBUTARIO }o--|| RANGO_FOLIOS : consume_folio
+    VENTA   ||--o| CUENTA_POR_COBRAR : credito
+    CUENTA_POR_COBRAR ||--o{ ABONO_CXC : recibe
+</div>
+
+<h3>7.5 Dominio · Compras, Proveedores y Devoluciones</h3>
+<p>Las compras alimentan el inventario y generan CxP. Las devoluciones reversan ventas, generan reverso de stock y emiten Nota de Crédito.</p>
+<div class="mermaid">
+erDiagram
+    PROVEEDOR {
+        uuid id PK
+        string rut UK
+        string razon_social
+        string email
+        bool activo
+    }
+    COMPRA {
+        uuid id PK
+        uuid proveedor_id FK
+        uuid sucursal_id  FK
+        string documento_proveedor
+        bigint subtotal_clp
+        bigint iva_clp
+        bigint total_clp
+        timestamptz fecha
+    }
+    DETALLE_COMPRA {
+        uuid id PK
+        uuid compra_id  FK
+        uuid producto_id FK
+        decimal cantidad
+        bigint costo_unitario_clp
+        bigint subtotal_clp
+    }
+    CUENTA_POR_PAGAR {
+        uuid id PK
+        uuid proveedor_id FK
+        uuid compra_id    FK
+        bigint monto_total_clp
+        bigint saldo_clp
+        date vence_en
+        string estado
+    }
+    ABONO_CXP {
+        uuid id PK
+        uuid cuenta_por_pagar_id FK
+        bigint monto_clp
+        timestamptz fecha
+        uuid usuario_id FK
+    }
+    DEVOLUCION {
+        uuid id PK
+        uuid venta_id FK
+        uuid documento_nc_id FK
+        uuid usuario_id FK
+        string motivo
+        bigint total_clp
+        timestamptz fecha
+    }
+    PROVEEDOR ||--o{ COMPRA : suministra
+    COMPRA    ||--|{ DETALLE_COMPRA : compone
+    COMPRA    ||--|| CUENTA_POR_PAGAR : genera
+    CUENTA_POR_PAGAR ||--o{ ABONO_CXP : recibe
+    DEVOLUCION }o--|| VENTA : reversa
+    DEVOLUCION ||--|| DOCUMENTO_TRIBUTARIO : emite_NC
+</div>
+
+<h3>7.6 Dominio · Auditoría e Idempotencia</h3>
+<p>Tablas transversales. <code>AUDIT_LOG</code> es <b>append-only</b>: nunca se actualiza ni elimina (constraint a nivel de aplicación, no DDL). <code>IDEMPOTENCY_KEYS</code> tiene TTL de 24h.</p>
+<div class="mermaid">
+erDiagram
+    AUDIT_LOG {
+        uuid id PK
+        timestamptz ts
+        uuid usuario_id FK
+        inet ip
+        string user_agent
+        string accion
+        string recurso_tipo
+        uuid   recurso_id
+        string resultado
+        jsonb  metadata
+        jsonb  estado_anterior
+        jsonb  estado_nuevo
+    }
+    IDEMPOTENCY_KEY {
+        string clave PK
+        uuid usuario_id
+        string endpoint
+        string request_hash
+        smallint status_code
+        jsonb response_body
+        timestamptz creado_en
+        timestamptz expira_en
+    }
+    USUARIO ||--o{ AUDIT_LOG : actua_sobre
+</div>
+
+<h3>7.7 ERD Consolidado</h3>
+<p>Vista global con todas las entidades y sus conexiones inter-dominio.</p>
+<div class="mermaid">
+erDiagram
+    USUARIO ||--o{ USUARIO_PERFIL : tiene
+    PERFIL  ||--o{ USUARIO_PERFIL : agrupa
+    PERFIL  ||--o{ PERFIL_PERMISO : contiene
+    PERMISO ||--o{ PERFIL_PERMISO : asignado
+    USUARIO ||--o{ USUARIO_SUCURSAL : restringido_a
+    SUCURSAL ||--o{ USUARIO_SUCURSAL : permite
+    USUARIO ||--o{ REFRESH_TOKEN : posee
+    USUARIO ||--o{ INTENTO_LOGIN : genera
+    USUARIO ||--o{ AUDIT_LOG : actua_sobre
+
+    SUCURSAL ||--o{ CAJA : posee
+    SUCURSAL ||--o{ BODEGA : aloja
+    SUCURSAL ||--o{ RANGO_FOLIOS : asigna
+    CAJA ||--o{ SESION_CAJA : abre
+    SESION_CAJA ||--o{ MOVIMIENTO_CAJA : registra
+
+    CATEGORIA ||--o{ PRODUCTO : clasifica
+    PRODUCTO ||--o{ STOCK : disponible
+    BODEGA   ||--o{ STOCK : almacena
+    PRODUCTO ||--o{ MOV_INVENTARIO : afecta
+    BODEGA   ||--o{ MOV_INVENTARIO : ubica
+
+    CLIENTE  ||--o{ VENTA : compra
+    SUCURSAL ||--o{ VENTA : ocurre_en
+    CAJA     ||--o{ VENTA : registrada_en
+    USUARIO  ||--o{ VENTA : opera
+    VENTA    ||--|{ DETALLE_VENTA : compone
+    DETALLE_VENTA }o--|| PRODUCTO : refiere
+    VENTA    ||--|{ PAGO : recibe
+    VENTA    ||--|| DOCUMENTO_TRIBUTARIO : emite
+    VENTA    ||--o| CUENTA_POR_COBRAR : credito
+    CUENTA_POR_COBRAR ||--o{ ABONO_CXC : recibe
+    DOCUMENTO_TRIBUTARIO }o--|| RANGO_FOLIOS : usa_folio
+
+    DEVOLUCION }o--|| VENTA : reversa
+    DEVOLUCION ||--|| DOCUMENTO_TRIBUTARIO : NC
+
+    PROVEEDOR ||--o{ COMPRA : suministra
+    SUCURSAL  ||--o{ COMPRA : recibe
+    COMPRA    ||--|{ DETALLE_COMPRA : compone
+    COMPRA    ||--|| CUENTA_POR_PAGAR : genera
+    CUENTA_POR_PAGAR ||--o{ ABONO_CXP : recibe
+    DETALLE_COMPRA }o--|| PRODUCTO : refiere
+</div>
+
+<h3>7.8 Tabla maestra de relaciones</h3>
+<table>
+<thead><tr><th>Relación</th><th>Cardinalidad</th><th>FK</th><th>Regla / Restricción</th></tr></thead>
+<tbody>
+<tr><td>Usuario ↔ Perfil</td><td>N : M</td><td>tabla pivote <code>usuario_perfil</code></td><td>Usuario debe tener al menos 1 perfil activo</td></tr>
+<tr><td>Perfil ↔ Permiso</td><td>N : M</td><td><code>perfil_permiso</code></td><td>Permiso es atómico (recurso.accion)</td></tr>
+<tr><td>Usuario ↔ Sucursal</td><td>N : M</td><td><code>usuario_sucursal</code></td><td>Si el set está vacío → acceso a todas (Sysadmin)</td></tr>
+<tr><td>Sucursal → Caja</td><td>1 : N</td><td>caja.sucursal_id</td><td><code>UNIQUE(sucursal_id, codigo)</code></td></tr>
+<tr><td>Caja → SesionCaja</td><td>1 : N</td><td>sesion.caja_id</td><td><b>Solo una sesión ABIERTA por caja</b> (índice parcial único)</td></tr>
+<tr><td>SesionCaja → MovimientoCaja</td><td>1 : N</td><td>mov.sesion_caja_id</td><td>Solo cuando la sesión está abierta</td></tr>
+<tr><td>Sucursal → RangoFolios</td><td>1 : N</td><td>rango.sucursal_id</td><td><code>CHECK proximo BETWEEN desde AND hasta+1</code></td></tr>
+<tr><td>Producto ↔ Bodega (Stock)</td><td>N : M agregado</td><td><code>stock</code> con PK compuesta</td><td>Cantidad ≥ 0 y costo_promedio ≥ 0 (CHECK + FOR UPDATE en use case). Costo promedio se mantiene <b>por bodega</b>.</td></tr>
+<tr><td>Producto → MovInventario</td><td>1 : N</td><td>mov.producto_id</td><td><code>referencia_tipo</code> indica origen. Una <code>TRANSFERENCIA</code> genera 2 filas con <code>transferencia_id</code> común.</td></tr>
+<tr><td>Venta → DetalleVenta</td><td>1 : N (1+)</td><td>detalle.venta_id</td><td>Una venta sin detalles no puede confirmarse</td></tr>
+<tr><td>Venta → Pago</td><td>1 : N (1+)</td><td>pago.venta_id</td><td><b>SUM(pagos.monto) = venta.total_clp</b> al confirmar</td></tr>
+<tr><td>Venta → DocumentoTributario</td><td>1 : 1</td><td>venta.documento_id</td><td>Asignado tras reservar folio</td></tr>
+<tr><td>Documento → RangoFolios</td><td>N : 1</td><td>implícita por <code>(sucursal, tipo, folio)</code></td><td>Folio único por (sucursal, tipo); no reutilizable</td></tr>
+<tr><td>Venta → CuentaPorCobrar</td><td>1 : 0..1</td><td>cxc.venta_id</td><td>Solo si parte de la venta queda a crédito</td></tr>
+<tr><td>CxC → Abonos</td><td>1 : N</td><td>abono.cxc_id</td><td>SUM(abonos) ≤ monto_total; saldo = total − SUM(abonos)</td></tr>
+<tr><td>Devolución → Venta</td><td>N : 1</td><td>devolucion.venta_id</td><td>Solo ventas CONFIRMADAS pueden devolverse</td></tr>
+<tr><td>Devolución → DocumentoTributario</td><td>1 : 1</td><td>devolucion.documento_nc_id</td><td>Genera Nota de Crédito que referencia el documento original</td></tr>
+<tr><td>NC/ND → Documento original</td><td>N : 1</td><td>documento.documento_referencia_id</td><td>Auto-referencia de la tabla</td></tr>
+<tr><td>Proveedor → Compra</td><td>1 : N</td><td>compra.proveedor_id</td><td>—</td></tr>
+<tr><td>Compra → DetalleCompra</td><td>1 : N (1+)</td><td>detalle_compra.compra_id</td><td>—</td></tr>
+<tr><td>Compra → CuentaPorPagar</td><td>1 : 1</td><td>cxp.compra_id</td><td>Toda compra a crédito genera CxP</td></tr>
+<tr><td>Usuario → AuditLog</td><td>1 : N</td><td>audit.usuario_id</td><td>Append-only; jamás se actualiza/borra</td></tr>
+<tr><td>Usuario → RefreshToken</td><td>1 : N</td><td>refresh.usuario_id</td><td>Solo válidos los con <code>revocado_en IS NULL</code></td></tr>
+</tbody>
+</table>
+
+<h3>7.9 Reglas de integridad transversales</h3>
+<ul>
+<li><b>Soft delete</b> para entidades maestras (<code>activo BOOLEAN</code>): nunca se borran usuarios, productos, clientes ni proveedores. Solo se marcan inactivos.</li>
+<li><b>Hard delete</b> permitido solo en tablas pivote y datos transitorios (<code>idempotency_keys</code>, <code>intentos_login</code> antiguos).</li>
+<li><b>Snapshot de precios y costos</b>: <code>detalle_venta</code> y <code>detalle_compra</code> guardan precio/costo al momento de la transacción (no se calcula on-the-fly desde producto).</li>
+<li><b>Montos en CLP enteros</b> (<code>BIGINT</code>) en todas las tablas — sin decimales en presentación. <code>Decimal</code> solo para cantidades de producto (<code>NUMERIC(14,3)</code>).</li>
+<li><b>Timestamps en UTC</b> (<code>TIMESTAMPTZ</code>). Conversión a <code>America/Santiago</code> solo en presentación.</li>
+<li><b>UUIDs v7</b> generados por la aplicación, no por la DB.</li>
+<li><b>FK con <code>ON DELETE</code></b>:
+    <ul>
+    <li><code>CASCADE</code> en pivotes (usuario_perfil, perfil_permiso, detalle_venta, detalle_compra, pago).</li>
+    <li><code>RESTRICT</code> (default) en referencias entre maestros y transacciones — proteger histórico.</li>
+    </ul>
+</li>
+</ul>
+
+<h3>7.10 Índices recomendados (más allá de PKs/UKs)</h3>
+<table>
+<thead><tr><th>Tabla</th><th>Índice</th><th>Motivo</th></tr></thead>
+<tbody>
+<tr><td><code>ventas</code></td><td><code>(sucursal_id, fecha DESC)</code></td><td>Reportes por sucursal/período</td></tr>
+<tr><td><code>ventas</code></td><td><code>(usuario_id, fecha DESC)</code></td><td>Reportes por cajero</td></tr>
+<tr><td><code>ventas</code></td><td><code>(cliente_id)</code> WHERE cliente_id IS NOT NULL</td><td>Histórico cliente</td></tr>
+<tr><td><code>movimientos_inventario</code></td><td><code>(referencia_tipo, referencia_id)</code></td><td>Trazabilidad reversa</td></tr>
+<tr><td><code>movimientos_inventario</code></td><td><code>(producto_id, fecha DESC)</code></td><td>Kárdex de producto</td></tr>
+<tr><td><code>sesiones_caja</code></td><td><code>(caja_id) WHERE estado='ABIERTA'</code></td><td>Único parcial — garantiza 1 sesión activa por caja</td></tr>
+<tr><td><code>refresh_tokens</code></td><td><code>(usuario_id) WHERE revocado_en IS NULL</code></td><td>Listar sesiones activas del usuario</td></tr>
+<tr><td><code>audit_log</code></td><td><code>(usuario_id, ts DESC)</code></td><td>Quién hizo qué</td></tr>
+<tr><td><code>audit_log</code></td><td><code>(recurso_tipo, recurso_id, ts DESC)</code></td><td>Historia de un recurso</td></tr>
+<tr><td><code>audit_log</code></td><td>BRIN sobre <code>ts</code></td><td>Append-only de gran volumen</td></tr>
+<tr><td><code>cuentas_por_cobrar</code></td><td><code>(cliente_id) WHERE estado='PENDIENTE'</code></td><td>Saldo cliente</td></tr>
+<tr><td><code>cuentas_por_cobrar</code></td><td><code>(vence_en) WHERE estado='PENDIENTE'</code></td><td>Vencimientos</td></tr>
+<tr><td><code>productos</code></td><td><code>nombre</code> con <code>pg_trgm GIN</code></td><td>Búsqueda fuzzy en POS</td></tr>
+<tr><td><code>idempotency_keys</code></td><td><code>(expira_en)</code></td><td>Limpieza periódica</td></tr>
+</tbody>
+</table>
+
+<div class="callout info"><b>Nota</b>: el modelo está diseñado para crecer. Tablas como <code>tipos_documento</code>, <code>monedas</code> o <code>impuestos</code> hoy son enums/constantes; pueden migrar a tablas si el negocio lo requiere sin romper el modelo actual.</div>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="ddl">
+<h2><span class="num">8</span> DDL Postgres (propuesta inicial)</h2>
+<p>Solo los esqueletos críticos. Las migraciones reales las genera Alembic desde los modelos SQLAlchemy. <b>Nunca usar UUID v4 nativo de Postgres</b>: los UUID v7 vienen generados desde la app.</p>
+
+<details open><summary>Identidad y Acceso</summary>
+<pre><code class="language-sql">CREATE TABLE usuarios (
+  id              UUID PRIMARY KEY,
+  rut             VARCHAR(12) UNIQUE NOT NULL,
+  email           CITEXT UNIQUE NOT NULL,
+  nombre          VARCHAR(150) NOT NULL,
+  password_hash   TEXT NOT NULL,
+  activo          BOOLEAN NOT NULL DEFAULT TRUE,
+  intentos_fallidos SMALLINT NOT NULL DEFAULT 0,
+  bloqueado_hasta TIMESTAMPTZ,
+  password_actualizado_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  creado_en       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  actualizado_en  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE perfiles (
+  id          UUID PRIMARY KEY,
+  nombre      VARCHAR(80) UNIQUE NOT NULL,
+  descripcion TEXT,
+  activo      BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE permisos (
+  id     UUID PRIMARY KEY,
+  codigo VARCHAR(80) UNIQUE NOT NULL,  -- ej. 'venta.crear'
+  descripcion TEXT
+);
+
+CREATE TABLE usuario_perfil (
+  usuario_id UUID REFERENCES usuarios(id) ON DELETE CASCADE,
+  perfil_id  UUID REFERENCES perfiles(id) ON DELETE CASCADE,
+  PRIMARY KEY (usuario_id, perfil_id)
+);
+
+CREATE TABLE perfil_permiso (
+  perfil_id  UUID REFERENCES perfiles(id) ON DELETE CASCADE,
+  permiso_id UUID REFERENCES permisos(id) ON DELETE CASCADE,
+  PRIMARY KEY (perfil_id, permiso_id)
+);
+
+CREATE TABLE usuario_sucursal (
+  usuario_id UUID REFERENCES usuarios(id) ON DELETE CASCADE,
+  sucursal_id UUID NOT NULL,
+  PRIMARY KEY (usuario_id, sucursal_id)
+);
+
+CREATE TABLE refresh_tokens (
+  jti        UUID PRIMARY KEY,
+  usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  emitido_en TIMESTAMPTZ NOT NULL,
+  expira_en  TIMESTAMPTZ NOT NULL,
+  revocado_en TIMESTAMPTZ,
+  ip         INET,
+  user_agent TEXT
+);
+CREATE INDEX ix_refresh_usuario ON refresh_tokens(usuario_id) WHERE revocado_en IS NULL;
+</code></pre></details>
+
+<details><summary>Organización (Sucursales, Cajas, Folios)</summary>
+<pre><code class="language-sql">CREATE TABLE sucursales (
+  id      UUID PRIMARY KEY,
+  codigo  VARCHAR(20) UNIQUE NOT NULL,
+  nombre  VARCHAR(150) NOT NULL,
+  rut_emisor VARCHAR(12) NOT NULL,
+  direccion  TEXT, comuna VARCHAR(80), region VARCHAR(80),
+  activo  BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE cajas (
+  id          UUID PRIMARY KEY,
+  sucursal_id UUID NOT NULL REFERENCES sucursales(id),
+  codigo      VARCHAR(20) NOT NULL,
+  activo      BOOLEAN NOT NULL DEFAULT TRUE,
+  UNIQUE(sucursal_id, codigo)
+);
+
+CREATE TABLE rangos_folios (
+  id            UUID PRIMARY KEY,
+  sucursal_id   UUID NOT NULL REFERENCES sucursales(id),
+  tipo_documento VARCHAR(20) NOT NULL, -- BOLETA|FACTURA|NC|ND|GUIA
+  desde         INTEGER NOT NULL,
+  hasta         INTEGER NOT NULL,
+  proximo       INTEGER NOT NULL,
+  activo        BOOLEAN NOT NULL DEFAULT TRUE,
+  CHECK (proximo BETWEEN desde AND hasta + 1)
+);
+CREATE INDEX ix_rango_activo ON rangos_folios(sucursal_id, tipo_documento) WHERE activo;
+</code></pre></details>
+
+<details><summary>Caja (operación)</summary>
+<pre><code class="language-sql">CREATE TABLE sesiones_caja (
+  id              UUID PRIMARY KEY,
+  caja_id         UUID NOT NULL REFERENCES cajas(id),
+  usuario_apertura UUID NOT NULL REFERENCES usuarios(id),
+  monto_inicial   BIGINT NOT NULL,           -- CLP entero
+  abierta_en      TIMESTAMPTZ NOT NULL,
+  cerrada_en      TIMESTAMPTZ,
+  monto_final_declarado BIGINT,
+  monto_final_calculado BIGINT,
+  estado          VARCHAR(20) NOT NULL       -- ABIERTA|CERRADA
+);
+CREATE UNIQUE INDEX uq_sesion_activa ON sesiones_caja(caja_id) WHERE estado='ABIERTA';
+
+CREATE TABLE movimientos_caja (
+  id              UUID PRIMARY KEY,
+  sesion_caja_id  UUID NOT NULL REFERENCES sesiones_caja(id),
+  tipo            VARCHAR(30) NOT NULL,      -- INGRESO_VENTA|...
+  monto           BIGINT NOT NULL,
+  referencia_id   UUID,
+  descripcion     TEXT,
+  fecha           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+</code></pre></details>
+
+<details><summary>Inventario</summary>
+<pre><code class="language-sql">CREATE TABLE categorias (
+  id UUID PRIMARY KEY, nombre VARCHAR(150) NOT NULL UNIQUE
+);
+
+CREATE TABLE productos (
+  id            UUID PRIMARY KEY,
+  sku           VARCHAR(40) UNIQUE NOT NULL,
+  codigo_barras VARCHAR(40) UNIQUE,
+  nombre        VARCHAR(200) NOT NULL,
+  categoria_id  UUID REFERENCES categorias(id),
+  precio_venta  BIGINT NOT NULL,             -- CLP entero
+  iva_porcentaje SMALLINT NOT NULL DEFAULT 19,
+  controla_vencimiento BOOLEAN NOT NULL DEFAULT FALSE,  -- opt-in perecible
+  dias_alerta_vencimiento SMALLINT,          -- null = usa default global
+  activo        BOOLEAN NOT NULL DEFAULT TRUE,
+  version       INTEGER NOT NULL DEFAULT 0
+  -- costo_promedio NO vive aquí: es por bodega → tabla stock
+);
+
+CREATE TABLE bodegas (
+  id UUID PRIMARY KEY,
+  sucursal_id UUID NOT NULL REFERENCES sucursales(id),
+  codigo VARCHAR(20) NOT NULL,
+  nombre VARCHAR(150) NOT NULL,
+  UNIQUE(sucursal_id, codigo)
+);
+
+-- Cantidad y costo promedio POR BODEGA (cada bodega es independiente)
+CREATE TABLE stock (
+  producto_id        UUID NOT NULL REFERENCES productos(id),
+  bodega_id          UUID NOT NULL REFERENCES bodegas(id),
+  cantidad           NUMERIC(14,3) NOT NULL DEFAULT 0,
+  costo_promedio_clp BIGINT NOT NULL DEFAULT 0,
+  version            INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (producto_id, bodega_id),
+  CHECK (cantidad >= 0),
+  CHECK (costo_promedio_clp >= 0)
+);
+
+-- Lotes: solo se crean para productos con controla_vencimiento = true (FEFO)
+CREATE TABLE lotes_inventario (
+  id                 UUID PRIMARY KEY,
+  producto_id        UUID NOT NULL REFERENCES productos(id),
+  bodega_id          UUID NOT NULL REFERENCES bodegas(id),
+  numero_lote        VARCHAR(60),               -- código del proveedor (opcional)
+  fecha_elaboracion  DATE,                      -- opcional
+  fecha_ingreso      DATE NOT NULL,             -- fecha de compra/recepción
+  fecha_vencimiento  DATE NOT NULL,
+  cantidad           NUMERIC(14,3) NOT NULL DEFAULT 0,
+  costo_unitario_clp BIGINT NOT NULL,
+  agotado            BOOLEAN NOT NULL DEFAULT FALSE,
+  creado_en          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (cantidad >= 0)
+);
+-- Índice clave del reporte "por vencer" (parcial: solo lotes vivos)
+CREATE INDEX ix_lote_vencimiento ON lotes_inventario(fecha_vencimiento)
+  WHERE NOT agotado AND cantidad > 0;
+CREATE INDEX ix_lote_prod_bodega ON lotes_inventario(producto_id, bodega_id)
+  WHERE NOT agotado;
+
+CREATE TABLE movimientos_inventario (
+  id              UUID PRIMARY KEY,
+  producto_id     UUID NOT NULL REFERENCES productos(id),
+  bodega_id       UUID NOT NULL REFERENCES bodegas(id),  -- bodega afectada por esta fila
+  lote_id         UUID REFERENCES lotes_inventario(id),  -- nullable; FEFO en egreso de perecibles
+  tipo            VARCHAR(20) NOT NULL,        -- ENTRADA|SALIDA|AJUSTE|TRANSFERENCIA
+  cantidad        NUMERIC(14,3) NOT NULL,      -- siempre positiva; el tipo da el signo (AJUSTE puede ser ±)
+  costo_unitario_clp BIGINT,                   -- snapshot al momento del movimiento
+  referencia_tipo VARCHAR(20),                 -- VENTA|COMPRA|DEVOLUCION|AJUSTE|TRANSFERENCIA
+  referencia_id   UUID,
+  transferencia_id UUID,                       -- agrupa par SALIDA+ENTRADA en transferencias
+  usuario_id      UUID NOT NULL REFERENCES usuarios(id),
+  motivo          TEXT,
+  fecha           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  -- Una TRANSFERENCIA siempre tiene transferencia_id; los demás tipos no
+  CHECK (
+    (tipo = 'TRANSFERENCIA' AND transferencia_id IS NOT NULL)
+    OR (tipo <> 'TRANSFERENCIA' AND transferencia_id IS NULL)
+  )
+);
+CREATE INDEX ix_mov_inv_ref          ON movimientos_inventario(referencia_tipo, referencia_id);
+CREATE INDEX ix_mov_inv_producto_ts  ON movimientos_inventario(producto_id, fecha DESC);
+CREATE INDEX ix_mov_inv_transferencia ON movimientos_inventario(transferencia_id)
+  WHERE transferencia_id IS NOT NULL;
+CREATE INDEX ix_mov_inv_lote ON movimientos_inventario(lote_id)
+  WHERE lote_id IS NOT NULL;
+
+-- Configuración global (incluye el default de alerta de vencimiento)
+-- Si aún no existe una tabla de config, este valor puede vivir como fila key/value.
+-- dias_alerta_vencimiento_default: SMALLINT (ej. 30)
+</code></pre></details>
+
+<details><summary>Ventas, Pagos, Documentos</summary>
+<pre><code class="language-sql">CREATE TABLE clientes (
+  id      UUID PRIMARY KEY,
+  rut     VARCHAR(12) UNIQUE NOT NULL,
+  razon_social VARCHAR(200) NOT NULL,
+  giro    VARCHAR(150),
+  direccion TEXT,
+  email   CITEXT,
+  activo  BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE ventas (
+  id              UUID PRIMARY KEY,
+  sucursal_id     UUID NOT NULL REFERENCES sucursales(id),
+  caja_id         UUID NOT NULL REFERENCES cajas(id),
+  usuario_id      UUID NOT NULL REFERENCES usuarios(id),
+  cliente_id      UUID REFERENCES clientes(id),
+  subtotal_clp    BIGINT NOT NULL,
+  iva_clp         BIGINT NOT NULL,
+  total_clp       BIGINT NOT NULL,
+  estado          VARCHAR(20) NOT NULL,      -- PENDIENTE|CONFIRMADA|ANULADA
+  documento_id    UUID,
+  fecha           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX ix_venta_sucursal_fecha ON ventas(sucursal_id, fecha);
+
+CREATE TABLE detalle_venta (
+  id            UUID PRIMARY KEY,
+  venta_id      UUID NOT NULL REFERENCES ventas(id) ON DELETE CASCADE,
+  producto_id   UUID NOT NULL REFERENCES productos(id),
+  cantidad      NUMERIC(14,3) NOT NULL,
+  precio_unitario BIGINT NOT NULL,
+  costo_unitario  BIGINT NOT NULL,
+  iva_unitario  BIGINT NOT NULL,
+  subtotal_clp  BIGINT NOT NULL
+);
+
+CREATE TABLE pagos (
+  id            UUID PRIMARY KEY,
+  venta_id      UUID NOT NULL REFERENCES ventas(id) ON DELETE CASCADE,
+  tipo          VARCHAR(20) NOT NULL,        -- EFECTIVO|TRANSFERENCIA|DEBITO|CREDITO
+  monto_clp     BIGINT NOT NULL,
+  referencia_externa VARCHAR(100),
+  ultimos_4     CHAR(4)
+);
+
+CREATE TABLE documentos_tributarios (
+  id            UUID PRIMARY KEY,
+  tipo          VARCHAR(20) NOT NULL,        -- BOLETA|FACTURA|NC|ND|GUIA
+  folio         INTEGER NOT NULL,
+  sucursal_id   UUID NOT NULL REFERENCES sucursales(id),
+  rut_emisor    VARCHAR(12) NOT NULL,
+  rut_receptor  VARCHAR(12),
+  razon_social_receptor VARCHAR(200),
+  venta_id      UUID REFERENCES ventas(id),
+  documento_referencia_id UUID REFERENCES documentos_tributarios(id), -- NC/ND apunta al original
+  subtotal_clp  BIGINT NOT NULL,
+  iva_clp       BIGINT NOT NULL,
+  total_clp     BIGINT NOT NULL,
+  estado_sii    VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+  emitido_en    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(sucursal_id, tipo, folio)
+);
+</code></pre></details>
+
+<details><summary>Devoluciones, CxC, CxP, Compras</summary>
+<pre><code class="language-sql">CREATE TABLE devoluciones (
+  id              UUID PRIMARY KEY,
+  venta_id        UUID NOT NULL REFERENCES ventas(id),
+  documento_nc_id UUID NOT NULL REFERENCES documentos_tributarios(id),
+  usuario_id      UUID NOT NULL REFERENCES usuarios(id),
+  motivo          TEXT,
+  total_clp       BIGINT NOT NULL,
+  fecha           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE cuentas_por_cobrar (
+  id              UUID PRIMARY KEY,
+  cliente_id      UUID NOT NULL REFERENCES clientes(id),
+  venta_id        UUID NOT NULL REFERENCES ventas(id),
+  monto_total_clp BIGINT NOT NULL,
+  saldo_clp       BIGINT NOT NULL,
+  vence_en        DATE,
+  estado          VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE'
+);
+
+CREATE TABLE proveedores (
+  id   UUID PRIMARY KEY,
+  rut  VARCHAR(12) UNIQUE NOT NULL,
+  razon_social VARCHAR(200) NOT NULL,
+  email CITEXT,
+  activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE compras (
+  id            UUID PRIMARY KEY,
+  proveedor_id  UUID NOT NULL REFERENCES proveedores(id),
+  sucursal_id   UUID NOT NULL REFERENCES sucursales(id),
+  documento_proveedor VARCHAR(40) NOT NULL,
+  total_clp     BIGINT NOT NULL,
+  iva_clp       BIGINT NOT NULL,
+  fecha         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE detalle_compra (
+  id           UUID PRIMARY KEY,
+  compra_id    UUID NOT NULL REFERENCES compras(id) ON DELETE CASCADE,
+  producto_id  UUID NOT NULL REFERENCES productos(id),
+  cantidad     NUMERIC(14,3) NOT NULL,
+  costo_unitario BIGINT NOT NULL,
+  subtotal_clp BIGINT NOT NULL
+);
+
+CREATE TABLE cuentas_por_pagar (
+  id            UUID PRIMARY KEY,
+  proveedor_id  UUID NOT NULL REFERENCES proveedores(id),
+  compra_id     UUID NOT NULL REFERENCES compras(id),
+  monto_total_clp BIGINT NOT NULL,
+  saldo_clp     BIGINT NOT NULL,
+  vence_en      DATE,
+  estado        VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE'
+);
+</code></pre></details>
+
+<details><summary>Auditoría e Idempotencia</summary>
+<pre><code class="language-sql">CREATE TABLE audit_log (
+  id            UUID PRIMARY KEY,
+  ts            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  usuario_id    UUID REFERENCES usuarios(id),
+  ip            INET,
+  user_agent    TEXT,
+  accion        VARCHAR(80) NOT NULL,        -- ej. 'venta.procesar'
+  recurso_tipo  VARCHAR(40),
+  recurso_id    UUID,
+  resultado     VARCHAR(20) NOT NULL,        -- OK|ERROR
+  metadata      JSONB,
+  before        JSONB,
+  after         JSONB
+);
+CREATE INDEX ix_audit_ts ON audit_log(ts DESC);
+CREATE INDEX ix_audit_usuario ON audit_log(usuario_id, ts DESC);
+
+CREATE TABLE idempotency_keys (
+  key            VARCHAR(120) PRIMARY KEY,
+  usuario_id     UUID,
+  endpoint       VARCHAR(120) NOT NULL,
+  request_hash   CHAR(64) NOT NULL,           -- SHA-256 del body
+  status_code    SMALLINT,
+  response_body  JSONB,
+  creado_en      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expira_en      TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '24 hours'
+);
+
+CREATE TABLE intentos_login (
+  id        BIGSERIAL PRIMARY KEY,
+  email     CITEXT NOT NULL,
+  ip        INET,
+  ts        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  exitoso   BOOLEAN NOT NULL,
+  user_agent TEXT
+);
+CREATE INDEX ix_intentos_email_ts ON intentos_login(email, ts DESC);
+</code></pre></details>
+</section>
+
+<!-- ============================================================ -->
+<section id="concurrencia">
+<h2><span class="num">9</span> Concurrencia &amp; Locking</h2>
+<h3>9.1 Stock</h3>
+<pre><code class="language-sql">-- dentro del UoW de ProcesarVentaUseCase
+SELECT cantidad FROM stock
+ WHERE producto_id = :pid AND bodega_id = :bid
+ FOR UPDATE;
+-- valida disponibilidad, calcula nueva cantidad, UPDATE
+</code></pre>
+<h3>9.2 Folios SII</h3>
+<pre><code class="language-sql">SELECT id, proximo, hasta FROM rangos_folios
+ WHERE sucursal_id = :sid AND tipo_documento = :tipo AND activo
+ ORDER BY desde
+ FOR UPDATE
+ LIMIT 1;
+-- si proximo &gt; hasta → ERR_FOLIOS_AGOTADOS
+-- UPDATE rangos_folios SET proximo = proximo + 1
+</code></pre>
+<div class="callout warn">Ambos locks viven dentro del UoW del Use Case que los usa. La transacción debe ser corta — no hacer I/O externo (impresión, DTE) dentro de ella.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="idempotencia">
+<h2><span class="num">10</span> Idempotencia</h2>
+<p>Mutables críticos exigen header <code>Idempotency-Key</code>. El middleware:</p>
+<ol>
+<li>Lee el header (si falta en endpoint que lo requiere → <span class="tag bad">400 ERR_IDEMPOTENCY_REQUIRED</span>).</li>
+<li>Calcula <code>SHA-256(body)</code>.</li>
+<li>Busca <code>(key, endpoint)</code> en <code>idempotency_keys</code>.<ul>
+  <li>Existe + mismo hash → devuelve respuesta previa.</li>
+  <li>Existe + hash distinto → <span class="tag bad">409 ERR_IDEMPOTENCY_CONFLICT</span>.</li>
+  <li>No existe → procesa, persiste resultado al final.</li>
+</ul></li>
+</ol>
+<table>
+<thead><tr><th>Endpoint</th><th>Idempotency-Key</th></tr></thead>
+<tbody>
+<tr><td><code>POST /api/v1/ventas</code></td><td><span class="tag warn">requerido</span></td></tr>
+<tr><td><code>POST /api/v1/devoluciones</code></td><td><span class="tag warn">requerido</span></td></tr>
+<tr><td><code>POST /api/v1/caja/sesiones</code></td><td><span class="tag warn">requerido</span></td></tr>
+<tr><td><code>POST /api/v1/cxc/abonos</code></td><td><span class="tag warn">requerido</span></td></tr>
+<tr><td><code>GET /*</code></td><td>no aplica (idempotente por naturaleza)</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section id="sec-overview">
+<h2><span class="num">11</span> Modelo de Seguridad</h2>
+<div class="row">
+<div class="card"><h4>Autenticación</h4>
+<ul>
+<li>Argon2id, parámetros: t=3, m=64MB, p=1.</li>
+<li>JWT RS256, par de claves rotables (kid).</li>
+<li>Access 15 min · Refresh 7 días.</li>
+<li>Refresh persistido (jti, ip, ua), revocable.</li>
+<li>Rotación de refresh: cada uso emite nuevo y revoca anterior.</li>
+</ul>
+</div>
+<div class="card"><h4>Autorización (RBAC)</h4>
+<ul>
+<li>Usuario → N Perfiles → N Permisos.</li>
+<li>Restricción adicional por sucursal.</li>
+<li>Verificación en Use Case (decorador) y en HTTP (guard).</li>
+<li>Mínimo privilegio.</li>
+</ul>
+</div>
+<div class="card"><h4>Datos</h4>
+<ul>
+<li>TLS en transporte. Cifrado en reposo (Postgres TDE/disco).</li>
+<li>Secretos via env / secret manager.</li>
+<li>Backups cifrados.</li>
+</ul>
+</div>
+<div class="card"><h4>Auditoría</h4>
+<ul>
+<li>Audit log inmutable, append-only.</li>
+<li>Acción + actor + recurso + before/after + ts UTC.</li>
+<li>Retención mínima 1 año.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="uc-login">
+<h2><span class="num">11.1</span> UC Seguridad · Login</h2>
+<div class="kvs">
+<b>Actor</b><span>Usuario nominativo</span>
+<b>Precondición</b><span>Cuenta activa, no bloqueada</span>
+<b>Postcondición</b><span>Access + Refresh emitidos; intento registrado</span>
+<b>Permiso</b><span>n/a (endpoint público)</span>
+<b>Idempotencia</b><span>no</span>
+</div>
+<div class="mermaid">
+sequenceDiagram
+    participant C as Cliente
+    participant API as POST /api/v1/auth/login
+    participant UC as LoginUseCase
+    participant Hash as Argon2Hasher
+    participant Tok as JwtProvider
+    participant DB as Postgres
+    C->>API: { email, password }
+    API->>UC: execute(cmd)
+    UC->>DB: SELECT usuario WHERE email
+    DB-->>UC: usuario
+    UC->>UC: ¿activo? ¿bloqueado_hasta &gt; now?
+    UC->>Hash: verify(password, hash)
+    Hash-->>UC: ok / fail
+    alt fallo
+        UC->>DB: INSERT intentos_login(exitoso=false)
+        UC->>DB: UPDATE usuarios SET intentos_fallidos+=1
+        UC->>UC: ¿intentos &gt;= 5? bloqueado_hasta = now+15min
+        UC-->>API: ERR_AUTH_INVALIDA
+    else ok
+        UC->>DB: INSERT intentos_login(exitoso=true)
+        UC->>DB: UPDATE usuarios SET intentos_fallidos=0
+        UC->>Tok: emitir access(15m) + refresh(jti,7d)
+        UC->>DB: INSERT refresh_tokens
+        UC-->>API: { access, refresh, perfiles, permisos }
+    end
+</div>
+<h4>Reglas</h4>
+<ul>
+<li>Mensaje de error genérico: <code>ERR_AUTH_INVALIDA</code> "Credenciales inválidas" (no revelar si el email existe).</li>
+<li>Tras <b>5 fallos consecutivos</b>: bloqueo por 15 min con backoff exponencial al siguiente bloque.</li>
+<li>Rate limit a nivel HTTP: 5 req/min por IP, 10 req/min por email.</li>
+<li>Auditar tanto éxito como fracaso.</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section id="uc-refresh">
+<h2><span class="num">11.2</span> UC Seguridad · Refresh Token</h2>
+<div class="kvs">
+<b>Actor</b><span>Usuario autenticado</span>
+<b>Precondición</b><span>Refresh token válido y no revocado</span>
+<b>Postcondición</b><span>Nuevo access + nuevo refresh; refresh anterior revocado</span>
+</div>
+<ol>
+<li>Cliente envía <code>POST /api/v1/auth/refresh</code> con cookie HttpOnly.</li>
+<li>Validar firma y expiración del refresh.</li>
+<li>Buscar <code>refresh_tokens</code> por <code>jti</code>; si <code>revocado_en</code> ≠ null → <span class="tag bad">401 ERR_REFRESH_REVOCADO</span>.</li>
+<li>Marcar <code>revocado_en = NOW()</code>, emitir nuevo par, insertar nuevo refresh.</li>
+<li>Si la <b>misma jti</b> intenta usarse otra vez → <b>revocar TODOS los refresh del usuario</b> (sospecha de robo).</li>
+</ol>
+</section>
+
+<!-- ============================================================ -->
+<section id="uc-rbac">
+<h2><span class="num">11.3</span> UC Seguridad · RBAC en Use Case</h2>
+<p>Defense in depth: la autorización se valida tanto en el guard HTTP como en el use case.</p>
+<pre><code class="language-python">@dataclass(frozen=True)
+class ContextoSeguridad:
+    usuario_id: UUID
+    perfiles: frozenset[str]
+    permisos: frozenset[str]
+    sucursales_permitidas: frozenset[UUID]
+
+class ProcesarVentaUseCase:
+    @requires_permission("venta.crear")
+    def execute(self, cmd: ProcesarVentaCommand, *, contexto: ContextoSeguridad):
+        if cmd.venta.sucursal_id not in contexto.sucursales_permitidas:
+            raise PermisoDenegadoError(
+                code="ERR_SUCURSAL_NO_PERMITIDA",
+                message="El usuario no opera en esta sucursal",
+            )
+        ...
+</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="uc-audit">
+<h2><span class="num">11.4</span> UC Seguridad · Audit Log</h2>
+<div class="kvs">
+<b>Acciones auditadas</b><span>login, logout, cambio password, cambio perfil/permisos, venta.procesar, venta.anular, devolucion.procesar, caja.abrir, caja.cerrar, precio.modificar, inventario.ajustar, usuario.crear, usuario.desactivar</span>
+</div>
+<pre><code class="language-python">class AuditPublisherSync:
+    def __init__(self, session_factory): self._sf = session_factory
+    def publicar(self, *, accion, usuario_id, recurso_tipo=None, recurso_id=None,
+                 before=None, after=None, metadata=None, resultado="OK"):
+        sess = self._sf()  # MISMO session de UoW activo
+        sess.execute(insert(AuditLogORM).values(
+            id=uuid7(), ts=datetime_utc(), usuario_id=usuario_id,
+            accion=accion, recurso_tipo=recurso_tipo, recurso_id=recurso_id,
+            before=before, after=after, metadata=metadata, resultado=resultado,
+        ))
+</code></pre>
+<div class="callout info">Cuando se requiera escala: reemplazar la implementación por <code>AuditPublisherOutbox</code> que escribe a tabla <code>outbox_events</code>; un worker lo procesa. Los Use Cases no cambian.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="uc-bloqueo">
+<h2><span class="num">11.5</span> UC Seguridad · Bloqueo de cuenta</h2>
+<table>
+<thead><tr><th>Intentos fallidos consecutivos</th><th>Acción</th></tr></thead>
+<tbody>
+<tr><td>1–4</td><td>Mensaje genérico, intento queda en log</td></tr>
+<tr><td>5</td><td>Bloqueo 15 min</td></tr>
+<tr><td>10</td><td>Bloqueo 1 h</td></tr>
+<tr><td>15</td><td>Bloqueo 24 h + email al admin</td></tr>
+</tbody>
+</table>
+<p>El contador se resetea con un login exitoso o tras 24 h sin intentos. Sysadmin puede desbloquear manualmente desde Administración (acción auditada).</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="headers">
+<h2><span class="num">11.6</span> Headers HTTP de Seguridad</h2>
+<pre><code class="language-text">Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Security-Policy: default-src 'self'; img-src 'self' data:; script-src 'self'
+Permissions-Policy: geolocation=(), microphone=(), camera=()
+Cache-Control: no-store     (en endpoints autenticados)
+</code></pre>
+<p>CORS: allowlist explícita de orígenes (no <code>*</code>). Rate limit por IP global y por endpoint sensible.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="errores">
+<h2><span class="num">12</span> Catálogo de errores (excerpt)</h2>
+<table>
+<thead><tr><th>code</th><th>HTTP</th><th>Mensaje</th></tr></thead>
+<tbody>
+<tr><td><code>ERR_AUTH_INVALIDA</code></td><td>401</td><td>Credenciales inválidas</td></tr>
+<tr><td><code>ERR_AUTH_BLOQUEADA</code></td><td>423</td><td>Cuenta bloqueada temporalmente</td></tr>
+<tr><td><code>ERR_REFRESH_REVOCADO</code></td><td>401</td><td>Sesión expirada, vuelva a iniciar sesión</td></tr>
+<tr><td><code>ERR_PERMISO_DENEGADO</code></td><td>403</td><td>No tiene permisos para esta acción</td></tr>
+<tr><td><code>ERR_SUCURSAL_NO_PERMITIDA</code></td><td>403</td><td>El usuario no opera en esta sucursal</td></tr>
+<tr><td><code>ERR_STOCK_INSUFICIENTE</code></td><td>409</td><td>Stock insuficiente para el producto</td></tr>
+<tr><td><code>ERR_FOLIOS_AGOTADOS</code></td><td>409</td><td>No hay folios disponibles para el documento</td></tr>
+<tr><td><code>ERR_VENTA_INVALIDA</code></td><td>400</td><td>La venta no es válida</td></tr>
+<tr><td><code>ERR_PAGOS_NO_CUADRAN</code></td><td>400</td><td>Los pagos no suman el total de la venta</td></tr>
+<tr><td><code>ERR_SESION_CAJA_NO_ACTIVA</code></td><td>409</td><td>No hay una sesión de caja abierta</td></tr>
+<tr><td><code>ERR_IDEMPOTENCY_REQUIRED</code></td><td>400</td><td>Falta el header Idempotency-Key</td></tr>
+<tr><td><code>ERR_IDEMPOTENCY_CONFLICT</code></td><td>409</td><td>La clave de idempotencia ya fue usada con otro contenido</td></tr>
+<tr><td><code>ERR_RECURSO_NO_ENCONTRADO</code></td><td>404</td><td>Recurso no encontrado</td></tr>
+<tr><td><code>ERR_VALIDACION</code></td><td>422</td><td>Datos inválidos (ver detalles)</td></tr>
+<tr><td><code>ERR_INTERNO</code></td><td>500</td><td>Error interno (no expone detalles)</td></tr>
+<tr><td><code>ERR_PERFIL_DUPLICADO</code></td><td>409</td><td>Ya existe un perfil con ese nombre</td></tr>
+<tr><td><code>ERR_PERFIL_EN_USO</code></td><td>409</td><td>El perfil tiene usuarios activos asignados (<code>details.usuarios</code>, <code>details.total</code>)</td></tr>
+<tr><td><code>ERR_PERFIL_INVALIDO</code></td><td>422</td><td>Perfil inválido</td></tr>
+<tr><td><code>ERR_PERFIL_YA_ACTIVO</code></td><td>409</td><td>El perfil ya se encuentra activo</td></tr>
+<tr><td><code>ERR_PERMISO_NO_EXISTE</code></td><td>404</td><td>El permiso indicado no existe (<code>details.permiso_ids_invalidos</code>)</td></tr>
+<tr><td><code>ERR_PERMISO_INVALIDO</code></td><td>422</td><td>Código de permiso inválido (formato esperado: recurso.accion)</td></tr>
+<tr><td><code>ERR_USUARIO_DUPLICADO</code></td><td>409</td><td>Ya existe un usuario con ese email o RUT</td></tr>
+<tr><td><code>ERR_USUARIO_INVALIDO</code></td><td>422</td><td>Datos de usuario inválidos</td></tr>
+</tbody>
+</table>
+<p>Formato de respuesta de error:</p>
+<pre><code class="language-json">{
+  "error": {
+    "code": "ERR_STOCK_INSUFICIENTE",
+    "message": "Stock insuficiente para el producto",
+    "details": { "producto_id": "0190a0...", "disponible": 2, "solicitado": 5 },
+    "request_id": "01HX..."
+  }
+}</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="observabilidad">
+<h2><span class="num">13</span> Observabilidad</h2>
+<ul>
+<li><b>Logs</b> JSON estructurado con <code>request_id</code>, <code>usuario_id</code>, <code>endpoint</code>, latencia, <code>error.code</code> si aplica. Sin secretos ni PII completa.</li>
+<li><b>Métricas</b> (Prometheus): RPS por endpoint, latencias p50/p95/p99, errores 4xx/5xx por code, locks en stock/folios, sesiones abiertas, ventas/min por sucursal.</li>
+<li><b>Traces</b> (OpenTelemetry): span por request, sub-spans por use case, repo call, DB query.</li>
+<li><b>Healthchecks</b>: <code>/health</code> (liveness, retorna 200 si proceso vivo), <code>/ready</code> (readiness, valida DB).</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section id="testing">
+<h2><span class="num">14</span> Estrategia de Testing</h2>
+<table>
+<thead><tr><th>Capa</th><th>Tipo</th><th>Herramientas</th><th>Cobertura mínima</th></tr></thead>
+<tbody>
+<tr><td>Domain</td><td>Unit puro</td><td>pytest</td><td>95%</td></tr>
+<tr><td>Application (Use Cases)</td><td>Unit con repos in-memory</td><td>pytest</td><td>90%</td></tr>
+<tr><td>Adapters SQL</td><td>Integración real</td><td>pytest + testcontainers (Postgres)</td><td>80%</td></tr>
+<tr><td>API</td><td>E2E HTTP</td><td>pytest + httpx</td><td>flujos críticos</td></tr>
+<tr><td>Seguridad</td><td>Tests dedicados</td><td>cada permiso/rol matriz allow/deny</td><td>100% paths</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section id="cicd">
+<h2><span class="num">15</span> CI/CD</h2>
+<ol>
+<li><b>Lint</b>: <code>ruff</code> + <code>black --check</code>.</li>
+<li><b>Type-check</b>: <code>mypy --strict</code>.</li>
+<li><b>Tests</b>: <code>pytest --cov</code> con thresholds por capa.</li>
+<li><b>Seguridad estática</b>: <code>bandit</code>, <code>semgrep</code>.</li>
+<li><b>Vulnerabilidades</b>: <code>pip-audit</code>.</li>
+<li><b>Build imagen</b>: Docker multi-stage; SBOM con <code>syft</code>.</li>
+<li><b>Migraciones</b>: <code>alembic upgrade head</code> en pipeline staging.</li>
+</ol>
+</section>
+
+<!-- ============================================================ -->
+<section id="next">
+<h2><span class="num">16</span> Próximos pasos</h2>
+<ol>
+<li>Revisar este documento punto por punto. Marcar áreas que requieran ajuste.</li>
+<li>Persistir esta arquitectura en <code>CLAUDE.md</code> §11.</li>
+<li>Crear el esqueleto del repo (<code>backend/</code>, <code>frontend/</code>, <code>docker-compose.yml</code>) — <b>solo cuando lo pidas</b>.</li>
+<li>Empezar por el módulo <b>Autenticación</b> (entidad <code>Usuario</code>, hash, login, refresh).</li>
+</ol>
+<div class="callout ok"><b>Recordatorio del modo de trabajo:</b> nada se construye sin pedido explícito. Esta arquitectura es la guía; cada pieza se implementa cuando llega su turno.</div>
+</section>
+
+<p class="muted" style="margin:24px 0 60px">Documento generado para revisión. Versión inicial · sujeto a iteración.</p>
+</main>
+</div>
+
+<script>
+mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+hljs.highlightAll();
+
+// Active section highlighting
+const links = document.querySelectorAll('aside a');
+const sections = document.querySelectorAll('section');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id = e.target.id;
+      links.forEach(a=>a.classList.toggle('active', a.getAttribute('href') === '#'+id));
+    }
+  });
+},{rootMargin:'-40% 0px -55% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+// TOC search filter
+const search = document.getElementById('search');
+search.addEventListener('input', ()=>{
+  const q = search.value.trim().toLowerCase();
+  document.querySelectorAll('#toc li').forEach(li=>{
+    const t = li.textContent.toLowerCase();
+    li.style.display = !q || t.includes(q) ? '' : 'none';
+  });
+});
+</script>
+</body>
+</html>
