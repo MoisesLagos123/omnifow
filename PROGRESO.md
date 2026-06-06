@@ -150,13 +150,26 @@ npm run dev
 Credenciales seed:
 - Login: `admin@minierp.cl` / `Admin12345!` (perfil Sysadmin con todos los permisos)
 
+### ⚠️ Pendientes técnicos no bloqueantes
+
+- **Configuración de correo SMTP real**. Hoy el reset de contraseña usa
+  `LoggingEmailSender` que escribe el link al log de uvicorn (funciona en
+  dev/portfolio pero NO envía emails reales). Para producción hay que
+  implementar `SmtpEmailSender` con credenciales SMTP (Gmail App Password,
+  SendGrid, Mailgun, etc.), agregar settings (`EMAIL_BACKEND`, `SMTP_HOST`,
+  `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`) y cambiar el singleton en
+  `backend/src/erp/adapters/api/dependencies.py:_email_sender_singleton`.
+  La arquitectura ya está lista — solo falta el adapter + tests.
+
 ### Próximo paso recomendado (orden sugerido por valor)
 1. **Compras + Proveedores + CxP** (🟡 medio — cierra ciclo de costos)
 2. **Cuentas por Cobrar (CxC)** (🟡 medio — habilita ventas a crédito)
 3. **Configuración global SII** (🟡 medio — prerrequisito para integración real con SII)
-4. ~~Refresh token + Logout~~ ✅ completado 2026-06-05
-5. ~~Audit Log viewer~~ ✅ completado 2026-06-05
-6. ~~Cambiar contraseña~~ ✅ completado 2026-06-05
+4. **Configuración SMTP real** (🟢 chico — adapter `SmtpEmailSender` + tests)
+5. ~~Refresh token + Logout~~ ✅ completado 2026-06-05
+6. ~~Audit Log viewer~~ ✅ completado 2026-06-05
+7. ~~Cambiar contraseña~~ ✅ completado 2026-06-05
+8. ~~Forgot password + Reset por email~~ ✅ completado 2026-06-05 — usa `LoggingEmailSender`
 
 > Para cualquiera de estos, el patrón de trabajo es: lanzar agente backend + frontend en paralelo con el contrato pactado, validar con `mypy`/`pytest` y `tsc`/`build`/`test`, aplicar migración + seed, smoke curl. Hay ~15 ejemplos previos en este PROGRESO.md.
 
@@ -211,6 +224,9 @@ Buscar en el archivo: "TODO" y "fuera de alcance" para la lista completa. Los m�
 |---|---|---|---|
 | ✅ done | ~~**Refresh token + Logout**~~ | 🟢 chico | Completado 2026-06-05 — renovación automática + rotación + logout server-side |
 | ✅ done | ~~**Audit Log viewer**~~ | 🟢 chico | Completado 2026-06-05 — endpoint + página con filtros + detalle JSON |
+| ✅ done | ~~**Cambiar contraseña**~~ | 🟢 chico | Completado 2026-06-05 — backend + modal en dropdown del usuario |
+| ✅ done | ~~**Forgot password + Reset por email**~~ | 🟢 chico | Completado 2026-06-05 — usa `LoggingEmailSender` (dev). SMTP real pendiente ⬇ |
+| 🟢 pendiente | **Configuración SMTP real** | 🟢 chico | `SmtpEmailSender` + env vars. Hoy el reset usa logging-only. Arquitectura lista, solo falta el adapter |
 | 🟡 medio | **Compras + Proveedores + CxP** | 🟡 medio | Cierra el ciclo de costos (recepción con `compra_id` real) |
 | 🟡 medio | **Cuentas por Cobrar** (CxC) | 🟡 medio | Habilita ventas parcialmente pagadas a crédito |
 | 🟢 nice-to-have | **Configuración global SII** (IVA, datos emisor, certificado) | 🟡 medio | Prerrequisito para integración real con SII |
