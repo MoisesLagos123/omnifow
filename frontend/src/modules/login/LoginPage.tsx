@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, LogIn } from "lucide-react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { CheckCircle2, Eye, EyeOff, LogIn } from "lucide-react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -11,6 +11,7 @@ import { ErrorAlert } from "../../components/ui/ErrorAlert";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
 import { ApiError, NetworkError, authApi } from "../../api/client";
 import { useAuth } from "../../auth/useAuth";
+import { ROUTES } from "../../routePaths";
 import { loginSchema, type LoginFormValues } from "./loginSchema";
 import styles from "./LoginPage.module.css";
 
@@ -62,6 +63,12 @@ export function LoginPage() {
     return <Navigate to={from} replace />;
   }
 
+  // Banner cuando el usuario llega tras un reset de contraseña exitoso.
+  const passwordResetSuccess = Boolean(
+    (location.state as { passwordResetSuccess?: boolean } | null)
+      ?.passwordResetSuccess
+  );
+
   async function onSubmit(values: LoginFormValues): Promise<void> {
     setServerError(null);
     try {
@@ -101,6 +108,25 @@ export function LoginPage() {
             noValidate
             className={styles.form}
           >
+            {passwordResetSuccess && !serverError && (
+              <div
+                role="status"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--space-2)",
+                  padding: "var(--space-3)",
+                  background: "var(--color-success-soft)",
+                  color: "var(--color-success)",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--color-success)",
+                  fontSize: "0.88rem",
+                }}
+              >
+                <CheckCircle2 size={18} aria-hidden="true" />
+                <span>Contraseña actualizada. Inicia sesión con la nueva.</span>
+              </div>
+            )}
             {serverError && <ErrorAlert>{serverError}</ErrorAlert>}
 
             <Input
@@ -149,6 +175,19 @@ export function LoginPage() {
             >
               {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
             </Button>
+
+            <Link
+              to={ROUTES.FORGOT_PASSWORD}
+              style={{
+                textAlign: "center",
+                color: "var(--color-brand)",
+                fontSize: "0.88rem",
+                textDecoration: "none",
+                marginTop: "var(--space-2)",
+              }}
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
           </form>
         </Card>
 

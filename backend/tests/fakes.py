@@ -16,6 +16,7 @@ from erp.application.ports.repositories import (
     LotePorVencer,
     MovInventarioConDetalles,
     MovInventarioPagina,
+    PasswordResetTokenRecord,
     PerfilConContadores,
     PerfilesPagina,
     ProductoPosListado,
@@ -1382,3 +1383,63 @@ class FakeAuditLogRepo:
             if e.id == audit_id:
                 return e
         return None
+
+
+class FakePasswordResetTokenRepo:
+    """Fake in-memory para PasswordResetTokenRepository."""
+
+    def __init__(self) -> None:
+        self._by_id: dict[UUID, PasswordResetTokenRecord] = {}
+
+    def guardar(self, token: PasswordResetTokenRecord) -> None:
+        self._by_id[token.id] = token
+
+    def obtener_por_hash(self, token_hash: str) -> PasswordResetTokenRecord | None:
+        for r in self._by_id.values():
+            if r.token_hash == token_hash:
+                return r
+        return None
+
+    def marcar_usado(self, token_id: UUID, ahora: datetime) -> None:
+        record = self._by_id.get(token_id)
+        if record is None or record.usado_en is not None:
+            return
+        self._by_id[token_id] = PasswordResetTokenRecord(
+            id=record.id,
+            usuario_id=record.usuario_id,
+            token_hash=record.token_hash,
+            emitido_en=record.emitido_en,
+            expira_en=record.expira_en,
+            usado_en=ahora,
+            ip=record.ip,
+            user_agent=record.user_agent,
+        )
+
+
+class FakeEmailSender:
+    """Fake EmailSender que captura los envíos en memoria para asserts."""
+
+    def __init__(self) -> None:
+        self.enviados: list[dict[str, object]] = []
+        # Si se pone en True, `enviar_*` levanta Exception — para probar
+        # que el use case maneja errores de envío silenciosamente.
+        self.fail: bool = False
+
+    def enviar_reset_password(
+        self,
+        *,
+        destinatario: str,
+        nombre: str,
+        link: str,
+        ttl_minutos: int,
+    ) -> None:
+        if self.fail:
+            raise RuntimeError("SMTP simulated failure")
+        self.enviados.append(
+            {
+                "destinatario": destinatario,
+                "nombre": nombre,
+                "link": link,
+                "ttl_minutos": ttl_minutos,
+            }
+        )

@@ -9,6 +9,12 @@ const CODE_MESSAGES: Record<string, string> = {
   ERR_PASSWORD_ACTUAL_INCORRECTA: "La contraseña actual no es correcta.",
   ERR_PASSWORD_INVALIDA:
     "La nueva contraseña no cumple los requisitos. Debe tener al menos 12 caracteres y ser distinta de la actual.",
+  ERR_RESET_TOKEN_INVALIDO:
+    "El enlace de recuperación es inválido. Solicita uno nuevo.",
+  ERR_RESET_TOKEN_EXPIRADO:
+    "El enlace de recuperación expiró. Solicita uno nuevo.",
+  ERR_RESET_TOKEN_USADO:
+    "Este enlace ya fue usado. Si necesitas restablecer la contraseña, solicita uno nuevo.",
   ERR_PERMISO_DENEGADO: "No tienes permisos para realizar esta acción.",
   ERR_RECURSO_NO_ENCONTRADO: "No encontramos lo que buscabas.",
   ERR_VALIDACION: "Hay datos inválidos. Revisa el formulario.",

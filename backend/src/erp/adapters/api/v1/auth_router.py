@@ -11,16 +11,21 @@ from erp.adapters.api.dependencies import (
     build_login_use_case,
     build_logout_use_case,
     build_refresh_use_case,
+    build_reset_password_uc,
+    build_solicitar_reset_password_uc,
     get_current_context,
+    get_settings_dep,
 )
 from erp.adapters.api.schemas import (
     CambiarPasswordRequest,
     CambiarPasswordResponse,
+    ForgotPasswordRequest,
     LoginRequest,
     LoginResponse,
     LogoutRequest,
     RefreshRequest,
     RefreshResponse,
+    ResetPasswordRequest,
     UserResponse,
 )
 from erp.application.security.contexto import ContextoSeguridad
@@ -31,6 +36,15 @@ from erp.application.use_cases.auth.cambiar_password import (
 from erp.application.use_cases.auth.login import LoginCommand, LoginUseCase
 from erp.application.use_cases.auth.logout import LogoutCommand, LogoutUseCase
 from erp.application.use_cases.auth.refresh import RefreshCommand, RefreshUseCase
+from erp.application.use_cases.auth.reset_password import (
+    ResetPasswordCommand,
+    ResetPasswordUseCase,
+)
+from erp.application.use_cases.auth.solicitar_reset_password import (
+    SolicitarResetPasswordCommand,
+    SolicitarResetPasswordUseCase,
+)
+from erp.infrastructure.config.settings import Settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -117,6 +131,64 @@ def logout(
     (ver docstring del use case)."""
     cmd = LogoutCommand(
         refresh_token=body.refresh_token,
+        ip=_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    use_case.execute(cmd)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/password/forgot", status_code=status.HTTP_204_NO_CONTENT)
+def forgot_password(
+    body: ForgotPasswordRequest,
+    request: Request,
+    settings: Annotated[Settings, Depends(get_settings_dep)],
+    use_case: Annotated[
+        SolicitarResetPasswordUseCase, Depends(build_solicitar_reset_password_uc)
+    ],
+) -> Response:
+    """Solicita un link de reset por email.
+
+    **Anti-enumeración**: SIEMPRE responde 204 — exista el email o no, el
+    cliente recibe la misma respuesta para evitar que un atacante enumere
+    qué emails están registrados. Si el usuario existe, se genera un
+    token (válido ~1h) y se "envía" el link al email (en dev se loguea).
+    """
+    cmd = SolicitarResetPasswordCommand(
+        email=str(body.email),
+        frontend_base_url=settings.frontend_base_url,
+        ttl_minutos=settings.reset_password_ttl_minutes,
+        ip=_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    use_case.execute(cmd)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/password/reset", status_code=status.HTTP_204_NO_CONTENT)
+def reset_password(
+    body: ResetPasswordRequest,
+    request: Request,
+    use_case: Annotated[ResetPasswordUseCase, Depends(build_reset_password_uc)],
+) -> Response:
+    """Aplica una nueva contraseña usando el token del email.
+
+    Side effects:
+    - Marca el token como usado (single-use).
+    - Revoca TODAS las sesiones del usuario (cierra cualquier dispositivo
+      que estuviera logueado con la password vieja).
+    - **NO devuelve tokens** — el usuario debe ir al login con la nueva
+      password.
+
+    Errores posibles:
+    - `ERR_RESET_TOKEN_INVALIDO` (400)
+    - `ERR_RESET_TOKEN_EXPIRADO` (400)
+    - `ERR_RESET_TOKEN_USADO` (400)
+    - `ERR_PASSWORD_INVALIDA` (400)
+    """
+    cmd = ResetPasswordCommand(
+        token=body.token,
+        password_nueva=body.password_nueva,
         ip=_client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )

@@ -68,6 +68,31 @@ class PasswordActualIncorrectaError(DomainError):
     default_message = "La contraseña actual no es correcta"
 
 
+class ResetTokenInvalidoError(DomainError):
+    """El token de reset no existe, está mal formado, o el hash no
+    coincide con ningún token emitido."""
+
+    code = "ERR_RESET_TOKEN_INVALIDO"
+    http_status = 400
+    default_message = "El enlace de recuperación es inválido o ya fue usado"
+
+
+class ResetTokenExpiradoError(DomainError):
+    """El token está fuera de su ventana de validez (default 1h)."""
+
+    code = "ERR_RESET_TOKEN_EXPIRADO"
+    http_status = 400
+    default_message = "El enlace de recuperación expiró. Solicita uno nuevo."
+
+
+class ResetTokenUsadoError(DomainError):
+    """El token ya fue usado (single-use)."""
+
+    code = "ERR_RESET_TOKEN_USADO"
+    http_status = 400
+    default_message = "Este enlace ya fue usado. Solicita uno nuevo si necesitas restablecer la contraseña."
+
+
 # --- Validación / RUT ---
 class PasswordInvalidaError(DomainError):
     """La nueva contraseña no cumple la política mínima.

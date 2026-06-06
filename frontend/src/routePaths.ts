@@ -14,6 +14,8 @@ export const ROUTES = {
   ADMIN_PERFIL_DETALLE: (id: string) => `/admin/perfiles/${id}`,
   ADMIN_PERMISOS: "/admin/permisos",
   ADMIN_AUDIT: "/admin/audit",
+  FORGOT_PASSWORD: "/password/forgot",
+  RESET_PASSWORD: "/password/reset",
   ADMIN_SUCURSALES: "/admin/sucursales",
   ADMIN_SUCURSAL_NUEVA: "/admin/sucursales/nueva",
   ADMIN_SUCURSAL_DETALLE: (id: string) => `/admin/sucursales/${id}`,

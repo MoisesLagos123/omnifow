@@ -13,6 +13,7 @@ from erp.adapters.repositories.sql.unit_of_work import SqlAlchemyUnitOfWork
 from erp.adapters.security.argon2_hasher import Argon2idHasher
 from erp.adapters.security.jwt_provider import JwtRs256Provider
 from erp.application.ports.clock import Clock
+from erp.application.ports.email_sender import EmailSender
 from erp.application.ports.password_hasher import PasswordHasher
 from erp.application.ports.token_provider import TokenProvider
 from erp.application.security.contexto import ContextoSeguridad
@@ -61,6 +62,10 @@ from erp.application.use_cases.auth.cambiar_password import CambiarPasswordUseCa
 from erp.application.use_cases.auth.login import AuthPolicy, LoginUseCase
 from erp.application.use_cases.auth.logout import LogoutUseCase
 from erp.application.use_cases.auth.refresh import RefreshUseCase
+from erp.application.use_cases.auth.reset_password import ResetPasswordUseCase
+from erp.application.use_cases.auth.solicitar_reset_password import (
+    SolicitarResetPasswordUseCase,
+)
 from erp.application.use_cases.sucursal.crear_caja import CrearCajaUseCase
 from erp.application.use_cases.sucursal.crear_rango_folios import (
     CrearRangoFoliosUseCase,
@@ -145,6 +150,23 @@ def get_jwt_provider() -> JwtRs256Provider:
 
 def get_clock() -> Clock:
     return SystemClock()
+
+
+@lru_cache
+def _email_sender_singleton() -> "EmailSender":
+    """Singleton del EmailSender.
+
+    Hoy retorna `LoggingEmailSender` (logging-only, ideal para dev/portfolio).
+    Para producción, cambiar acá la implementación a un `SmtpEmailSender` que
+    use las credenciales SMTP del .env.
+    """
+    from erp.infrastructure.email import LoggingEmailSender
+
+    return LoggingEmailSender()
+
+
+def get_email_sender() -> "EmailSender":
+    return _email_sender_singleton()
 
 
 def _client_ip(request: Request) -> str | None:
@@ -278,6 +300,54 @@ def build_logout_use_case(
         uow=uow,
         refresh_tokens=SqlRefreshTokenRepository(uow),
         tokens=tokens,
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_solicitar_reset_password_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    email_sender: EmailSender = Depends(get_email_sender),
+    clock: Clock = Depends(get_clock),
+) -> SolicitarResetPasswordUseCase:
+    from erp.adapters.repositories.sql.password_reset_token_repository import (
+        SqlPasswordResetTokenRepository,
+    )
+    from erp.adapters.repositories.sql.usuario_repository import SqlUsuarioRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = SqlAlchemyUnitOfWork(session_factory)
+    return SolicitarResetPasswordUseCase(
+        uow=uow,
+        usuarios=SqlUsuarioRepository(uow),
+        reset_tokens=SqlPasswordResetTokenRepository(uow),
+        email_sender=email_sender,
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_reset_password_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    hasher: PasswordHasher = Depends(get_password_hasher),
+    clock: Clock = Depends(get_clock),
+) -> ResetPasswordUseCase:
+    from erp.adapters.repositories.sql.password_reset_token_repository import (
+        SqlPasswordResetTokenRepository,
+    )
+    from erp.adapters.repositories.sql.refresh_token_repository import (
+        SqlRefreshTokenRepository,
+    )
+    from erp.adapters.repositories.sql.usuario_repository import SqlUsuarioRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = SqlAlchemyUnitOfWork(session_factory)
+    return ResetPasswordUseCase(
+        uow=uow,
+        usuarios=SqlUsuarioRepository(uow),
+        reset_tokens=SqlPasswordResetTokenRepository(uow),
+        refresh_tokens=SqlRefreshTokenRepository(uow),
+        hasher=hasher,
         audit=SqlAuditWriter(uow),
         clock=clock,
     )

@@ -12,6 +12,7 @@ from erp.infrastructure.db.models.lote_inventario import LoteInventarioORM
 from erp.infrastructure.db.models.mov_inventario import MovInventarioORM
 from erp.infrastructure.db.models.movimiento_caja import MovimientoCajaORM
 from erp.infrastructure.db.models.pago import PagoORM
+from erp.infrastructure.db.models.password_reset_token import PasswordResetTokenORM
 from erp.infrastructure.db.models.perfil import PerfilORM
 from erp.infrastructure.db.models.perfil_permiso import perfil_permiso_table
 from erp.infrastructure.db.models.permiso import PermisoORM
@@ -41,6 +42,7 @@ __all__ = [
     "MovInventarioORM",
     "MovimientoCajaORM",
     "PagoORM",
+    "PasswordResetTokenORM",
     "PerfilORM",
     "PermisoORM",
     "ProductoORM",

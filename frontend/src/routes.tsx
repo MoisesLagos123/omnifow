@@ -4,6 +4,8 @@ import { setOnAuthExpired } from "./api/client";
 import { useAuthStore } from "./auth/store";
 import { useToast } from "./components/ui/Toast";
 import { LoginPage } from "./modules/login/LoginPage";
+import { ForgotPasswordPage } from "./modules/login/ForgotPasswordPage";
+import { ResetPasswordPage } from "./modules/login/ResetPasswordPage";
 import { HomePage } from "./modules/home/HomePage";
 import { RequireAuth } from "./auth/RequireAuth";
 import { RequirePermission } from "./auth/RequirePermission";
@@ -219,6 +221,8 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+      <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+      <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
       <Route
         element={
           <RequireAuth>

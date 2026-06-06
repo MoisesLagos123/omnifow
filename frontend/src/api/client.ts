@@ -262,4 +262,31 @@ export const authApi = {
       body: payload,
     });
   },
+  /**
+   * Solicita un link de reset por email. Backend siempre responde 204
+   * (anti-enumeración) — exista el email o no, el cliente debe mostrar
+   * el mismo mensaje genérico de "te enviamos un email si la cuenta existe".
+   */
+  forgotPassword(email: string): Promise<void> {
+    return request<void>("/auth/password/forgot", {
+      method: "POST",
+      body: { email },
+      token: null,
+    });
+  },
+  /**
+   * Aplica una nueva contraseña usando el token recibido por email.
+   * Backend revoca todas las sesiones del usuario al confirmar — el
+   * cliente debe redirigir al login.
+   */
+  resetPassword(payload: {
+    token: string;
+    password_nueva: string;
+  }): Promise<void> {
+    return request<void>("/auth/password/reset", {
+      method: "POST",
+      body: payload,
+      token: null,
+    });
+  },
 };

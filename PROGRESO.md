@@ -12,7 +12,29 @@ Checklist vivo de tareas por módulo. Marcar `- [x]` al completar. Agregar tarea
 - El producto se llama **OMNIFOW** (NO Mini ERP). El directorio del repo sigue siendo `mini erp` por historia; **no renombrar** para no romper rutas absolutas.
 - Logo: archivo PNG en `frontend/public/logo.png` (favicon + logo del header/login). Referenciado como `/logo.png`.
 
-### Última actividad confirmada (2026-06-05) — Cambiar contraseña
+### Última actividad confirmada (2026-06-05) — Forgot password + Reset por email
+
+Completa el módulo de Autenticación con el flow público de "olvidé mi contraseña". **303 backend / 170 frontend tests verdes · mypy 0 errores · tsc clean**.
+
+**Backend**:
+- Entidad/tabla `password_reset_tokens` (migración Alembic **0010**). Guarda `token_hash` (SHA-256 hex), no el plaintext.
+- Puerto `EmailSender` + `LoggingEmailSender` (escribe el link de reset al log de uvicorn con formato visual). Arquitectura lista para agregar `SmtpEmailSender` en producción cambiando solo el singleton de `dependencies.py`.
+- `SolicitarResetPasswordUseCase`: **anti-enumeración** — siempre termina sin error exista o no el email. Si existe, genera token URL-safe de 32 bytes con `secrets.token_urlsafe`, guarda hash SHA-256 en DB, envía email best-effort (si SMTP falla, el token ya está persistido y el usuario reintenta). Audit OK/ERROR con motivo.
+- `ResetPasswordUseCase`: hashea el token recibido, lookup, valida (existe + no usado + no expirado + usuario activo), aplica política mínima (≥12 chars), re-hashea con Argon2id, marca token como usado (single-use), **revoca TODOS los refresh** del usuario, audit. **NO devuelve tokens** — el usuario debe ir al login.
+- Excepciones: `ERR_RESET_TOKEN_INVALIDO` / `EXPIRADO` / `USADO` (todos 400).
+- Endpoints `POST /auth/password/forgot` (204 siempre) y `POST /auth/password/reset` (204 OK o 400 con código).
+- Settings nuevos: `FRONTEND_BASE_URL` y `RESET_PASSWORD_TTL_MINUTES` (default 60).
+- 10 tests unit nuevos: anti-enumeración, usuario desactivado, falla de SMTP no propaga, aplica + revoca sesiones, token inexistente/usado/expirado, password no cumple mínimo, usuario desactivado entre solicitud y reset.
+
+**Frontend**:
+- `authApi.forgotPassword(email)` y `authApi.resetPassword({token, password_nueva})` — ambos sin Bearer (públicos).
+- Página `ForgotPasswordPage` (`/password/forgot`): form email con validación zod. Tras submit muestra mensaje genérico "si la cuenta existe, te enviamos un email" — respeta anti-enumeración del backend.
+- Página `ResetPasswordPage` (`/password/reset?token=...`): lee token del query param, form de nueva password + confirmar + `PasswordStrengthMeter`. Si no hay token, muestra "Enlace inválido" + CTA a solicitar uno nuevo. Tras éxito navega a `/login` con `state.passwordResetSuccess` para mostrar banner verde "Contraseña actualizada".
+- Link "¿Olvidaste tu contraseña?" en `LoginPage` debajo del botón de login + banner de éxito al volver tras reset.
+- Mensajes amigables: `ERR_RESET_TOKEN_INVALIDO` / `EXPIRADO` / `USADO`.
+- 4 tests Vitest: forgot/reset sin Bearer + body correcto, 204 sin body, propaga ApiError ante `ERR_RESET_TOKEN_EXPIRADO`.
+
+### Actividad previa (2026-06-05) — Cambiar contraseña
 
 Cierra la sección de Autenticación: el usuario autenticado puede cambiar su propia contraseña desde el header. **293 backend / 166 frontend tests verdes · mypy 0 errores · tsc clean**.
 
@@ -105,9 +127,9 @@ Sesión enfocada en calidad visual / accesibilidad / consistencia. Cero cambios 
 6. **SII en observación**: integración real con SII está documentada pero NO implementada. `estado_sii=PENDIENTE` siempre. Ver bloque "🔭 EN OBSERVACIÓN" al final.
 
 ### Estado técnico confirmado (2026-06-05)
-- Backend: `mypy --strict` ✅ 0 errores · 247 archivos · **293 tests verde** (286 previos + 7 cambiar password)
-- Frontend: `tsc` ✅ · **166 tests verde** (162 previos + 4 cambiar password modal)
-- Migración Alembic actual: **`0009_reservas_stock` (head)** — sin migración nueva
+- Backend: `mypy --strict` ✅ 0 errores · 255 archivos · **303 tests verde** (293 previos + 10 reset password)
+- Frontend: `tsc` ✅ · **170 tests verde** (166 previos + 4 reset client)
+- Migración Alembic actual: **`0010_password_reset_tokens` (head)** — nueva tabla con `token_hash`, `expira_en`, `usado_en` + índice partial activos del usuario
 - **Repo GitHub público**: https://github.com/MoisesLagos123/omnifow — branch `main`, "All Rights Reserved" en README (portafolio, no uso libre).
 - Postgres en Docker · 9 módulos full-stack funcionando
 - Bug fix backend (2026-06-04): FK violation al crear Usuario (`usuario_perfil` insert antes de flush) → arreglado en `SqlUsuarioRepository.guardar` con `session.flush()` (mismo patrón que `SqlVentaRepository`)

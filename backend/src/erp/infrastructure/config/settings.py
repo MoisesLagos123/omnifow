@@ -42,6 +42,17 @@ class Settings(BaseSettings):
     # App
     app_env: str = Field("dev", alias="APP_ENV")
 
+    # Frontend (para construir links que incluimos en emails — ej. reset
+    # password). Debe coincidir con el origen donde corre el frontend.
+    frontend_base_url: str = Field(
+        "http://localhost:5173", alias="FRONTEND_BASE_URL"
+    )
+
+    # Reset password
+    reset_password_ttl_minutes: int = Field(
+        60, alias="RESET_PASSWORD_TTL_MINUTES"
+    )
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_allow_origins.split(",") if o.strip()]

@@ -58,6 +58,15 @@ class CambiarPasswordRequest(BaseModel):
     password_nueva: str = Field(min_length=1, max_length=256)
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=1, max_length=512)
+    password_nueva: str = Field(min_length=1, max_length=256)
+
+
 class CambiarPasswordResponse(BaseModel):
     """Misma forma que LoginResponse — el frontend reusa setSession con esta
     respuesta y mantiene la sesión actual viva (las otras sesiones del

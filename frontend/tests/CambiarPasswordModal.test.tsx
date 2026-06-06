@@ -81,7 +81,6 @@ describe("CambiarPasswordModal", () => {
     vi.mocked(authApi.changePassword).mockResolvedValueOnce({
       access_token: "NEW_ACCESS",
       refresh_token: "NEW_REFRESH",
-      token_type: "Bearer",
       expires_in: 900,
       user: { id: "u1", nombre: "Ada", email: "ada@erp.cl", rut: "12345678-5" },
       perfiles: [],

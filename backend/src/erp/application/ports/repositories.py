@@ -85,6 +85,37 @@ class RefreshTokenRecord:
     revocado_en: datetime | None = None
 
 
+@dataclass(frozen=True)
+class PasswordResetTokenRecord:
+    """Token de reset de contraseña enviado por email.
+
+    NUNCA guardamos el token plano — solo su `token_hash` (SHA-256 hex).
+    El plaintext viaja solo en el link enviado al email.
+    """
+
+    id: UUID
+    usuario_id: UUID
+    token_hash: str
+    emitido_en: datetime
+    expira_en: datetime
+    usado_en: datetime | None
+    ip: str | None
+    user_agent: str | None
+
+
+class PasswordResetTokenRepository(Protocol):
+    def guardar(self, token: PasswordResetTokenRecord) -> None: ...
+
+    def obtener_por_hash(self, token_hash: str) -> PasswordResetTokenRecord | None:
+        """Lookup por hash para el flow de reset. Devuelve `None` si no
+        existe; el caller valida `usado_en is None` y `expira_en > ahora`."""
+        ...
+
+    def marcar_usado(self, token_id: UUID, ahora: datetime) -> None:
+        """Single-use: marca el token como consumido. Idempotente."""
+        ...
+
+
 class RefreshTokenRepository(Protocol):
     def guardar(self, token: RefreshTokenRecord) -> None: ...
 
