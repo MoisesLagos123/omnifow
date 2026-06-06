@@ -239,4 +239,27 @@ export const authApi = {
       token: null,
     });
   },
+  /**
+   * Cambia la contraseña del usuario autenticado.
+   *
+   * Side effects (backend):
+   * - Revoca TODOS los refresh tokens del usuario (otras sesiones quedan
+   *   deslogueadas).
+   * - Emite un par nuevo de tokens en la respuesta — el caller debe hacer
+   *   `setSession` con ella para mantener la sesión actual viva sin re-login.
+   *
+   * Errores posibles:
+   * - `ERR_PASSWORD_ACTUAL_INCORRECTA` (400)
+   * - `ERR_PASSWORD_INVALIDA` (400) — nueva no cumple política (≥12 chars,
+   *   distinta de la actual)
+   */
+  changePassword(payload: {
+    password_actual: string;
+    password_nueva: string;
+  }): Promise<LoginResponse> {
+    return request<LoginResponse>("/auth/password/change", {
+      method: "POST",
+      body: payload,
+    });
+  },
 };

@@ -57,6 +57,7 @@ from erp.application.use_cases.administracion.obtener_usuario import (
 from erp.application.use_cases.administracion.asignar_sucursales_a_usuario import (
     AsignarSucursalesAUsuarioUseCase,
 )
+from erp.application.use_cases.auth.cambiar_password import CambiarPasswordUseCase
 from erp.application.use_cases.auth.login import AuthPolicy, LoginUseCase
 from erp.application.use_cases.auth.logout import LogoutUseCase
 from erp.application.use_cases.auth.refresh import RefreshUseCase
@@ -276,6 +277,30 @@ def build_logout_use_case(
     return LogoutUseCase(
         uow=uow,
         refresh_tokens=SqlRefreshTokenRepository(uow),
+        tokens=tokens,
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_cambiar_password_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    hasher: PasswordHasher = Depends(get_password_hasher),
+    tokens: TokenProvider = Depends(get_token_provider),
+    clock: Clock = Depends(get_clock),
+) -> CambiarPasswordUseCase:
+    from erp.adapters.repositories.sql.refresh_token_repository import (
+        SqlRefreshTokenRepository,
+    )
+    from erp.adapters.repositories.sql.usuario_repository import SqlUsuarioRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = SqlAlchemyUnitOfWork(session_factory)
+    return CambiarPasswordUseCase(
+        uow=uow,
+        usuarios=SqlUsuarioRepository(uow),
+        refresh_tokens=SqlRefreshTokenRepository(uow),
+        hasher=hasher,
         tokens=tokens,
         audit=SqlAuditWriter(uow),
         clock=clock,

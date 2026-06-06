@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 import { AuthenticatedLayout } from "../src/components/layout/AuthenticatedLayout";
+import { ToastProvider } from "../src/components/ui/Toast";
 import { useAuthStore } from "../src/auth/store";
 
 function setUser(permisos: string[]) {
@@ -17,13 +18,15 @@ function setUser(permisos: string[]) {
 
 function renderLayout() {
   return render(
-    <MemoryRouter initialEntries={["/"]}>
-      <Routes>
-        <Route element={<AuthenticatedLayout />}>
-          <Route path="/" element={<div>HOME</div>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <ToastProvider>
+      <MemoryRouter initialEntries={["/"]}>
+        <Routes>
+          <Route element={<AuthenticatedLayout />}>
+            <Route path="/" element={<div>HOME</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>
   );
 }
 

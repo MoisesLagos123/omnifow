@@ -4,6 +4,7 @@ import {
   BarChart3,
   Boxes,
   ChevronDown,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -20,6 +21,7 @@ import { ThemeToggle } from "../ui/ThemeToggle";
 import { SucursalSwitcher } from "./SucursalSwitcher";
 import { useAuth } from "../../auth/useAuth";
 import { useAnyPermission } from "../../auth/usePermission";
+import { CambiarPasswordModal } from "../../auth/CambiarPasswordModal";
 import { ROUTES } from "../../routePaths";
 import styles from "./AuthenticatedLayout.module.css";
 
@@ -74,6 +76,7 @@ export function AuthenticatedLayout() {
       location.pathname.startsWith(ROUTES.VENTAS)
   );
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [cambiarPasswordOpen, setCambiarPasswordOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -158,6 +161,18 @@ export function AuthenticatedLayout() {
                   <p className={styles.dropdownName}>{user?.nombre}</p>
                   <p className={styles.dropdownEmail}>{user?.email}</p>
                 </div>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={styles.dropdownItem}
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    setCambiarPasswordOpen(true);
+                  }}
+                >
+                  <KeyRound size={16} aria-hidden="true" />
+                  Cambiar contraseña
+                </button>
                 <button
                   type="button"
                   role="menuitem"
@@ -389,6 +404,11 @@ export function AuthenticatedLayout() {
           <Outlet />
         </main>
       </div>
+
+      <CambiarPasswordModal
+        open={cambiarPasswordOpen}
+        onClose={() => setCambiarPasswordOpen(false)}
+      />
     </div>
   );
 }

@@ -50,6 +50,28 @@ class LogoutRequest(BaseModel):
     refresh_token: str = Field(min_length=1)
 
 
+class CambiarPasswordRequest(BaseModel):
+    password_actual: str = Field(min_length=1, max_length=256)
+    # min 12 lo valida el use case (con mensaje ERR_PASSWORD_INVALIDA).
+    # Pydantic deja pasar cualquier longitud para que el error venga del
+    # dominio con su código apropiado.
+    password_nueva: str = Field(min_length=1, max_length=256)
+
+
+class CambiarPasswordResponse(BaseModel):
+    """Misma forma que LoginResponse — el frontend reusa setSession con esta
+    respuesta y mantiene la sesión actual viva (las otras sesiones del
+    usuario quedan revocadas)."""
+
+    access_token: str
+    refresh_token: str
+    token_type: str = "Bearer"
+    expires_in: int
+    user: UserResponse
+    perfiles: list[str]
+    permisos: list[str]
+
+
 class ErrorBody(BaseModel):
     code: str
     message: str

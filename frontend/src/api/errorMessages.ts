@@ -4,6 +4,11 @@ const CODE_MESSAGES: Record<string, string> = {
   ERR_AUTH_INVALIDA: "Email o contraseña incorrectos.",
   ERR_AUTH_BLOQUEADA: "Tu cuenta está bloqueada temporalmente.",
   ERR_REFRESH_REVOCADO: "Tu sesión expiró. Vuelve a iniciar sesión.",
+  ERR_REFRESH_INVALIDO: "Tu sesión es inválida. Vuelve a iniciar sesión.",
+  ERR_REFRESH_EXPIRADO: "Tu sesión expiró. Vuelve a iniciar sesión.",
+  ERR_PASSWORD_ACTUAL_INCORRECTA: "La contraseña actual no es correcta.",
+  ERR_PASSWORD_INVALIDA:
+    "La nueva contraseña no cumple los requisitos. Debe tener al menos 12 caracteres y ser distinta de la actual.",
   ERR_PERMISO_DENEGADO: "No tienes permisos para realizar esta acción.",
   ERR_RECURSO_NO_ENCONTRADO: "No encontramos lo que buscabas.",
   ERR_VALIDACION: "Hay datos inválidos. Revisa el formulario.",

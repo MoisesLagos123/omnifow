@@ -56,7 +56,32 @@ class RefreshTokenExpiradoError(DomainError):
     default_message = "La sesión expiró. Vuelve a iniciar sesión."
 
 
+class PasswordActualIncorrectaError(DomainError):
+    """La contraseña actual provista no coincide con la del usuario.
+
+    Se devuelve como 400 (no 401) porque el usuario sí está autenticado;
+    lo que falla es la verificación de la password vieja para cambiarla.
+    """
+
+    code = "ERR_PASSWORD_ACTUAL_INCORRECTA"
+    http_status = 400
+    default_message = "La contraseña actual no es correcta"
+
+
 # --- Validación / RUT ---
+class PasswordInvalidaError(DomainError):
+    """La nueva contraseña no cumple la política mínima.
+
+    Se declara tras `DomainError` y no extiende `ValidacionError` para
+    evitar referencias forward (ese class está más abajo). Mantiene
+    `http_status=400` igual que `ValidacionError`.
+    """
+
+    code = "ERR_PASSWORD_INVALIDA"
+    http_status = 400
+    default_message = "La contraseña no cumple los requisitos mínimos"
+
+
 class ValidacionError(DomainError):
     code = "ERR_VALIDACION"
     http_status = 422

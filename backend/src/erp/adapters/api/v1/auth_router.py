@@ -1,21 +1,32 @@
-"""Router FastAPI: `/api/v1/auth/{login,refresh,logout}`."""
+"""Router FastAPI: `/api/v1/auth/{login,refresh,logout,password/change}`."""
 from __future__ import annotations
+
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import Response
 
 from erp.adapters.api.dependencies import (
+    build_cambiar_password_uc,
     build_login_use_case,
     build_logout_use_case,
     build_refresh_use_case,
+    get_current_context,
 )
 from erp.adapters.api.schemas import (
+    CambiarPasswordRequest,
+    CambiarPasswordResponse,
     LoginRequest,
     LoginResponse,
     LogoutRequest,
     RefreshRequest,
     RefreshResponse,
     UserResponse,
+)
+from erp.application.security.contexto import ContextoSeguridad
+from erp.application.use_cases.auth.cambiar_password import (
+    CambiarPasswordCommand,
+    CambiarPasswordUseCase,
 )
 from erp.application.use_cases.auth.login import LoginCommand, LoginUseCase
 from erp.application.use_cases.auth.logout import LogoutCommand, LogoutUseCase
@@ -111,3 +122,52 @@ def logout(
     )
     use_case.execute(cmd)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/password/change", response_model=CambiarPasswordResponse)
+def cambiar_password(
+    body: CambiarPasswordRequest,
+    request: Request,
+    contexto: Annotated[ContextoSeguridad, Depends(get_current_context)],
+    use_case: Annotated[
+        CambiarPasswordUseCase, Depends(build_cambiar_password_uc)
+    ],
+) -> CambiarPasswordResponse:
+    """Cambia la contraseña del usuario autenticado.
+
+    El `usuario_id` se toma del JWT (no del body) — un usuario no puede
+    cambiar la password de otro.
+
+    Side effects:
+    - Revoca **todos** los refresh tokens del usuario (cierra sesiones en
+      otros dispositivos).
+    - Emite un par nuevo (access+refresh) para que la sesión actual siga
+      viva sin re-login. El cliente debe hacer `setSession` con la respuesta.
+
+    Errores posibles:
+    - `ERR_PASSWORD_INVALIDA` (400): nueva password no cumple política.
+    - `ERR_PASSWORD_ACTUAL_INCORRECTA` (400): la actual no coincide.
+    """
+    result = use_case.execute(
+        CambiarPasswordCommand(
+            usuario_id=contexto.usuario_id,
+            password_actual=body.password_actual,
+            password_nueva=body.password_nueva,
+            ip=_client_ip(request),
+            user_agent=request.headers.get("user-agent"),
+        )
+    )
+    return CambiarPasswordResponse(
+        access_token=result.access_token,
+        refresh_token=result.refresh_token,
+        token_type="Bearer",
+        expires_in=result.expires_in,
+        user=UserResponse(
+            id=result.user.id,
+            email=result.user.email,
+            nombre=result.user.nombre,
+            rut=result.user.rut,
+        ),
+        perfiles=result.perfiles,
+        permisos=result.permisos,
+    )

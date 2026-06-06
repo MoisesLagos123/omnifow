@@ -12,7 +12,24 @@ Checklist vivo de tareas por módulo. Marcar `- [x]` al completar. Agregar tarea
 - El producto se llama **OMNIFOW** (NO Mini ERP). El directorio del repo sigue siendo `mini erp` por historia; **no renombrar** para no romper rutas absolutas.
 - Logo: archivo PNG en `frontend/public/logo.png` (favicon + logo del header/login). Referenciado como `/logo.png`.
 
-### Última actividad confirmada (2026-06-05) — Audit Log viewer
+### Última actividad confirmada (2026-06-05) — Cambiar contraseña
+
+Cierra la sección de Autenticación: el usuario autenticado puede cambiar su propia contraseña desde el header. **293 backend / 166 frontend tests verdes · mypy 0 errores · tsc clean**.
+
+**Backend**:
+- Excepciones nuevas: `ERR_PASSWORD_INVALIDA` y `ERR_PASSWORD_ACTUAL_INCORRECTA` (HTTP 400).
+- `CambiarPasswordUseCase`: toma `usuario_id` del JWT (no del body, evita que un usuario cambie la password de otro). Verifica password actual con `PasswordHasher.verify`. Valida política (≥12 caracteres + distinta de la actual). Re-hash Argon2id. **Revoca TODOS los refresh activos del usuario** (cierra sesiones en otros dispositivos) y **emite par nuevo de tokens** (access+refresh) para que la sesión actual siga viva sin re-login. Audit OK/ERROR (motivo `password_actual_incorrecta` en fallo).
+- Endpoint `POST /auth/password/change` (require JWT). Devuelve `LoginResponse` para que el frontend reuse `setSession`.
+- 7 tests unit en `test_cambiar_password_use_case.py` (camino feliz revoca todas las sesiones y deja 1 activa, perfiles/permisos en respuesta, password actual incorrecta, política mínima, password igual, usuario desactivado, usuario no existe).
+
+**Frontend**:
+- `authApi.changePassword({password_actual, password_nueva})` → devuelve `LoginResponse` (mismo shape).
+- `CambiarPasswordModal` (en `auth/`) con form zod (password actual + nueva + confirmar) + `PasswordStrengthMeter` + toggle "mostrar/ocultar" por campo. Tras éxito hace `setSession` con el par nuevo y muestra toast "Contraseña actualizada — Cerramos las otras sesiones por seguridad".
+- Item nuevo en el dropdown del usuario del header: "Cambiar contraseña" (icono `KeyRound` de Lucide). Abre el modal sin navegación adicional.
+- Mensajes amigables: `ERR_PASSWORD_ACTUAL_INCORRECTA`, `ERR_PASSWORD_INVALIDA`, `ERR_REFRESH_INVALIDO`, `ERR_REFRESH_EXPIRADO` en `errorMessages.ts`.
+- 4 tests Vitest en `CambiarPasswordModal.test.tsx` (validación inline, no-match entre nueva/confirmar, body correcto + setSession aplicado, error backend `ERR_PASSWORD_ACTUAL_INCORRECTA`). Ajuste de `AuthenticatedLayout.test.tsx` para envolver con `ToastProvider` (el layout ahora referencia el modal que usa `useToast`).
+
+### Actividad previa (2026-06-05) — Audit Log viewer
 
 Visor read-only del audit log. **286 backend / 162 frontend tests verdes · mypy 0 errores · tsc clean**.
 
@@ -88,9 +105,9 @@ Sesión enfocada en calidad visual / accesibilidad / consistencia. Cero cambios 
 6. **SII en observación**: integración real con SII está documentada pero NO implementada. `estado_sii=PENDIENTE` siempre. Ver bloque "🔭 EN OBSERVACIÓN" al final.
 
 ### Estado técnico confirmado (2026-06-05)
-- Backend: `mypy --strict` ✅ 0 errores · 246 archivos · **286 tests verde** (276 previos + 10 audit viewer)
-- Frontend: `tsc` ✅ · **162 tests verde** (157 previos + 5 audit client)
-- Migración Alembic actual: **`0009_reservas_stock` (head)** — sin migración nueva (la tabla `audit_log` ya existía)
+- Backend: `mypy --strict` ✅ 0 errores · 247 archivos · **293 tests verde** (286 previos + 7 cambiar password)
+- Frontend: `tsc` ✅ · **166 tests verde** (162 previos + 4 cambiar password modal)
+- Migración Alembic actual: **`0009_reservas_stock` (head)** — sin migración nueva
 - **Repo GitHub público**: https://github.com/MoisesLagos123/omnifow — branch `main`, "All Rights Reserved" en README (portafolio, no uso libre).
 - Postgres en Docker · 9 módulos full-stack funcionando
 - Bug fix backend (2026-06-04): FK violation al crear Usuario (`usuario_perfil` insert antes de flush) → arreglado en `SqlUsuarioRepository.guardar` con `session.flush()` (mismo patrón que `SqlVentaRepository`)
@@ -114,10 +131,10 @@ Credenciales seed:
 ### Próximo paso recomendado (orden sugerido por valor)
 1. **Compras + Proveedores + CxP** (🟡 medio — cierra ciclo de costos)
 2. **Cuentas por Cobrar (CxC)** (🟡 medio — habilita ventas a crédito)
-3. **Cambiar contraseña** (🟢 chico — `revocar_todos_de` ya disponible para cerrar todas las sesiones tras cambio)
-4. **Configuración global SII** (🟡 medio — prerrequisito para integración real con SII)
-5. ~~Refresh token + Logout~~ ✅ completado 2026-06-05
-6. ~~Audit Log viewer~~ ✅ completado 2026-06-05
+3. **Configuración global SII** (🟡 medio — prerrequisito para integración real con SII)
+4. ~~Refresh token + Logout~~ ✅ completado 2026-06-05
+5. ~~Audit Log viewer~~ ✅ completado 2026-06-05
+6. ~~Cambiar contraseña~~ ✅ completado 2026-06-05
 
 > Para cualquiera de estos, el patrón de trabajo es: lanzar agente backend + frontend en paralelo con el contrato pactado, validar con `mypy`/`pytest` y `tsc`/`build`/`test`, aplicar migración + seed, smoke curl. Hay ~15 ejemplos previos en este PROGRESO.md.
 
@@ -231,7 +248,7 @@ Hoy el sistema emite documentos tributarios **solo internamente** (folio + datos
 - [x] Use Case: Login (con JWT access + refresh)
 - [x] Use Case: Logout (revocación de refresh) — 2026-06-05, `LogoutUseCase` idempotente + endpoint `POST /auth/logout` (204), audit
 - [x] Use Case: Refresh token — 2026-06-05, `RefreshUseCase` con rotación (revoca el viejo, emite nuevo par), replay detection (`ERR_REFRESH_REVOCADO`), recarga RBAC en cada refresh, audit. Endpoint `POST /auth/refresh`
-- [ ] Use Case: Cambiar contraseña
+- [x] Use Case: Cambiar contraseña — 2026-06-05, `CambiarPasswordUseCase` toma `usuario_id` del JWT, valida password actual + política mínima (≥12 chars, distinta), re-hashea Argon2id, revoca todas las sesiones del usuario y emite par nuevo. Endpoint `POST /auth/password/change`. Frontend: `CambiarPasswordModal` accesible desde el dropdown del usuario.
 - [x] Política de bloqueo por intentos fallidos (5 intentos, 15 min)
 - [x] Middleware/decorador `@requires_permission` (en `adapters/security/rbac_decorator.py`)
 - [x] Persistencia de refresh tokens (jti, ip, ua, expira_en)
