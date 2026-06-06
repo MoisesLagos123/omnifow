@@ -55,6 +55,10 @@ interface Props {
 export function CambiarPasswordModal({ open, onClose }: Props) {
   const toast = useToast();
   const setSession = useAuthStore((s) => s.setSession);
+  // Email del usuario actual — necesario para que el browser asocie la
+  // password guardada a esta cuenta específica y NO ofrezca passwords
+  // de otros usuarios en el autocompletado.
+  const userEmail = useAuthStore((s) => s.user?.email ?? "");
   const [showActual, setShowActual] = useState(false);
   const [showNueva, setShowNueva] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -122,6 +126,34 @@ export function CambiarPasswordModal({ open, onClose }: Props) {
         style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}
       >
         {serverError && <ErrorAlert>{serverError}</ErrorAlert>}
+
+        {/*
+          Username hint oculto — patrón W3C/WHATWG para "change password
+          forms". El browser asocia las passwords guardadas por dominio,
+          y sin un campo username explícito ofrece TODAS las cuentas
+          guardadas para `localhost`/dominio (incluyendo la de otros
+          usuarios). Este input hidden con el email del usuario actual
+          le dice al password manager: "esta password es para esta
+          cuenta", evitando el dropdown con cuentas ajenas.
+          Ref: https://www.chromium.org/developers/design-documents/create-amazing-password-forms/
+        */}
+        <input
+          type="text"
+          name="username"
+          autoComplete="username"
+          value={userEmail}
+          readOnly
+          aria-hidden="true"
+          tabIndex={-1}
+          style={{
+            position: "absolute",
+            left: "-9999px",
+            width: 1,
+            height: 1,
+            opacity: 0,
+            pointerEvents: "none",
+          }}
+        />
 
         <Input
           label="Contraseña actual"
