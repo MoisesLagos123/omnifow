@@ -145,12 +145,23 @@ export function CambiarPasswordModal({ open, onClose }: Props) {
         {(() => {
           // Atributos para suprimir autocompletado del password manager.
           // Tipado laxo porque `data-*` no está en InputHTMLAttributes.
+          // Bloquea copy/paste/cut en los inputs. Refuerza la misma
+          // política anti-shoulder-surfing: el usuario debe tipear su
+          // password — no se permite pegar una guardada en clipboard ni
+          // copiar la actual al portapapeles.
+          const bloquear = (e: { preventDefault: () => void }): void => {
+            e.preventDefault();
+          };
           const sinSugerencias = {
             autoComplete: "new-password",
             "data-lpignore": "true",
             "data-1p-ignore": "true",
             "data-form-type": "other",
             spellCheck: false,
+            onCopy: bloquear,
+            onCut: bloquear,
+            onPaste: bloquear,
+            onDrop: bloquear,
           } as const;
           return (
             <>
