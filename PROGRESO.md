@@ -12,7 +12,46 @@ Checklist vivo de tareas por módulo. Marcar `- [x]` al completar. Agregar tarea
 - El producto se llama **OMNIFOW** (NO Mini ERP). El directorio del repo sigue siendo `mini erp` por historia; **no renombrar** para no romper rutas absolutas.
 - Logo: archivo PNG en `frontend/public/logo.png` (favicon + logo del header/login). Referenciado como `/logo.png`.
 
-### Última actividad confirmada (2026-06-06) — Decisión arquitectónica: SII como microservicio aparte
+### Última actividad confirmada (2026-06-06) — Documentos: Nota de Débito + Guía de Despacho + GET listar/obtener + pantalla Documentos
+
+**4to experimento multi-agente paralelo** exitoso (4 agentes Sonnet en paralelo, contrato compartido `.claude/contracts/DOCUMENTOS_CONTRACT.md`). **420 backend / 221 frontend tests verdes · mypy 0 errores · tsc clean · migraciones 0014→0015→0016 aplicadas**.
+
+**Backend Nota de Débito** (Agente #1, 15 tests):
+- Entidades: `DocumentoTributario` ya soportaba ND; nueva tabla `notas_debito_meta` (1-1 con documento, guarda `motivo`).
+- `EmitirNotaDebitoUseCase` atómico: valida referencia (existe, BOLETA/FACTURA, misma sucursal, no anulado), valida `neto+iva=total` y `iva≈round(neto*0.19)` ±1, reserva folio del rango ND con lock pesimista, copia `rut_emisor/receptor/razon_social` del original, audit `documento.emitir_nd`.
+- Excepciones nuevas: `NotaDebitoInvalidaError`, `DocumentoReferenciaNoEncontradoError`, `DocumentoReferenciaInvalidoError`.
+- Endpoint: `POST /api/v1/documentos/notas-debito` con permiso `documento.emitir_nd` (Jefe Sucursal, Administrador, Sysadmin).
+
+**Backend Guía de Despacho** (Agente #2, 13 tests):
+- Entidades nuevas: `GuiaDespacho` + `DetalleGuiaDespacho` + enum `TipoTraslado` (VENTA, TRASLADO_INTERNO, OTRO). Helper `_desglosar_iva_bruto`.
+- ORM: `GuiaDespachoMetaORM` + `DetalleGuiaDespachoORM`. `MovInventario._REFS_VALIDAS` extendido con `GUIA_DESPACHO`.
+- `EmitirGuiaDespachoUseCase` atómico: descuenta stock con lock pesimista, FEFO si el producto controla vencimiento, crea MovInventario SALIDA referencia GUIA_DESPACHO por línea, calcula totales con convención bruta IVA 19%, reserva folio del rango GUIA, crea documento + meta + N detalles, audit.
+- Valida receptor obligatorio si `tipo_traslado=VENTA`. Bodega debe pertenecer a la sucursal.
+- Endpoint: `POST /api/v1/documentos/guias-despacho` con permiso `documento.emitir_guia` (Reponedor, Jefe Sucursal, Administrador, Sysadmin).
+
+**Backend GET listar/obtener** (Agente #3, 20 tests):
+- `ListarDocumentosUseCase` con filtros: `sucursal_id`, `tipo`, `estado_sii`, `folio` (exacto), `rut_receptor`, `fecha_desde/hasta`, `q` (razón social o folio como string), paginación 1-100 (default 25). ORDER BY `emitido_en DESC, folio DESC`. Filtro implícito por sucursales permitidas del JWT.
+- `ObtenerDocumentoUseCase` con shape variable por tipo: BOLETA/FACTURA incluyen venta + detalles + pagos; NC/ND devuelven motivo + referencia; GUIA devuelve líneas + bodega + dirección + patente. 403 si user no opera en la sucursal.
+- Endpoints: `GET /api/v1/documentos` y `GET /api/v1/documentos/{id}` con permiso `documento.consultar` (Vendedor, Cajero, Jefe Sucursal, Contador, Administrador, Sysadmin).
+- DTOs nuevos en `schemas.py`: `DocumentoListItemResponse`, `DocumentosPaginaResponse`, `DocumentoDetalleResponse`, `VentaDocResponse`, `DetalleVentaDocResponse`, `PagoDocResponse`.
+
+**Frontend pantalla Documentos** (Agente #4, 9 tests, 221 total):
+- `DocumentosPage` (`/documentos`) — tabla compact con columnas Fecha/Tipo/Folio/Sucursal/RUT/Razón/Total/Estado SII/Acción. Filtros (sucursal, tipo, estado, folio, rango fechas, buscador libre), paginación, EmptyState, loading, toast de error.
+- `DocumentoDetalle` (`/documentos/:id`) — ruta dedicada (no modal, mejor para deep linking y back button). Layout 2 columnas: izquierda info general + estado SII grande, derecha detalle por tipo (items+pagos para BOLETA/FACTURA, motivo+link al original para NC/ND, líneas+traslado para GUIA). Botón "Reimprimir" usa `PrintableReceipt`.
+- Cliente `documentosApi.ts` con tipos discriminados por tipo de documento.
+- Sidebar: item "Documentos" en sección OPERACIÓN con icono `FileText`, visible con `documento.consultar`. Eliminado el placeholder "ComingSoon".
+- Tema dark/light respetado (solo CSS variables, no colores literales). Badges con variantes existentes (FACTURA usa `info` al no haber `brand` en el Badge — el contrato lo permitió).
+
+**Migraciones aplicadas**:
+- `0014_notas_debito` — tabla `notas_debito_meta` + permisos `documento.emitir_nd` y `documento.consultar`.
+- `0015_guias_despacho` — tablas `guias_despacho_meta` y `detalle_guia_despacho` + permiso `documento.emitir_guia`.
+- `0016_doc_consultar` — refuerza seed de `documento.consultar` a todos los perfiles que lo necesitan.
+
+**XML SII**: omitido por decisión (irá en el microservicio `omnifow-sii` cuando se implemente).
+
+**Coordinación paralela**: routers separados (`notas_debito_router.py`, `guias_despacho_router.py`, `documentos_router.py`), migraciones lineales asignadas (0014→0015→0016 con `down_revision` encadenado), contrato vinculante en `.claude/contracts/DOCUMENTOS_CONTRACT.md`. El agente #1 detectó y corrigió en el camino un bug pre-existente de precedencia `|` vs `or_()` en el repo de documentos.
+
+### Actividad previa (2026-06-06) — Decisión arquitectónica: SII como microservicio aparte
 
 **Sin código nuevo** — documento de diseño aprobado para cuando se implemente. Creado [`docs/ARQUITECTURA_SII.md`](docs/ARQUITECTURA_SII.md) (~500 líneas):
 - Justificación de separar el SII en un microservicio (aislamiento, compliance, certificado aislado, reuso, despliegue independiente).
@@ -541,9 +580,11 @@ Hoy el sistema emite documentos tributarios **solo internamente** (folio + datos
 - [x] Entidad `RangoFolios` (ya existía) — consumida atómicamente por `AsignadorFoliosSQL` con `SELECT ... FOR UPDATE`.
 - [x] Emisión desde venta (folio reservado dentro del mismo UoW de `ProcesarVentaUseCase`).
 - [x] Emisión Nota de Crédito en `AnularVentaUseCase` con `documento_referencia_id` apuntando al documento original. Folio del rango NC.
-- [ ] Use Case: Emitir Nota de Débito
-- [ ] Use Case: Emitir Guía de Despacho
-- [ ] Generación XML conforme SII (preparar integración futura DTE)
+- [x] Use Case: Emitir Nota de Débito (`EmitirNotaDebitoUseCase` + `POST /documentos/notas-debito` + tabla `notas_debito_meta` + 15 tests, migración 0014)
+- [x] Use Case: Emitir Guía de Despacho (`EmitirGuiaDespachoUseCase` + `POST /documentos/guias-despacho` + tablas `guias_despacho_meta` + `detalle_guia_despacho` + descuento stock con FEFO + 13 tests, migración 0015)
+- [x] Listar + Obtener documentos (`ListarDocumentosUseCase` + `ObtenerDocumentoUseCase` + `GET /documentos` y `/documentos/{id}` + 20 tests, migración 0016 con permiso `documento.consultar`)
+- [x] Frontend: pantalla Documentos (`DocumentosPage` + `DocumentoDetalle` por tipo + reimpresión + 9 tests)
+- [ ] Generación XML conforme SII (DELEGADO al microservicio `omnifow-sii` — ver `docs/ARQUITECTURA_SII.md`)
 - [x] Cálculo IVA 19% por convención bruto (precios incluyen IVA; helper `_desglosar_iva` en `DetalleVenta`).
 - [x] ORM `documentos_tributarios` + UNIQUE `(sucursal_id, tipo, folio)` + CHECK `subtotal_clp + iva_clp = total_clp`. Migración `0008_ventas_documentos`.
 - [ ] TODO: integración real SII (firma DTE, envío, captura `track_id`) — campo `estado_sii` listo para alimentar transición futura.

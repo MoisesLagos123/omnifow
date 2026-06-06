@@ -571,3 +571,31 @@ class ReservaEstadoInvalidoError(DomainError):
     code = "ERR_RESERVA_ESTADO_INVALIDO"
     http_status = 409
     default_message = "La reserva no está en un estado válido para esta operación"
+
+
+# --- Nota de Débito ---
+
+class NotaDebitoInvalidaError(ValidacionError):
+    code = "ERR_NOTA_DEBITO_INVALIDA"
+    http_status = 422
+    default_message = "Datos de Nota de Débito inválidos"
+
+
+class DocumentoReferenciaNoEncontradoError(DomainError):
+    code = "ERR_DOCUMENTO_REFERENCIA_NO_ENCONTRADO"
+    http_status = 404
+    default_message = "Documento de referencia no encontrado"
+
+
+class DocumentoReferenciaInvalidoError(ValidacionError):
+    code = "ERR_DOCUMENTO_REFERENCIA_INVALIDO"
+    http_status = 422
+    default_message = "Documento de referencia inválido para esta operación"
+
+
+# --- Guía de Despacho ---
+
+class GuiaDespachoInvalidaError(ValidacionError):
+    code = "ERR_GUIA_DESPACHO_INVALIDA"
+    http_status = 422
+    default_message = "Datos de guía de despacho inválidos"

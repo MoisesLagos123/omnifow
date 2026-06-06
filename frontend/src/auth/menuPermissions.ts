@@ -95,3 +95,6 @@ export const DEVOLUCION_CONSULTAR_PERMS = [
 
 /** Crear una devolución (parcial o total). */
 export const DEVOLUCION_CREAR_PERMS = ["devolucion.crear"] as const;
+
+/** Consulta de documentos tributarios (boletas, facturas, NC, ND, guías). */
+export const DOCUMENTO_CONSULTAR_PERMS = ["documento.consultar"] as const;

@@ -10,6 +10,7 @@ from uuid import UUID
 from erp.domain.entities.abono_cxc import AbonoCxC
 from erp.domain.entities.abono_cxp import AbonoCxP
 from erp.domain.entities.bodega import Bodega
+from erp.domain.entities.guia_despacho import DetalleGuiaDespacho, GuiaDespacho
 from erp.domain.entities.caja import Caja
 from erp.domain.entities.categoria import Categoria
 from erp.domain.entities.cliente import Cliente
@@ -625,12 +626,52 @@ class PagoRepository(Protocol):
     def listar_por_venta(self, venta_id: UUID) -> list[Pago]: ...
 
 
+@dataclass(frozen=True)
+class DocumentoListItem:
+    """Ítem resumido para el listado paginado de documentos tributarios."""
+
+    id: UUID
+    tipo: str
+    folio: int
+    sucursal_id: UUID
+    sucursal_nombre: str
+    rut_receptor: str | None
+    razon_social_receptor: str | None
+    total_clp: int
+    estado_sii: str
+    emitido_en: datetime
+
+
+@dataclass(frozen=True)
+class DocumentosPagina:
+    items: list[DocumentoListItem]
+    total: int
+    page: int
+    page_size: int
+
+
 class DocumentoTributarioRepository(Protocol):
     def guardar(self, documento: DocumentoTributario) -> None: ...
     def obtener(self, documento_id: UUID) -> DocumentoTributario | None: ...
     def obtener_por_folio(
         self, sucursal_id: UUID, tipo: TipoDocumento, folio: int
     ) -> DocumentoTributario | None: ...
+    def listar(
+        self,
+        *,
+        sucursal_id: UUID | None = None,
+        tipo: str | None = None,
+        estado_sii: str | None = None,
+        folio: int | None = None,
+        rut_receptor: str | None = None,
+        fecha_desde: datetime | None = None,
+        fecha_hasta: datetime | None = None,
+        q: str | None = None,
+        page: int = 1,
+        page_size: int = 25,
+        sucursales_permitidas: frozenset[UUID] = frozenset(),
+    ) -> DocumentosPagina: ...
+    def obtener_nombre_sucursal(self, sucursal_id: UUID) -> str: ...
 
 
 # --- POS: búsqueda rápida de productos con stock ---
@@ -997,3 +1038,15 @@ class DevolucionRepository(Protocol):
         Devuelve Decimal('0') si no hay devoluciones previas.
         """
         ...
+
+
+# --- Guía de Despacho ---
+
+class GuiaDespachoRepository(Protocol):
+    def guardar(
+        self, guia: GuiaDespacho, detalles: list[DetalleGuiaDespacho]
+    ) -> None: ...
+
+    def obtener(self, guia_id: UUID) -> GuiaDespacho | None: ...
+
+    def obtener_detalles(self, guia_id: UUID) -> list[DetalleGuiaDespacho]: ...

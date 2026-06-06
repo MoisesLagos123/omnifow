@@ -1208,3 +1208,127 @@ class DevolucionesPaginaResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+# ---------------- Documentos Tributarios (GET listar/obtener) ----------------
+
+class DocumentoListItemResponse(BaseModel):
+    id: UUID
+    tipo: str
+    folio: int
+    sucursal_id: UUID
+    sucursal_nombre: str
+    rut_receptor: str | None
+    razon_social_receptor: str | None
+    total_clp: int
+    estado_sii: str
+    emitido_en: datetime
+
+
+class DocumentosPaginaResponse(BaseModel):
+    items: list[DocumentoListItemResponse]
+    total: int
+    page: int
+    page_size: int
+
+
+class DetalleVentaDocResponse(BaseModel):
+    """Línea de venta dentro del detalle de un documento."""
+    id: UUID
+    producto_id: UUID
+    cantidad: str
+    precio_unitario_clp: int
+    neto_clp: int
+    iva_clp: int
+    subtotal_bruto_clp: int
+
+
+class PagoDocResponse(BaseModel):
+    """Pago dentro del detalle de un documento."""
+    id: UUID
+    tipo: str
+    monto_clp: int
+    referencia_externa: str | None
+    ultimos_4_digitos: str | None
+
+
+class VentaDocResponse(BaseModel):
+    """Venta resumida incluida en el detalle del documento."""
+    id: UUID
+    fecha: datetime
+    caja_id: UUID
+    usuario_id: UUID
+    detalles: list[DetalleVentaDocResponse]
+    pagos: list[PagoDocResponse]
+
+
+class DocumentoDetalleResponse(BaseModel):
+    """Shape completo del GET /documentos/{id}."""
+    id: UUID
+    tipo: str
+    folio: int
+    sucursal_id: UUID
+    sucursal_nombre: str
+    rut_emisor: str
+    rut_receptor: str | None
+    razon_social_receptor: str | None
+    subtotal_clp: int
+    iva_clp: int
+    total_clp: int
+    documento_referencia_id: UUID | None
+    documento_referencia_folio: int | None
+    documento_referencia_tipo: str | None
+    estado_sii: str
+    emitido_en: datetime
+    # Según tipo — null cuando no aplica
+    venta: VentaDocResponse | None
+
+
+# ---------------- Guía de Despacho (POST emisión) ----------------
+
+class ItemGuiaRequest(BaseModel):
+    producto_id: UUID
+    cantidad: int = Field(gt=0)
+    precio_unitario_clp: int = Field(gt=0)
+
+
+class EmitirGuiaDespachoRequest(BaseModel):
+    sucursal_id: UUID
+    bodega_origen_id: UUID
+    tipo_traslado: str = Field(pattern="^(VENTA|TRASLADO_INTERNO|OTRO)$")
+    direccion_destino: str = Field(min_length=3, max_length=200)
+    rut_receptor: str | None = Field(default=None, max_length=12)
+    razon_social_receptor: str | None = Field(default=None, max_length=200)
+    patente_vehiculo: str | None = Field(default=None, max_length=10)
+    observaciones: str | None = Field(default=None, max_length=500)
+    detalles: list[ItemGuiaRequest] = Field(min_length=1)
+
+
+class DetalleGuiaDespachoResponse(BaseModel):
+    id: UUID
+    producto_id: UUID
+    cantidad: int
+    precio_unitario_clp: int
+    subtotal_clp: int
+    iva_clp: int
+    total_clp: int
+
+
+class EmitirGuiaDespachoResponse(BaseModel):
+    id: UUID
+    tipo: str
+    folio: int
+    sucursal_id: UUID
+    bodega_origen_id: UUID
+    tipo_traslado: str
+    rut_receptor: str | None
+    razon_social_receptor: str | None
+    direccion_destino: str
+    patente_vehiculo: str | None
+    observaciones: str | None
+    subtotal_clp: int
+    iva_clp: int
+    total_clp: int
+    estado_sii: str
+    emitido_en: datetime
+    detalles: list[DetalleGuiaDespachoResponse]

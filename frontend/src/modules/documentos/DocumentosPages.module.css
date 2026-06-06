@@ -1,0 +1,214 @@
+/* ---------- Layout general ---------- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 1400px;
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  align-items: end;
+  flex-wrap: wrap;
+  padding: var(--space-4);
+}
+
+/* ---------- Tipografía auxiliar ---------- */
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Detalle ---------- */
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.headLeft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.headActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ---------- Info dentro de Card ---------- */
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.infoLabel {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.infoValue {
+  font-size: 0.9rem;
+  text-align: right;
+  word-break: break-all;
+}
+
+.cardTitle {
+  margin: 0 0 var(--space-3) 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* ---------- Totales ---------- */
+
+.totalsCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2, var(--color-surface));
+}
+
+.kpiLabel {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.kpiValue {
+  font-weight: 700;
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.totalLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.totalLabel {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.totalValue {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Tabla interna de items ---------- */
+
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.itemsTable th,
+.itemsTable td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+
+.itemsTable th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Receipt preview ---------- */
+
+.receiptPreview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ---------- Referencia link ---------- */
+
+.refLink {
+  color: var(--color-brand);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.refLink:hover {
+  text-decoration: underline;
+}

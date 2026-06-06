@@ -2130,6 +2130,42 @@ def build_listar_cxc_por_cliente_uc(
     return ListarCxCPorClienteUseCase(uow=uow, cxc=SqlCxCRepository(uow))
 
 
+# -------- Documentos — Nota de Débito --------
+
+from erp.application.use_cases.documentos.emitir_nota_debito import (
+    EmitirNotaDebitoUseCase,
+)
+
+
+def build_emitir_nota_debito_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> EmitirNotaDebitoUseCase:
+    from erp.adapters.repositories.sql.documento_tributario_repository import (
+        SqlDocumentoTributarioRepository,
+    )
+    from erp.adapters.repositories.sql.nota_debito_meta_repository import (
+        SqlNotaDebitoMetaRepository,
+    )
+    from erp.adapters.repositories.sql.rango_folios_repository import (
+        SqlRangoFoliosRepository,
+    )
+    from erp.application.services.asignador_folios import AsignadorFoliosSQL
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = _build_uow(session_factory)
+    return EmitirNotaDebitoUseCase(
+        uow=uow,
+        documentos=SqlDocumentoTributarioRepository(uow),
+        notas_debito_meta=SqlNotaDebitoMetaRepository(uow),
+        asignador_folios=AsignadorFoliosSQL(
+            uow=uow, rangos=SqlRangoFoliosRepository(uow)
+        ),
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
 # -------- Devoluciones --------
 
 from erp.application.use_cases.devoluciones.listar_devoluciones import (
@@ -2239,4 +2275,50 @@ def build_listar_devoluciones_por_venta_uc(
     return ListarDevolucionesPorVentaUseCase(
         ventas=SqlVentaRepository(uow),
         devoluciones=SqlDevolucionRepository(uow),
+    )
+
+
+# -------- Documentos (listar/obtener) --------
+
+from erp.application.use_cases.documentos.listar_documentos import (
+    ListarDocumentosUseCase,
+)
+from erp.application.use_cases.documentos.obtener_documento import (
+    ObtenerDocumentoUseCase,
+)
+
+
+def build_listar_documentos_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ListarDocumentosUseCase:
+    from erp.adapters.repositories.sql.documento_tributario_repository import (
+        SqlDocumentoTributarioRepository,
+    )
+
+    uow = _build_uow(session_factory)
+    return ListarDocumentosUseCase(
+        uow=uow,
+        documentos=SqlDocumentoTributarioRepository(uow),
+    )
+
+
+def build_obtener_documento_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ObtenerDocumentoUseCase:
+    from erp.adapters.repositories.sql.detalle_venta_repository import (
+        SqlDetalleVentaRepository,
+    )
+    from erp.adapters.repositories.sql.documento_tributario_repository import (
+        SqlDocumentoTributarioRepository,
+    )
+    from erp.adapters.repositories.sql.pago_repository import SqlPagoRepository
+    from erp.adapters.repositories.sql.venta_repository import SqlVentaRepository
+
+    uow = _build_uow(session_factory)
+    return ObtenerDocumentoUseCase(
+        uow=uow,
+        documentos=SqlDocumentoTributarioRepository(uow),
+        ventas=SqlVentaRepository(uow),
+        detalles=SqlDetalleVentaRepository(uow),
+        pagos=SqlPagoRepository(uow),
     )

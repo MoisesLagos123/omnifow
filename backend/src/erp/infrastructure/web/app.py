@@ -12,6 +12,9 @@ from erp.adapters.api.v1.compras_router import router as compras_router_v1
 from erp.adapters.api.v1.cxc_router import router as cxc_router_v1
 from erp.adapters.api.v1.cxp_router import router as cxp_router_v1
 from erp.adapters.api.v1.devoluciones_router import router as devoluciones_router_v1
+from erp.adapters.api.v1.documentos_router import router as documentos_router_v1
+from erp.adapters.api.v1.guias_despacho_router import router as guias_despacho_router_v1
+from erp.adapters.api.v1.notas_debito_router import router as notas_debito_router_v1
 from erp.adapters.api.v1.inventario_router import router as inventario_router_v1
 from erp.adapters.api.v1.proveedores_router import router as proveedores_router_v1
 from erp.adapters.api.v1.reservas_router import router as reservas_router_v1
@@ -47,6 +50,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(cxp_router_v1, prefix="/api/v1")
     app.include_router(cxc_router_v1, prefix="/api/v1")
     app.include_router(devoluciones_router_v1, prefix="/api/v1")
+    app.include_router(documentos_router_v1, prefix="/api/v1")
+    app.include_router(notas_debito_router_v1, prefix="/api/v1")
+    app.include_router(guias_despacho_router_v1, prefix="/api/v1")
 
     @app.get("/health")
     def health() -> dict[str, str]:

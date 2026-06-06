@@ -45,6 +45,8 @@ import { CxCPage } from "./modules/cxc/CxCPage";
 import { CxCDetallePage } from "./modules/cxc/CxCDetallePage";
 import { DevolucionesPage } from "./modules/devoluciones/DevolucionesPage";
 import { DevolucionDetallePage } from "./modules/devoluciones/DevolucionDetallePage";
+import { DocumentosPage } from "./modules/documentos/DocumentosPage";
+import { DocumentoDetalle } from "./modules/documentos/DocumentoDetalle";
 import { CajaOperacionPage } from "./modules/caja/CajaOperacionPage";
 import { SesionesPage } from "./modules/caja/SesionesPage";
 import { SesionDetallePage } from "./modules/caja/SesionDetallePage";
@@ -68,6 +70,7 @@ const COMPRA_READ_PERMS = ["compra.consultar"] as const;
 const CXP_READ_PERMS = ["cxp.consultar", "cxp.gestionar"] as const;
 const CXC_READ_PERMS = ["cxc.consultar", "cxc.gestionar"] as const;
 const DEVOLUCION_READ_PERMS = ["devolucion.consultar", "devolucion.crear"] as const;
+const DOCUMENTO_CONSULTAR_PERMS = ["documento.consultar"] as const;
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   return (
@@ -284,6 +287,17 @@ function DevolucionReadGuard({ children }: { children: React.ReactNode }) {
   return (
     <RequirePermission
       anyOf={DEVOLUCION_READ_PERMS}
+      fallback={<Navigate to={ROUTES.HOME} replace />}
+    >
+      {children}
+    </RequirePermission>
+  );
+}
+
+function DocumentoConsultarGuard({ children }: { children: React.ReactNode }) {
+  return (
+    <RequirePermission
+      anyOf={DOCUMENTO_CONSULTAR_PERMS}
       fallback={<Navigate to={ROUTES.HOME} replace />}
     >
       {children}
@@ -581,6 +595,20 @@ export function AppRoutes() {
           path="/devoluciones/:id"
           element={
             <DevolucionReadGuard><DevolucionDetallePage /></DevolucionReadGuard>
+          }
+        />
+
+        {/* Documentos tributarios */}
+        <Route
+          path={ROUTES.DOCUMENTOS}
+          element={
+            <DocumentoConsultarGuard><DocumentosPage /></DocumentoConsultarGuard>
+          }
+        />
+        <Route
+          path="/documentos/:id"
+          element={
+            <DocumentoConsultarGuard><DocumentoDetalle /></DocumentoConsultarGuard>
           }
         />
       </Route>

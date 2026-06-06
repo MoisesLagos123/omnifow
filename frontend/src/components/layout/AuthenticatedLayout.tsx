@@ -4,6 +4,7 @@ import {
   BarChart3,
   Boxes,
   ChevronDown,
+  FileText,
   KeyRound,
   LayoutDashboard,
   LogOut,
@@ -48,6 +49,7 @@ import {
   CXP_CONSULTAR_PERMS,
   CXC_CONSULTAR_PERMS,
   DEVOLUCION_CONSULTAR_PERMS,
+  DOCUMENTO_CONSULTAR_PERMS,
 } from "../../auth/menuPermissions";
 
 export function AuthenticatedLayout() {
@@ -73,6 +75,7 @@ export function AuthenticatedLayout() {
   const canCxP = useAnyPermission(CXP_CONSULTAR_PERMS);
   const canCxC = useAnyPermission(CXC_CONSULTAR_PERMS);
   const canDevoluciones = useAnyPermission(DEVOLUCION_CONSULTAR_PERMS);
+  const canDocumentos = useAnyPermission(DOCUMENTO_CONSULTAR_PERMS);
   const canCompras = canProveedores || canCompraCrear || canCompraConsultar || canCxP;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(
@@ -221,7 +224,7 @@ export function AuthenticatedLayout() {
               Inicio
             </NavItem>
 
-            {(canPos || canCaja) && (
+            {(canPos || canCaja || canDocumentos) && (
               <p className={styles.sectionLabel}>Operación</p>
             )}
 
@@ -280,6 +283,15 @@ export function AuthenticatedLayout() {
                   </div>
                 )}
               </div>
+            )}
+
+            {canDocumentos && (
+              <NavItem
+                to={ROUTES.DOCUMENTOS}
+                icon={<FileText size={18} aria-hidden="true" />}
+              >
+                Documentos
+              </NavItem>
             )}
 
             {(canInventario || canClientes) && (
@@ -461,10 +473,6 @@ export function AuthenticatedLayout() {
             )}
 
             <p className={styles.sectionLabel}>Próximamente</p>
-            <ComingSoonItem
-              icon={<Receipt size={18} aria-hidden="true" />}
-              label="Documentos"
-            />
             <ComingSoonItem
               icon={<BarChart3 size={18} aria-hidden="true" />}
               label="Reportes"

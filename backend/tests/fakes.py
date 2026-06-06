@@ -57,6 +57,7 @@ from erp.application.ports.token_provider import (
 from erp.domain.exceptions import RefreshTokenInvalidoError
 from erp.domain.entities.abono_cxc import AbonoCxC
 from erp.domain.entities.abono_cxp import AbonoCxP
+from erp.domain.entities.guia_despacho import DetalleGuiaDespacho, GuiaDespacho
 from erp.domain.entities.bodega import Bodega
 from erp.domain.entities.compra import Compra, EstadoCompra
 from erp.domain.entities.cuenta_por_cobrar import CuentaPorCobrar, EstadoCxC
@@ -1257,6 +1258,8 @@ class FakePagoRepo:
 class FakeDocumentoTributarioRepo:
     def __init__(self) -> None:
         self._by_id: dict[UUID, DocumentoTributario] = {}
+        # Optional override for sucursal names: sucursal_id -> nombre
+        self._sucursal_nombres: dict[UUID, str] = {}
 
     def guardar(self, documento: DocumentoTributario) -> None:
         self._by_id[documento.id] = documento
@@ -1275,6 +1278,96 @@ class FakeDocumentoTributarioRepo:
             ):
                 return d
         return None
+
+    def obtener_nombre_sucursal(self, sucursal_id: UUID) -> str:
+        return self._sucursal_nombres.get(sucursal_id, "Sucursal Test")
+
+    def listar(
+        self,
+        *,
+        sucursal_id: UUID | None = None,
+        tipo: str | None = None,
+        estado_sii: str | None = None,
+        folio: int | None = None,
+        rut_receptor: str | None = None,
+        fecha_desde: Any = None,
+        fecha_hasta: Any = None,
+        q: str | None = None,
+        page: int = 1,
+        page_size: int = 25,
+        sucursales_permitidas: frozenset[UUID] = frozenset(),
+    ) -> "DocumentosPagina":
+        from erp.application.ports.repositories import DocumentoListItem, DocumentosPagina
+
+        docs = list(self._by_id.values())
+        if sucursales_permitidas:
+            docs = [d for d in docs if d.sucursal_id in sucursales_permitidas]
+        if sucursal_id is not None:
+            docs = [d for d in docs if d.sucursal_id == sucursal_id]
+        if tipo is not None:
+            docs = [d for d in docs if d.tipo.value == tipo]
+        if estado_sii is not None:
+            docs = [d for d in docs if d.estado_sii.value == estado_sii]
+        if folio is not None:
+            docs = [d for d in docs if d.folio == folio]
+        if rut_receptor is not None:
+            docs = [d for d in docs if d.rut_receptor == rut_receptor.strip()]
+        if fecha_desde is not None:
+            docs = [d for d in docs if d.emitido_en >= fecha_desde]
+        if fecha_hasta is not None:
+            docs = [d for d in docs if d.emitido_en <= fecha_hasta]
+        if q:
+            q_lower = q.lower().strip()
+
+            def _matches(d: DocumentoTributario) -> bool:
+                if str(d.folio) == q_lower:
+                    return True
+                if (
+                    d.razon_social_receptor
+                    and q_lower in d.razon_social_receptor.lower()
+                ):
+                    return True
+                return False
+
+            docs = [d for d in docs if _matches(d)]
+
+        total = len(docs)
+        docs.sort(key=lambda d: (d.emitido_en, d.folio), reverse=True)
+        offset = (page - 1) * page_size
+        page_docs = docs[offset : offset + page_size]
+        items_out = [
+            DocumentoListItem(
+                id=d.id,
+                tipo=d.tipo.value,
+                folio=d.folio,
+                sucursal_id=d.sucursal_id,
+                sucursal_nombre=self._sucursal_nombres.get(
+                    d.sucursal_id, "Sucursal Test"
+                ),
+                rut_receptor=d.rut_receptor,
+                razon_social_receptor=d.razon_social_receptor,
+                total_clp=d.total_clp,
+                estado_sii=d.estado_sii.value,
+                emitido_en=d.emitido_en,
+            )
+            for d in page_docs
+        ]
+        return DocumentosPagina(
+            items=items_out, total=total, page=page, page_size=page_size
+        )
+
+
+class FakeNotaDebitoMetaRepo:
+    """Fake in-memory para NotaDebitoMetaRepository."""
+
+    def __init__(self) -> None:
+        self._motivos: dict[UUID, str] = {}
+
+    def guardar(self, documento_id: UUID, motivo: str) -> None:
+        self._motivos[documento_id] = motivo
+
+    def obtener_motivo(self, documento_id: UUID) -> str | None:
+        return self._motivos.get(documento_id)
 
 
 class FakePosProductoQueryRepo:
@@ -1928,3 +2021,28 @@ class FakeDevolucionRepo:
                 if d.detalle_venta_id == detalle_venta_id:
                     total += d.cantidad
         return total
+
+
+class FakeGuiaDespachoRepo:
+    def __init__(self) -> None:
+        # guia.id -> (guia, detalles)
+        self._guias: dict[UUID, tuple[GuiaDespacho, list[DetalleGuiaDespacho]]] = {}
+
+    def guardar(
+        self, guia: GuiaDespacho, detalles: list[DetalleGuiaDespacho]
+    ) -> None:
+        self._guias[guia.id] = (guia, list(detalles))
+
+    def obtener(self, guia_id: UUID) -> GuiaDespacho | None:
+        entry = self._guias.get(guia_id)
+        if entry is None:
+            return None
+        guia, detalles = entry
+        guia.detalles = list(detalles)
+        return guia
+
+    def obtener_detalles(self, guia_id: UUID) -> list[DetalleGuiaDespacho]:
+        entry = self._guias.get(guia_id)
+        if entry is None:
+            return []
+        return list(entry[1])

@@ -65,4 +65,7 @@ export const ROUTES = {
   // Devoluciones
   DEVOLUCIONES: "/devoluciones",
   DEVOLUCION_DETALLE: (id: string) => `/devoluciones/${id}`,
+  // Documentos tributarios
+  DOCUMENTOS: "/documentos",
+  DOCUMENTO_DETALLE: (id: string) => `/documentos/${id}`,
 } as const;
