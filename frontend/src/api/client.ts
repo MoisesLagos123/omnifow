@@ -153,13 +153,24 @@ export async function request<T>(
   // Sólo cuando:
   //  - la request usa auto-token (sin override explícito)
   //  - no es ya un reintento (evita loops)
-  //  - no es un endpoint del propio módulo auth (login/refresh/logout: ahí
-  //    un 401 significa "credenciales inválidas", no "access expirado")
+  //  - NO es un endpoint público de auth donde el 401 significa
+  //    "credenciales inválidas" en lugar de "access token expirado".
+  //
+  // OJO: `/auth/password/change` SÍ requiere JWT — si excluyéramos
+  // todo `/auth/*` el cambio de contraseña fallaría tras 15 min sin
+  // intentar refresh. Por eso usamos una whitelist explícita en vez
+  // de `path.startsWith("/auth/")`.
+  const esEndpointPublicoAuth =
+    path === "/auth/login" ||
+    path === "/auth/refresh" ||
+    path === "/auth/logout" ||
+    path === "/auth/password/forgot" ||
+    path === "/auth/password/reset";
   const elegibleParaRefresh =
     response.status === 401 &&
     opts.token === undefined &&
     !opts._isRetry &&
-    !path.startsWith("/auth/");
+    !esEndpointPublicoAuth;
   if (elegibleParaRefresh) {
     const refreshed = await ensureRefreshed();
     if (refreshed) {

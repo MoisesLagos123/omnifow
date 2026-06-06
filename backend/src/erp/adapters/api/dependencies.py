@@ -199,19 +199,26 @@ def get_current_context(
 ) -> ContextoSeguridad:
     """Construye `ContextoSeguridad` decodificando el access token JWT.
 
-    Lanza HTTP 401 si falta/expira/es inválido.
+    Lanza `AuthInvalidaError` (HTTP 401) si el token falta / expira /
+    es inválido. Usamos la excepción de dominio (no `HTTPException`)
+    para que el handler global la serialice con el envelope estándar
+    `{"error": {"code": ..., "message": ...}}` que espera el frontend.
+    Sin esto, FastAPI devolvía `{"detail": {...}}` y el cliente caía al
+    fallback genérico "Error inesperado del servidor".
     """
+    from erp.domain.exceptions import AuthInvalidaError
+
     if not authorization or not authorization.lower().startswith("bearer "):
-        raise HTTPException(status_code=401, detail={"code": "ERR_AUTH_INVALIDA"})
+        raise AuthInvalidaError()
     token = authorization.split(" ", 1)[1].strip()
     try:
         payload = jwt_provider.decode_access(token)
     except jwt.PyJWTError as exc:
-        raise HTTPException(status_code=401, detail={"code": "ERR_AUTH_INVALIDA"}) from exc
+        raise AuthInvalidaError() from exc
 
     sub = payload.get("sub")
     if not isinstance(sub, str):
-        raise HTTPException(status_code=401, detail={"code": "ERR_AUTH_INVALIDA"})
+        raise AuthInvalidaError()
     perfiles_raw = payload.get("perfiles") or []
     permisos_raw = payload.get("permisos") or []
     sucursales_raw = payload.get("sucursales") or []
@@ -220,12 +227,12 @@ def get_current_context(
         or not isinstance(permisos_raw, list)
         or not isinstance(sucursales_raw, list)
     ):
-        raise HTTPException(status_code=401, detail={"code": "ERR_AUTH_INVALIDA"})
+        raise AuthInvalidaError()
 
     try:
         sucursales_permitidas = frozenset(UUID(str(s)) for s in sucursales_raw)
     except (ValueError, TypeError) as exc:
-        raise HTTPException(status_code=401, detail={"code": "ERR_AUTH_INVALIDA"}) from exc
+        raise AuthInvalidaError() from exc
 
     return ContextoSeguridad(
         usuario_id=UUID(sub),
