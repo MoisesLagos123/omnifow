@@ -518,6 +518,42 @@ class AbonoInvalidoError(ValidacionError):
     default_message = "El monto del abono es inválido"
 
 
+# --- Devoluciones ---
+
+class DevolucionInvalidaError(DomainError):
+    code = "ERR_DEVOLUCION_INVALIDA"
+    http_status = 400
+    default_message = "Datos de devolución inválidos"
+
+
+class DevolucionExcedePendienteError(DomainError):
+    """La cantidad solicitada supera la cantidad pendiente de devolución."""
+
+    code = "ERR_DEVOLUCION_EXCEDE_PENDIENTE"
+    http_status = 409
+    default_message = "La cantidad solicitada excede la cantidad pendiente de devolución"
+
+
+class VentaAnuladaError(VentaYaAnuladaError):
+    """La venta ya fue anulada. Subclase de VentaYaAnuladaError para compatibilidad."""
+
+    code = "ERR_VENTA_ANULADA"
+    http_status = 409
+    default_message = "La venta ya fue anulada y no puede tener más devoluciones"
+
+
+class VentaNoDevolvibleError(DomainError):
+    code = "ERR_VENTA_NO_DEVOLVIBLE"
+    http_status = 409
+    default_message = "La venta no está en un estado válido para procesar devoluciones"
+
+
+class DevolucionNoEncontradaError(DomainError):
+    code = "ERR_DEVOLUCION_NO_ENCONTRADA"
+    http_status = 404
+    default_message = "Devolución no encontrada"
+
+
 # --- Reservas de stock (POS) ---
 class ReservaStockInvalidaError(ValidacionError):
     code = "ERR_RESERVA_INVALIDA"

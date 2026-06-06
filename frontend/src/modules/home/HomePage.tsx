@@ -5,6 +5,7 @@ import {
   CreditCard,
   Package,
   Receipt,
+  RotateCcw,
   ShieldCheck,
   ShoppingCart,
   Users,
@@ -23,6 +24,7 @@ import {
   COMPRA_CONSULTAR_PERMS,
   CXP_CONSULTAR_PERMS,
   CXC_CONSULTAR_PERMS,
+  DEVOLUCION_CONSULTAR_PERMS,
   INV_PERMS,
   POS_PERMS,
 } from "../../auth/menuPermissions";
@@ -120,6 +122,13 @@ const QUICK_LINKS: QuickLink[] = [
     description: "Saldos de clientes por ventas a crédito.",
     icon: <Receipt size={20} aria-hidden="true" />,
     permission: CXC_CONSULTAR_PERMS,
+  },
+  {
+    to: ROUTES.DEVOLUCIONES,
+    label: "Devoluciones",
+    description: "Historial de devoluciones y NC emitidas.",
+    icon: <RotateCcw size={20} aria-hidden="true" />,
+    permission: DEVOLUCION_CONSULTAR_PERMS,
   },
 ];
 

@@ -47,6 +47,7 @@ import {
   COMPRA_CONSULTAR_PERMS,
   CXP_CONSULTAR_PERMS,
   CXC_CONSULTAR_PERMS,
+  DEVOLUCION_CONSULTAR_PERMS,
 } from "../../auth/menuPermissions";
 
 export function AuthenticatedLayout() {
@@ -71,6 +72,7 @@ export function AuthenticatedLayout() {
   const canCompraConsultar = useAnyPermission(COMPRA_CONSULTAR_PERMS);
   const canCxP = useAnyPermission(CXP_CONSULTAR_PERMS);
   const canCxC = useAnyPermission(CXC_CONSULTAR_PERMS);
+  const canDevoluciones = useAnyPermission(DEVOLUCION_CONSULTAR_PERMS);
   const canCompras = canProveedores || canCompraCrear || canCompraConsultar || canCxP;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(
@@ -84,7 +86,8 @@ export function AuthenticatedLayout() {
   );
   const [posOpen, setPosOpen] = useState(
     location.pathname.startsWith(ROUTES.POS) ||
-      location.pathname.startsWith(ROUTES.VENTAS)
+      location.pathname.startsWith(ROUTES.VENTAS) ||
+      location.pathname.startsWith(ROUTES.DEVOLUCIONES)
   );
   const [comprasOpen, setComprasOpen] = useState(
     location.pathname.startsWith(ROUTES.COMPRAS) ||
@@ -243,6 +246,11 @@ export function AuthenticatedLayout() {
                     <NavItem to={ROUTES.VENTAS} subitem>
                       Historial de ventas
                     </NavItem>
+                    {canDevoluciones && (
+                      <NavItem to={ROUTES.DEVOLUCIONES} subitem>
+                        Devoluciones
+                      </NavItem>
+                    )}
                   </div>
                 )}
               </div>
@@ -341,6 +349,58 @@ export function AuthenticatedLayout() {
               </NavItem>
             )}
 
+            {/* COMPRAS — grupo expandible con Proveedores + ciclo de compra + CxP */}
+            {canCompras && (
+              <p className={styles.sectionLabel}>Compras</p>
+            )}
+
+            {canCompras && (
+              <div className={styles.group}>
+                <button
+                  type="button"
+                  className={`${styles.groupHeader} ${comprasOpen ? styles.groupOpen : ""}`}
+                  onClick={() => setComprasOpen((o) => !o)}
+                  aria-expanded={comprasOpen}
+                  aria-controls="nav-compras-children"
+                >
+                  <Package size={18} aria-hidden="true" />
+                  <span className={styles.groupLabel}>Compras</span>
+                  <ChevronDown size={16} aria-hidden="true" className={styles.groupChevron} />
+                </button>
+                {comprasOpen && (
+                  <div id="nav-compras-children" className={styles.subnav}>
+                    {canProveedores && (
+                      <NavItem to={ROUTES.ADMIN_PROVEEDORES} subitem>
+                        Proveedores
+                      </NavItem>
+                    )}
+                    {canCompraCrear && (
+                      <NavItem to={ROUTES.COMPRA_NUEVA} subitem>
+                        Nueva compra
+                      </NavItem>
+                    )}
+                    {canCompraConsultar && (
+                      <NavItem to={ROUTES.COMPRAS} subitem>
+                        Historial de compras
+                      </NavItem>
+                    )}
+                    {canCxP && (
+                      <NavItem to={ROUTES.CXP} subitem>
+                        Cuentas por pagar
+                      </NavItem>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* FINANZAS — cobros pendientes a clientes (CxC).
+                CxP queda dentro del módulo Compras porque viene del ciclo
+                de compras a proveedor. */}
+            {canCxC && (
+              <p className={styles.sectionLabel}>Finanzas</p>
+            )}
+
             {canCxC && (
               <NavItem
                 to={ROUTES.CXC}
@@ -350,10 +410,7 @@ export function AuthenticatedLayout() {
               </NavItem>
             )}
 
-            {canCompras && (
-              <p className={styles.sectionLabel}>Compras</p>
-            )}
-
+            {/* ADMINISTRACIÓN — usuarios, perfiles, permisos, sucursales, auditoría */}
             {canAdmin && (
               <p className={styles.sectionLabel}>Administración</p>
             )}
@@ -396,46 +453,6 @@ export function AuthenticatedLayout() {
                     {canSucursales && (
                       <NavItem to={ROUTES.ADMIN_SUCURSALES} subitem>
                         Sucursales
-                      </NavItem>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {canCompras && (
-              <div className={styles.group}>
-                <button
-                  type="button"
-                  className={`${styles.groupHeader} ${comprasOpen ? styles.groupOpen : ""}`}
-                  onClick={() => setComprasOpen((o) => !o)}
-                  aria-expanded={comprasOpen}
-                  aria-controls="nav-compras-children"
-                >
-                  <Package size={18} aria-hidden="true" />
-                  <span className={styles.groupLabel}>Compras</span>
-                  <ChevronDown size={16} aria-hidden="true" className={styles.groupChevron} />
-                </button>
-                {comprasOpen && (
-                  <div id="nav-compras-children" className={styles.subnav}>
-                    {canProveedores && (
-                      <NavItem to={ROUTES.ADMIN_PROVEEDORES} subitem>
-                        Proveedores
-                      </NavItem>
-                    )}
-                    {canCompraCrear && (
-                      <NavItem to={ROUTES.COMPRA_NUEVA} subitem>
-                        Nueva compra
-                      </NavItem>
-                    )}
-                    {canCompraConsultar && (
-                      <NavItem to={ROUTES.COMPRAS} subitem>
-                        Historial de compras
-                      </NavItem>
-                    )}
-                    {canCxP && (
-                      <NavItem to={ROUTES.CXP} subitem>
-                        Cuentas por pagar
                       </NavItem>
                     )}
                   </div>

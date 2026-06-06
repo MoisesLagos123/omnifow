@@ -86,3 +86,12 @@ export const CXC_CONSULTAR_PERMS = [
 
 /** Gestión de CxC — registrar abonos de clientes. */
 export const CXC_GESTIONAR_PERMS = ["cxc.gestionar"] as const;
+
+/** Consulta de devoluciones (requiere al menos uno de estos). */
+export const DEVOLUCION_CONSULTAR_PERMS = [
+  "devolucion.consultar",
+  "devolucion.crear",
+] as const;
+
+/** Crear una devolución (parcial o total). */
+export const DEVOLUCION_CREAR_PERMS = ["devolucion.crear"] as const;

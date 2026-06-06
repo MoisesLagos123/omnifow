@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Ban, Printer } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Ban, Printer, RotateCcw } from "lucide-react";
 
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -16,6 +16,8 @@ import {
 import { useToast } from "../../components/ui/Toast";
 import { usePermission } from "../../auth/usePermission";
 import { Input } from "../../components/ui/Input";
+import { Table, type TableColumn } from "../../components/ui/Table";
+import { EmptyState } from "../../components/ui/EmptyState";
 import { TIPO_DOCUMENTO_LABEL, sucursalesApi } from "../../api/sucursales";
 import {
   ventasApi,
@@ -24,16 +26,23 @@ import {
   type VentaConfirmadaResponse,
 } from "../../api/ventas";
 import { clientesApi, type Cliente } from "../../api/clientes";
+import {
+  devolucionesApi,
+  type Devolucion,
+} from "../../api/devoluciones";
 import { describeError } from "../../api/errorMessages";
 import { formatCLP, formatCantidad, formatFechaISO } from "../../lib/format";
 import { ROUTES } from "../../routePaths";
+import { DevolucionModal } from "../devoluciones/DevolucionModal";
 import styles from "./PosPages.module.css";
+import devStyles from "./VentaDetalleDev.module.css";
 
 export function VentaDetallePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
   const canAnular = usePermission("venta.anular");
+  const canDevolver = usePermission("devolucion.crear");
 
   const [data, setData] = useState<VentaConfirmadaResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,6 +53,11 @@ export function VentaDetallePage() {
   const [printOpen, setPrintOpen] = useState(false);
   const [anularOpen, setAnularOpen] = useState(false);
   const [motivo, setMotivo] = useState("");
+
+  // Devoluciones
+  const [devolucionModalOpen, setDevolucionModalOpen] = useState(false);
+  const [devolucionesPrevias, setDevolucionesPrevias] = useState<Devolucion[]>([]);
+  const [devolucionesLoading, setDevolucionesLoading] = useState(false);
 
   const reload = useCallback(() => {
     if (!id) return;
@@ -65,6 +79,27 @@ export function VentaDetallePage() {
     const cleanup = reload();
     return cleanup;
   }, [reload]);
+
+  // Carga devoluciones previas
+  const reloadDevoluciones = useCallback(() => {
+    if (!id) return;
+    const ctl = new AbortController();
+    setDevolucionesLoading(true);
+    devolucionesApi
+      .listarPorVenta(id, ctl.signal)
+      .then(setDevolucionesPrevias)
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        // No crítico — silencioso
+      })
+      .finally(() => setDevolucionesLoading(false));
+    return () => ctl.abort();
+  }, [id]);
+
+  useEffect(() => {
+    const cleanup = reloadDevoluciones();
+    return cleanup;
+  }, [reloadDevoluciones]);
 
   // Carga cliente (si aplica).
   useEffect(() => {
@@ -105,9 +140,18 @@ export function VentaDetallePage() {
       setAnularOpen(false);
       setMotivo("");
       toast.success("Venta anulada", "Se emitió la Nota de Crédito.");
+      void reloadDevoluciones();
     } catch (err) {
       toast.error("No se pudo anular", describeError(err));
     }
+  }
+
+  function handleDevolucionCreada(_devolucion: Devolucion) {
+    // Recargar la venta (puede haber cambiado a ANULADA) y las devoluciones.
+    // El toast de éxito ya lo muestra el DevolucionModal.
+    void reload();
+    void reloadDevoluciones();
+    setDevolucionModalOpen(false);
   }
 
   const sucursalParaImpresion = useMemo(() => {
@@ -120,6 +164,108 @@ export function VentaDetallePage() {
       rut_emisor: data.documento.rut_emisor,
     };
   }, [data, sucursalNombre]);
+
+  // Calcula si hay items con pendiente > 0
+  const hayPendiente = useMemo(() => {
+    if (!data) return false;
+    for (const det of data.detalles) {
+      const original = Number.parseFloat(String(det.cantidad));
+      let yaDevuelto = 0;
+      for (const dev of devolucionesPrevias) {
+        for (const item of dev.items) {
+          if (item.detalle_venta_id === det.id) {
+            yaDevuelto += Number.parseFloat(item.cantidad);
+          }
+        }
+      }
+      if (original - yaDevuelto > 0) return true;
+    }
+    return false;
+  }, [data, devolucionesPrevias]);
+
+  // Columnas del historial de devoluciones
+  const devColumns = useMemo<TableColumn<Devolucion>[]>(
+    () => [
+      {
+        key: "fecha",
+        header: "Fecha",
+        width: "160px",
+        cell: (d) => (
+          <span className={devStyles.mono}>{formatFechaISO(d.fecha)}</span>
+        ),
+      },
+      {
+        key: "nc_folio",
+        header: "NC Folio",
+        width: "90px",
+        cell: (d) => (
+          <span className={devStyles.mono}>#{d.nc_folio}</span>
+        ),
+      },
+      {
+        key: "items",
+        header: "Items",
+        width: "60px",
+        align: "right",
+        cell: (d) => d.items.length,
+      },
+      {
+        key: "total",
+        header: "Total",
+        width: "120px",
+        align: "right",
+        cell: (d) => (
+          <span
+            className={devStyles.numeric}
+            style={{ color: "var(--color-danger)", fontWeight: 600 }}
+          >
+            {formatCLP(d.monto_total_clp)}
+          </span>
+        ),
+      },
+      {
+        key: "motivo",
+        header: "Motivo",
+        cell: (d) =>
+          d.motivo ? (
+            <span
+              className={devStyles.muted}
+              style={{
+                maxWidth: 160,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                display: "inline-block",
+              }}
+              title={d.motivo}
+            >
+              {d.motivo}
+            </span>
+          ) : (
+            <em className={devStyles.muted}>—</em>
+          ),
+      },
+      {
+        key: "detalle",
+        header: "",
+        width: "80px",
+        cell: (d) => (
+          <Link
+            to={ROUTES.DEVOLUCION_DETALLE(d.id)}
+            style={{
+              color: "var(--color-brand)",
+              fontSize: "0.82rem",
+              textDecoration: "none",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            Ver →
+          </Link>
+        ),
+      },
+    ],
+    []
+  );
 
   if (loading) {
     return (
@@ -175,8 +321,17 @@ export function VentaDetallePage() {
           >
             Imprimir comprobante
           </Button>
+          {!anulada && canDevolver && hayPendiente && (
+            <Button
+              leftIcon={<RotateCcw size={16} aria-hidden />}
+              onClick={() => setDevolucionModalOpen(true)}
+            >
+              Devolver items
+            </Button>
+          )}
           {!anulada && canAnular && (
             <Button
+              variant="ghost"
               leftIcon={<Ban size={16} aria-hidden />}
               onClick={() => setAnularOpen(true)}
               data-destructive=""
@@ -259,6 +414,29 @@ export function VentaDetallePage() {
                 ))}
               </tbody>
             </table>
+          </Card>
+
+          {/* Historial de devoluciones */}
+          <Card>
+            <p className={styles.cartTitle}>Historial de devoluciones</p>
+            {devolucionesLoading ? (
+              <Skeleton height="80px" />
+            ) : devolucionesPrevias.length > 0 ? (
+              <Table<Devolucion>
+                density="compact"
+                columns={devColumns}
+                rows={devolucionesPrevias}
+                rowKey={(d) => d.id}
+                caption="Devoluciones de esta venta"
+              />
+            ) : (
+              <EmptyState
+                variant="inline"
+                icon={<RotateCcw size={18} />}
+                title="Sin devoluciones registradas"
+                description="No hay devoluciones para esta venta."
+              />
+            )}
           </Card>
         </div>
 
@@ -398,6 +576,17 @@ export function VentaDetallePage() {
           setMotivo("");
         }}
       />
+
+      {devolucionModalOpen && data && (
+        <DevolucionModal
+          open={devolucionModalOpen}
+          onClose={() => setDevolucionModalOpen(false)}
+          venta={venta}
+          detalles={detalles}
+          devolucionesPrevias={devolucionesPrevias}
+          onCreada={handleDevolucionCreada}
+        />
+      )}
     </div>
   );
 }

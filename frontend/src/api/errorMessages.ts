@@ -126,6 +126,16 @@ const CODE_MESSAGES: Record<string, string> = {
   ERR_VENTA_YA_ANULADA: "Esta venta ya fue anulada.",
   ERR_ESTADO_VENTA_INVALIDO:
     "La venta no está en un estado válido para esta operación.",
+  // Devoluciones
+  ERR_DEVOLUCION_INVALIDA:
+    "La devolución no es válida. Verifica los ítems y el motivo.",
+  ERR_DEVOLUCION_EXCEDE_PENDIENTE:
+    "La cantidad a devolver supera lo disponible para devolver.",
+  ERR_VENTA_ANULADA:
+    "Esta venta ya fue anulada. No se pueden registrar más devoluciones.",
+  ERR_VENTA_NO_DEVOLVIBLE:
+    "Esta venta no puede ser devuelta en su estado actual.",
+  ERR_DEVOLUCION_NO_ENCONTRADA: "No se encontró la devolución indicada.",
   // POS — Reservas de stock
   ERR_RESERVA_INVALIDA:
     "La reserva de stock no es válida. Revisa la cantidad y los datos del producto.",
@@ -582,6 +592,38 @@ export function extractAbonoCxCInvalido(
       : null;
   if (saldo === null || intento === null) return null;
   return { saldo_clp: saldo, monto_intentado_clp: intento };
+}
+
+/** Detalles devueltos por `ERR_DEVOLUCION_EXCEDE_PENDIENTE`. */
+export interface DevolucionExcedePendienteDetails {
+  detalle_venta_id: string;
+  solicitado: string;
+  pendiente: string;
+  ya_devuelto: string;
+}
+
+/**
+ * Extrae los detalles de un error `ERR_DEVOLUCION_EXCEDE_PENDIENTE`.
+ * Devuelve `null` si el error no es de ese tipo o los detalles no tienen la
+ * forma esperada.
+ */
+export function extractDevolucionExcede(
+  err: unknown
+): DevolucionExcedePendienteDetails | null {
+  if (!(err instanceof ApiError)) return null;
+  if (err.code !== "ERR_DEVOLUCION_EXCEDE_PENDIENTE") return null;
+  const details = err.details;
+  if (!details || typeof details !== "object") return null;
+  const d = details as Record<string, unknown>;
+  const detalle_venta_id =
+    typeof d.detalle_venta_id === "string" ? d.detalle_venta_id : null;
+  if (!detalle_venta_id) return null;
+  return {
+    detalle_venta_id,
+    solicitado: String(d.solicitado ?? "0"),
+    pendiente: String(d.pendiente ?? "0"),
+    ya_devuelto: String(d.ya_devuelto ?? "0"),
+  };
 }
 
 /**

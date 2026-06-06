@@ -12,7 +12,39 @@ Checklist vivo de tareas por módulo. Marcar `- [x]` al completar. Agregar tarea
 - El producto se llama **OMNIFOW** (NO Mini ERP). El directorio del repo sigue siendo `mini erp` por historia; **no renombrar** para no romper rutas absolutas.
 - Logo: archivo PNG en `frontend/public/logo.png` (favicon + logo del header/login). Referenciado como `/logo.png`.
 
-### Última actividad confirmada (2026-06-06) — SMTP real con Resend
+### Última actividad confirmada (2026-06-06) — Devoluciones parciales
+
+Generaliza el `AnularVentaUseCase` a un nuevo `ProcesarDevolucionUseCase` que soporta devolución parcial o total. **3er experimento multi-agente paralelo** exitoso. **372 backend / 212 frontend tests verdes · mypy 0 errores · tsc clean · migración 0013 aplicada**. También se reorganizó el sidebar (label "Compras" tenía su grupo bajo "Administración" por error de orden en el JSX, ahora cada section label tiene su contenido correcto + sección nueva "Finanzas" para CxC).
+
+**Backend** (2 entidades + 4 use cases + migración 0013 + refactor de AnularVenta):
+- Entidades: `Devolucion` y `DetalleDevolucion`. Cada devolución apunta a una `venta_id`, registra `monto_neto/iva/total`, fecha, motivo, usuario, sucursal, caja, y `nc_documento_id` (la NC parcial emitida con folio del rango SII).
+- `ProcesarDevolucionUseCase` atómico:
+  - Valida estado venta = CONFIRMADA. Calcula `cantidad_pendiente` por línea (= cantidad original - suma de devoluciones previas). Si excede → `ERR_DEVOLUCION_EXCEDE_PENDIENTE` con details (`detalle_venta_id`, `solicitado`, `pendiente`).
+  - Lock pesimista de Stock. Stock += cantidad devuelta (sin recalcular costo promedio).
+  - MovInventario tipo ENTRADA, referencia DEVOLUCION. Si producto tiene lote, suma al `LoteInventario` original.
+  - Emite NC con folio del rango `NOTA_CREDITO` de la sucursal vía `AsignadorFolios` (lock pesimista).
+  - Reembolso según el flow original: efectivo → `MovimientoCaja.EGRESO_DEVOLUCION`; tarjeta/transferencia → solo registra; crédito → decrementa `CxC`; mixto → proporcional.
+  - Si TODOS los items quedan completamente devueltos → `venta.estado = ANULADA`. Si parcial → sigue CONFIRMADA.
+  - Audit `venta.devolucion` con `devolucion_id`, `monto_total_clp`, `nc_folio`, `items_count`.
+- `AnularVentaUseCase` refactorizado: construye un `ProcesarDevolucionCommand` con TODOS los items en cantidad completa y delega al nuevo use case. Mantiene firma pública intacta. Usa `con_permiso_extra("devolucion.crear")` (método nuevo del `ContextoSeguridad`) para inyectar el permiso adicional al caller.
+- 5 excepciones nuevas: `ERR_DEVOLUCION_INVALIDA`, `ERR_DEVOLUCION_EXCEDE_PENDIENTE`, `ERR_VENTA_ANULADA` (subclase de `VentaYaAnuladaError` para compat), `ERR_VENTA_NO_DEVOLVIBLE`, `ERR_DEVOLUCION_NO_ENCONTRADA`.
+- 2 permisos nuevos seedeados (`devolucion.crear`, `devolucion.consultar`).
+- 4 endpoints: `POST /ventas/{id}/devoluciones`, `GET /ventas/{id}/devoluciones`, `GET /devoluciones?...`, `GET /devoluciones/{id}`.
+- 18 tests nuevos: 10 `procesar_devolucion` + 6 `anular_venta` refactorizado + 2 integration.
+
+**Frontend** (1 cliente API + modal complejo + 2 páginas globales + integración en VentaDetalle):
+- `api/devoluciones.ts` con tipos, payloads, métodos `crearParaVenta/listarPorVenta/listar/obtener`.
+- **`DevolucionModal`** (modal `size="lg"`): tabla con cada `DetalleVenta` mostrando cantidad original, ya devuelto, pendiente, y `QuantityInput` con `max=pendiente`. Botones "Devolver todo lo pendiente" y "Limpiar". Totales en vivo (neto/IVA 19% backed-out/total bruto). Campo motivo (≤500 chars con contador). Submit con `Idempotency-Key`. Maneja `ERR_DEVOLUCION_EXCEDE_PENDIENTE` con mensaje específico.
+- **`VentaDetallePage` modificada**: botón "Devolver items" (primario, gated por `devolucion.crear`) reemplaza al "Anular venta" como acción principal; "Anular venta" queda como botón secundario `danger-ghost`. Nueva card "Historial de devoluciones".
+- Páginas globales `DevolucionesPage` (lista con filtros) y `DevolucionDetallePage` (con NC folio + items + estado final).
+- Sidebar: sub-item "Devoluciones" en grupo POS, `RotateCcw` icon, gated por `DEVOLUCION_CONSULTAR_PERMS`. HomePage: quick-link nuevo.
+- 12 tests Vitest: 5 `devolucionesClient` + 4 `DevolucionModal` + 3 `DevolucionesPage`.
+
+**Sidebar reorganizado** (fix de orden de secciones):
+- Antes: label "Compras" aparecía VACÍO y el grupo "Compras" salía bajo el label "Administración" por mal orden en el JSX.
+- Después: cada section label tiene su grupo correspondiente debajo. Nueva sección "Finanzas" para `Cuentas por cobrar` (antes suelto bajo Catálogo). Comentarios en el código documentan la lógica.
+
+### Actividad previa (2026-06-06) — SMTP real con Resend
 
 Cierra la tarea #19 pendiente. **Reset de contraseña ahora funciona end-to-end** cuando se activa `EMAIL_BACKEND=smtp` en producción. **354 backend tests verdes · mypy 0 errores · 299 archivos**.
 
@@ -191,10 +223,10 @@ Sesión enfocada en calidad visual / accesibilidad / consistencia. Cero cambios 
 6. **SII en observación**: integración real con SII está documentada pero NO implementada. `estado_sii=PENDIENTE` siempre. Ver bloque "🔭 EN OBSERVACIÓN" al final.
 
 ### Estado técnico confirmado (2026-06-06)
-- Backend: `mypy --strict` ✅ 0 errores · 299 archivos · **354 tests verde** (349 previos + 5 smtp adapter)
-- Frontend: `tsc` ✅ · **200 tests verde** (190 previos + 10 cxc/credito en POS)
-- Migración Alembic actual: **`0012_cxc_venta_credito` (head)** — 2 tablas + 3 permisos seed + asignaciones a perfiles
-- **2 experimentos multi-agente exitosos**: módulos Compras (0011) y CxC (0012) con 2 agentes Sonnet paralelos cada uno sobre contratos en `.claude/contracts/*.md` — backend y frontend sincronizados sin conflictos en ambas iteraciones
+- Backend: `mypy --strict` ✅ 0 errores · 311 archivos · **372 tests verde** (354 previos + 18 devoluciones)
+- Frontend: `tsc` ✅ · **212 tests verde** (200 previos + 12 devoluciones)
+- Migración Alembic actual: **`0013_devoluciones` (head)** — 2 tablas + 2 permisos seed
+- **3 experimentos multi-agente exitosos**: Compras (0011), CxC (0012) y Devoluciones (0013) con 2 agentes Sonnet paralelos cada uno sobre contratos en `.claude/contracts/*.md` — backend y frontend sincronizados sin conflictos en todas las iteraciones
 - **Repo GitHub público**: https://github.com/MoisesLagos123/omnifow — branch `main`, "All Rights Reserved" en README (portafolio, no uso libre).
 - Postgres en Docker · 9 módulos full-stack funcionando
 - Bug fix backend (2026-06-04): FK violation al crear Usuario (`usuario_perfil` insert antes de flush) → arreglado en `SqlUsuarioRepository.guardar` con `session.flush()` (mismo patrón que `SqlVentaRepository`)
@@ -229,7 +261,7 @@ Credenciales seed:
 ### Próximo paso recomendado (orden sugerido por valor)
 1. **Primer deploy** (🟢 chico — seguir `docs/deploy/GUIA_DEPLOY.md`. SMTP ya implementado, solo activar en Render con env vars de Resend)
 2. **Configuración global SII** (🟡 medio — prerrequisito para integración real con SII)
-3. **Devoluciones parciales** (🟡 medio — hoy se anula la venta completa)
+3. ~~**Devoluciones parciales**~~ ✅ completado 2026-06-06 — multi-agente paralelo
 4. **Reportes financieros básicos** (🟡 medio — Utilidad bruta/neta, IVA débito/crédito, top productos)
 5. ~~Refresh token + Logout~~ ✅ completado 2026-06-05
 6. ~~Audit Log viewer~~ ✅ completado 2026-06-05
@@ -297,7 +329,7 @@ Buscar en el archivo: "TODO" y "fuera de alcance" para la lista completa. Los m�
 | ✅ done | ~~**Compras + Proveedores + CxP**~~ | 🟡 medio | Completado 2026-06-05 — 5 entidades + 13 use cases + 8 endpoints + 8 páginas + migración 0011. Ciclo de costos cerrado |
 | ✅ done | ~~**Cuentas por Cobrar (CxC) + venta a crédito**~~ | 🟡 medio | Completado 2026-06-06 — 2 entidades + 4 use cases + extensión POS + 2 páginas + migración 0012. Ciclo financiero cerrado |
 | 🟢 nice-to-have | **Configuración global SII** (IVA, datos emisor, certificado) | 🟡 medio | Prerrequisito para integración real con SII |
-| 🟢 nice-to-have | **Devoluciones parciales** | 🟡 medio | Hoy se anula la venta completa |
+| ✅ done | ~~**Devoluciones parciales**~~ | 🟡 medio | Completado 2026-06-06 — `ProcesarDevolucionUseCase` reemplaza/generaliza Anular. NC parcial con folio + reembolso por método. Migración 0013 |
 | 🔭 **en observación** | **Firma electrónica SII (DTE real)** — ver bloque dedicado al final | 🔴 grande (multi-fase) | Hoy `estado_sii=PENDIENTE`; entidad lista. NO se factura/boleta legalmente hasta que se complete |
 | 🔴 fuera de alcance v1 | **Persistencia formal de Idempotency-Key** (tabla) | 🟢 chico | Hoy se acepta el header pero no deduplica |
 
@@ -500,11 +532,40 @@ Hoy el sistema emite documentos tributarios **solo internamente** (folio + datos
 - [ ] TODO: integración real SII (firma DTE, envío, captura `track_id`) — campo `estado_sii` listo para alimentar transición futura.
 
 ## Devoluciones
-- [ ] Use Case: Procesar devolución (atómico)
-- [ ] Reverso de stock al inventario
-- [ ] Reverso/egreso en caja según método de pago original
-- [ ] Generación automática de Nota de Crédito
-- [ ] Autorización requerida (perfil con `devolucion.autorizar`)
+- [x] **Backend completo** (2026-06-06): devoluciones parciales + refactor AnularVenta.
+  - Entidades `Devolucion` + `DetalleDevolucion` (`domain/entities/`).
+  - Excepciones: `DevolucionInvalidaError`, `DevolucionExcedePendienteError`, `VentaAnuladaError`, `VentaNoDevolvibleError`, `DevolucionNoEncontradaError`.
+  - Puerto `DevolucionRepository` + DTOs (`DevolucionConDetalles`, `DevolucionListItem`, `DevolucionesPagina`) en `application/ports/repositories.py`.
+  - Use Cases: `ProcesarDevolucionUseCase` (atómico, parcial/total, perm `devolucion.crear`), `ObtenerDevolucionUseCase`, `ListarDevolucionesUseCase`, `ListarDevolucionesPorVentaUseCase`.
+  - `AnularVentaUseCase` refactorizado para delegar a `ProcesarDevolucionUseCase` (mantiene firma y audit `venta.anular`).
+  - `ContextoSeguridad.con_permiso_extra()` para delegación interna de permisos.
+  - ORM: `DevolucionORM`, `DetalleDevolucionORM` en `infrastructure/db/models/`.
+  - Repositorio SQL: `SqlDevolucionRepository` con `cantidad_devuelta_por_detalle_venta` (clave para validar pendiente).
+  - Migración `0013_devoluciones.py`: tablas, índices, permisos seed (`devolucion.crear`, `devolucion.consultar`), asignaciones a perfiles.
+  - Schemas Pydantic: `CrearDevolucionRequest`, `DevolucionResponse`, `DetalleDevolucionResponse`, `DevolucionListItemResponse`, `DevolucionesPaginaResponse`.
+  - Router `devoluciones_router.py`: `POST /ventas/{id}/devoluciones`, `GET /ventas/{id}/devoluciones`, `GET /devoluciones`, `GET /devoluciones/{id}`.
+  - `FakeDevolucionRepo` en `tests/fakes.py`.
+  - Tests unitarios: 10 tests `test_procesar_devolucion_use_case.py` + 6 tests `test_anular_venta_use_case.py` — todos pasan (372 total).
+  - mypy --strict: 0 errores.
+- [x] Reverso de stock al inventario (MovInventario ENTRADA).
+- [x] Reverso/egreso en caja según método de pago original (EFECTIVO → MovimientoCaja EGRESO_DEVOLUCION).
+- [x] Reembolso proporcional en CxC para ventas a crédito.
+- [x] Generación automática de Nota de Crédito (folio del rango NC).
+- [x] RBAC: `devolucion.crear` requerido; `venta.anular` como alias.
+- [ ] TODO PROGRESO: reembolso de saldo a favor del cliente cuando abonos previos exceden el monto restante de la CxC tras devolución.
+- [x] **Frontend completo** (2026-06-06):
+  - `api/devoluciones.ts`: tipos `Devolucion`, `DetalleDevolucion`, `DevolucionListItem`, `DevolucionesPagina`; métodos `crearParaVenta`, `listarPorVenta`, `listar`, `obtener`. Idempotency-Key en creación, AbortSignal en lecturas.
+  - `api/errorMessages.ts`: códigos `ERR_DEVOLUCION_INVALIDA`, `ERR_DEVOLUCION_EXCEDE_PENDIENTE`, `ERR_VENTA_ANULADA`, `ERR_VENTA_NO_DEVOLVIBLE`, `ERR_DEVOLUCION_NO_ENCONTRADA`; helper `extractDevolucionExcede`.
+  - `routePaths.ts`: `DEVOLUCIONES`, `DEVOLUCION_DETALLE`.
+  - `auth/menuPermissions.ts`: `DEVOLUCION_CONSULTAR_PERMS`, `DEVOLUCION_CREAR_PERMS`.
+  - `modules/devoluciones/DevolucionModal.tsx`: modal lg con tabla de items, ya-devuelto + pendiente calculados, QuantityInput con max=pendiente, "Devolver todo", "Limpiar", textarea motivo (500 chars), totales en vivo (neto/IVA backed-out 19/119/total), submit con Idempotency-Key, error amigable en `ERR_DEVOLUCION_EXCEDE_PENDIENTE` con nombre del producto.
+  - `modules/devoluciones/DevolucionesPage.tsx`: lista global con filtros de fecha, tabla compact, paginación.
+  - `modules/devoluciones/DevolucionDetallePage.tsx`: header NC folio + monto, card info, card totales (neto/IVA/total), tabla items, card estado final.
+  - `modules/pos/VentaDetallePage.tsx`: botón "Devolver items" (requiere `devolucion.crear` + estado CONFIRMADA + pendiente>0), "Anular venta" como botón secundario, card "Historial de devoluciones" con tabla compact + empty state.
+  - `routes.tsx`: `DevolucionReadGuard`, rutas `/devoluciones` y `/devoluciones/:id`.
+  - `AuthenticatedLayout.tsx`: sub-item "Devoluciones" en grupo POS, gated por `DEVOLUCION_CONSULTAR_PERMS`.
+  - `HomePage.tsx`: quick-link "Devoluciones".
+  - Tests: `devolucionesClient.test.ts` (5), `DevolucionModal.test.tsx` (4), `DevolucionesPage.test.tsx` (3) → 212 tests totales pasan, `tsc --noEmit` limpio.
 
 ## Clientes
 - [x] Entidad `Cliente` (`domain/entities/cliente.py`): RUT (value object), razón social (2-200), giro/dirección/comuna/región/email/teléfono opcionales, `activo`, timestamps. Invariantes en `__post_init__` (razón social no vacía; email con formato básico y normalizado a minúsculas). Métodos `cambiar_razon_social`, `cambiar_email`, `actualizar_contacto`, `desactivar`, `reactivar`. El RUT es identificador estable (no editable).

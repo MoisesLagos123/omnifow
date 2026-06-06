@@ -21,6 +21,10 @@ from erp.application.ports.repositories import (
     CxPConAbonos,
     CxPListItem,
     CxPPagina,
+    DetalleDevolucionInfo,
+    DevolucionConDetalles,
+    DevolucionListItem,
+    DevolucionesPagina,
     IntentoLogin,
     LotePorVencer,
     MovInventarioConDetalles,
@@ -77,6 +81,8 @@ from erp.domain.entities.sesion_caja import EstadoSesionCaja, SesionCaja
 from erp.domain.entities.stock import Stock
 from erp.domain.entities.sucursal import Sucursal
 from erp.domain.entities.usuario import Usuario
+from erp.domain.entities.detalle_devolucion import DetalleDevolucion
+from erp.domain.entities.devolucion import Devolucion
 from erp.domain.entities.venta import EstadoVenta, Venta
 from erp.domain.utils.ids import new_uuid7
 from erp.domain.value_objects.tipo_documento import TipoDocumento
@@ -1805,3 +1811,120 @@ class FakeCxCRepo:
 
     def registrar_abono(self, abono: AbonoCxC) -> None:
         self._abonos.setdefault(abono.cxc_id, []).append(abono)
+
+
+class FakeDevolucionRepo:
+    """Repositorio in-memory de Devolución para tests unitarios."""
+
+    def __init__(self) -> None:
+        # devolucion_id -> (Devolucion, list[DetalleDevolucion])
+        self._devoluciones: dict[UUID, tuple[Devolucion, list[DetalleDevolucion]]] = {}
+        # devolucion_id -> nc_folio (simulado)
+        self._nc_folios: dict[UUID, int] = {}
+        # producto_id -> sku/nombre (para enriquecer detalles)
+        self.producto_info: dict[UUID, tuple[str, str]] = {}
+
+    def guardar(
+        self, devolucion: Devolucion, detalles: list[DetalleDevolucion]
+    ) -> None:
+        self._devoluciones[devolucion.id] = (devolucion, list(detalles))
+
+    def set_nc_folio(self, devolucion_id: UUID, folio: int) -> None:
+        """Helper para tests: registra el folio NC asociado a una devolución."""
+        self._nc_folios[devolucion_id] = folio
+
+    def obtener(self, devolucion_id: UUID) -> DevolucionConDetalles | None:
+        entry = self._devoluciones.get(devolucion_id)
+        if entry is None:
+            return None
+        dev, detalles = entry
+        nc_folio = self._nc_folios.get(devolucion_id, 0)
+        detalles_info = [
+            DetalleDevolucionInfo(
+                detalle=d,
+                producto_sku=self.producto_info.get(d.producto_id, ("", ""))[0],
+                producto_nombre=self.producto_info.get(d.producto_id, ("", ""))[1],
+            )
+            for d in detalles
+        ]
+        return DevolucionConDetalles(
+            devolucion=dev,
+            detalles=detalles_info,
+            nc_folio=nc_folio,
+        )
+
+    def listar_por_venta(self, venta_id: UUID) -> list[DevolucionConDetalles]:
+        result = []
+        for dev_id, (dev, detalles) in self._devoluciones.items():
+            if dev.venta_id == venta_id:
+                nc_folio = self._nc_folios.get(dev_id, 0)
+                detalles_info = [
+                    DetalleDevolucionInfo(
+                        detalle=d,
+                        producto_sku=self.producto_info.get(d.producto_id, ("", ""))[0],
+                        producto_nombre=self.producto_info.get(d.producto_id, ("", ""))[1],
+                    )
+                    for d in detalles
+                ]
+                result.append(
+                    DevolucionConDetalles(
+                        devolucion=dev,
+                        detalles=detalles_info,
+                        nc_folio=nc_folio,
+                    )
+                )
+        result.sort(key=lambda d: d.devolucion.fecha)
+        return result
+
+    def listar(
+        self,
+        *,
+        sucursal_id: UUID | None,
+        desde: Any | None,
+        hasta: Any | None,
+        usuario_id: UUID | None,
+        limit: int,
+        offset: int,
+    ) -> DevolucionesPagina:
+        items_all = [dev for dev, _detalles in self._devoluciones.values()]
+        if sucursal_id is not None:
+            items_all = [d for d in items_all if d.sucursal_id == sucursal_id]
+        if desde is not None:
+            items_all = [d for d in items_all if d.fecha >= desde]
+        if hasta is not None:
+            items_all = [d for d in items_all if d.fecha <= hasta]
+        if usuario_id is not None:
+            items_all = [d for d in items_all if d.usuario_id == usuario_id]
+        items_all.sort(key=lambda d: d.fecha, reverse=True)
+        total = len(items_all)
+        page = items_all[offset : offset + limit]
+        return DevolucionesPagina(
+            items=[
+                DevolucionListItem(
+                    id=d.id,
+                    venta_id=d.venta_id,
+                    sucursal_id=d.sucursal_id,
+                    caja_id=d.caja_id,
+                    usuario_id=d.usuario_id,
+                    fecha=d.fecha,
+                    motivo=d.motivo,
+                    monto_total_clp=d.monto_total_clp,
+                    nc_folio=self._nc_folios.get(d.id, 0),
+                    nc_documento_id=d.nc_documento_id,
+                )
+                for d in page
+            ],
+            total=total,
+            limit=limit,
+            offset=offset,
+        )
+
+    def cantidad_devuelta_por_detalle_venta(
+        self, detalle_venta_id: UUID
+    ) -> Decimal:
+        total = Decimal("0")
+        for _dev, detalles in self._devoluciones.values():
+            for d in detalles:
+                if d.detalle_venta_id == detalle_venta_id:
+                    total += d.cantidad
+        return total

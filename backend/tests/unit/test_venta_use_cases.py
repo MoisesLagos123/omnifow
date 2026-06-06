@@ -222,10 +222,13 @@ class _World:
         )
 
     def build_anular(self) -> AnularVentaUseCase:
+        from tests.fakes import FakeCxCRepo, FakeDevolucionRepo
+
         uow = FakeUoW()
         return AnularVentaUseCase(
             uow=uow,
             ventas=self.ventas,
+            detalles_venta=self.detalles,
             pagos=self.pagos,
             documentos=self.documentos,
             sucursales=self.sucursales,
@@ -234,6 +237,8 @@ class _World:
             lotes=self.lotes,
             sesiones_caja=self.sesiones_caja,
             movimientos_caja=self.movimientos_caja,
+            devoluciones=FakeDevolucionRepo(),
+            cuentas_cobrar=FakeCxCRepo(),
             asignador_folios=AsignadorFoliosSQL(uow=uow, rangos=self.rangos),
             audit=self.audit,
             clock=self.clock,

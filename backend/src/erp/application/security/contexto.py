@@ -29,3 +29,18 @@ class ContextoSeguridad:
         if not self.sucursales_permitidas:
             return True
         return sucursal_id in self.sucursales_permitidas
+
+    def con_permiso_extra(self, codigo: str) -> "ContextoSeguridad":
+        """Devuelve una copia del contexto con un permiso adicional agregado.
+
+        Usado internamente cuando un use case delega a otro que requiere un
+        permiso distinto (ej. `venta.anular` delegando a `devolucion.crear`).
+        """
+        return ContextoSeguridad(
+            usuario_id=self.usuario_id,
+            perfiles=self.perfiles,
+            permisos=self.permisos | frozenset([codigo]),
+            sucursales_permitidas=self.sucursales_permitidas,
+            ip=self.ip,
+            user_agent=self.user_agent,
+        )

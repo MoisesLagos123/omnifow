@@ -11,7 +11,9 @@ from erp.infrastructure.db.models.cliente import ClienteORM
 from erp.infrastructure.db.models.compra import CompraORM
 from erp.infrastructure.db.models.cuenta_por_pagar import CuentaPorPagarORM
 from erp.infrastructure.db.models.detalle_compra import DetalleCompraORM
+from erp.infrastructure.db.models.detalle_devolucion import DetalleDevolucionORM
 from erp.infrastructure.db.models.detalle_venta import DetalleVentaORM
+from erp.infrastructure.db.models.devolucion import DevolucionORM
 from erp.infrastructure.db.models.documento_tributario import DocumentoTributarioORM
 from erp.infrastructure.db.models.intento_login import IntentoLoginORM
 from erp.infrastructure.db.models.lote_inventario import LoteInventarioORM
@@ -48,7 +50,9 @@ __all__ = [
     "CompraORM",
     "CuentaPorPagarORM",
     "DetalleCompraORM",
+    "DetalleDevolucionORM",
     "DetalleVentaORM",
+    "DevolucionORM",
     "DocumentoTributarioORM",
     "IntentoLoginORM",
     "LoteInventarioORM",

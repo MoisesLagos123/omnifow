@@ -1149,3 +1149,62 @@ class CxCPaginaResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+# ---------------- Devoluciones ----------------
+
+class DevolucionItemRequest(BaseModel):
+    detalle_venta_id: UUID
+    cantidad: str  # Decimal serializado como string
+
+
+class CrearDevolucionRequest(BaseModel):
+    items: list[DevolucionItemRequest] = Field(min_length=1)
+    motivo: str | None = Field(default=None, max_length=500)
+
+
+class DetalleDevolucionResponse(BaseModel):
+    id: UUID
+    detalle_venta_id: UUID
+    producto_id: UUID
+    producto_sku: str
+    producto_nombre: str
+    cantidad: str
+    precio_unitario_clp: int
+    subtotal_clp: int
+
+
+class DevolucionResponse(BaseModel):
+    id: UUID
+    venta_id: UUID
+    sucursal_id: UUID
+    caja_id: UUID
+    usuario_id: UUID
+    fecha: datetime
+    motivo: str | None
+    monto_neto_clp: int
+    iva_clp: int
+    monto_total_clp: int
+    nc_folio: int
+    nc_documento_id: UUID
+    items: list[DetalleDevolucionResponse]
+    venta_estado_final: str
+    creado_en: datetime
+
+
+class DevolucionListItemResponse(BaseModel):
+    id: UUID
+    venta_id: UUID
+    sucursal_id: UUID
+    fecha: datetime
+    motivo: str | None
+    monto_total_clp: int
+    nc_folio: int
+    nc_documento_id: UUID
+
+
+class DevolucionesPaginaResponse(BaseModel):
+    items: list[DevolucionListItemResponse]
+    total: int
+    limit: int
+    offset: int

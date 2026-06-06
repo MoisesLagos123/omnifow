@@ -62,4 +62,7 @@ export const ROUTES = {
   // CxC
   CXC: "/cxc",
   CXC_DETALLE: (id: string) => `/cxc/${id}`,
+  // Devoluciones
+  DEVOLUCIONES: "/devoluciones",
+  DEVOLUCION_DETALLE: (id: string) => `/devoluciones/${id}`,
 } as const;

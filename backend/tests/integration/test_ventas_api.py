@@ -181,10 +181,13 @@ def _build_client(b: _Bundle, ctx: ContextoSeguridad) -> TestClient:
         )
 
     def anular() -> AnularVentaUseCase:
+        from tests.fakes import FakeCxCRepo, FakeDevolucionRepo
+
         uow = FakeUoW()
         return AnularVentaUseCase(
             uow=uow,
             ventas=b.ventas,
+            detalles_venta=b.detalles,
             pagos=b.pagos,
             documentos=b.documentos,
             sucursales=b.sucursales,
@@ -193,6 +196,8 @@ def _build_client(b: _Bundle, ctx: ContextoSeguridad) -> TestClient:
             lotes=b.lotes,
             sesiones_caja=b.sesiones_caja,
             movimientos_caja=b.movimientos_caja,
+            devoluciones=FakeDevolucionRepo(),
+            cuentas_cobrar=FakeCxCRepo(),
             asignador_folios=AsignadorFoliosSQL(uow=uow, rangos=b.rangos),
             audit=b.audit,
             clock=FakeClock(),

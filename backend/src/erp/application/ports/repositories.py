@@ -17,7 +17,9 @@ from erp.domain.entities.compra import Compra, EstadoCompra
 from erp.domain.entities.cuenta_por_cobrar import CuentaPorCobrar, EstadoCxC
 from erp.domain.entities.cuenta_por_pagar import CuentaPorPagar, EstadoCxP
 from erp.domain.entities.detalle_compra import DetalleCompra
+from erp.domain.entities.detalle_devolucion import DetalleDevolucion
 from erp.domain.entities.detalle_venta import DetalleVenta
+from erp.domain.entities.devolucion import Devolucion
 from erp.domain.entities.documento_tributario import DocumentoTributario
 from erp.domain.entities.lote_inventario import LoteInventario
 from erp.domain.entities.mov_inventario import MovInventario, TipoMovInventario
@@ -920,3 +922,78 @@ class CuentaPorCobrarRepository(Protocol):
         self, cliente_id: UUID, *, solo_activas: bool = False
     ) -> list[CxCListItem]: ...
     def registrar_abono(self, abono: AbonoCxC) -> None: ...
+
+
+# --- Devoluciones ---
+
+@dataclass(frozen=True)
+class DetalleDevolucionInfo:
+    """Detalle de devolución enriquecido con datos de producto."""
+
+    detalle: DetalleDevolucion
+    producto_sku: str
+    producto_nombre: str
+
+
+@dataclass(frozen=True)
+class DevolucionConDetalles:
+    """Devolución enriquecida con sus detalles y datos del documento NC."""
+
+    devolucion: Devolucion
+    detalles: list[DetalleDevolucionInfo]
+    nc_folio: int
+
+
+@dataclass(frozen=True)
+class DevolucionListItem:
+    """Ítem de lista paginada de devoluciones."""
+
+    id: UUID
+    venta_id: UUID
+    sucursal_id: UUID
+    caja_id: UUID
+    usuario_id: UUID
+    fecha: datetime
+    motivo: str | None
+    monto_total_clp: int
+    nc_folio: int
+    nc_documento_id: UUID
+
+
+@dataclass(frozen=True)
+class DevolucionesPagina:
+    items: list[DevolucionListItem]
+    total: int
+    limit: int
+    offset: int
+
+
+class DevolucionRepository(Protocol):
+    def guardar(
+        self, devolucion: Devolucion, detalles: list[DetalleDevolucion]
+    ) -> None: ...
+
+    def obtener(self, devolucion_id: UUID) -> DevolucionConDetalles | None: ...
+
+    def listar_por_venta(self, venta_id: UUID) -> list[DevolucionConDetalles]: ...
+
+    def listar(
+        self,
+        *,
+        sucursal_id: UUID | None,
+        desde: datetime | None,
+        hasta: datetime | None,
+        usuario_id: UUID | None,
+        limit: int,
+        offset: int,
+    ) -> DevolucionesPagina: ...
+
+    def cantidad_devuelta_por_detalle_venta(
+        self, detalle_venta_id: UUID
+    ) -> Decimal:
+        """Suma de cantidades ya devueltas para una línea de venta.
+
+        Clave para validar la cantidad pendiente antes de procesar una devolución.
+        Devuelve Decimal('0') si no hay devoluciones previas.
+        """
+        ...

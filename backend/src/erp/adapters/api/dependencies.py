@@ -1764,10 +1764,19 @@ def build_anular_venta_uc(
     from erp.application.services.asignador_folios import AsignadorFoliosSQL
     from erp.infrastructure.audit.audit_writer import SqlAuditWriter
 
+    from erp.adapters.repositories.sql.cxc_repository import SqlCxCRepository
+    from erp.adapters.repositories.sql.detalle_venta_repository import (
+        SqlDetalleVentaRepository,
+    )
+    from erp.adapters.repositories.sql.devolucion_repository import (
+        SqlDevolucionRepository,
+    )
+
     uow = _build_uow(session_factory)
     return AnularVentaUseCase(
         uow=uow,
         ventas=SqlVentaRepository(uow),
+        detalles_venta=SqlDetalleVentaRepository(uow),
         pagos=SqlPagoRepository(uow),
         documentos=SqlDocumentoTributarioRepository(uow),
         sucursales=SqlSucursalRepository(uow),
@@ -1776,6 +1785,8 @@ def build_anular_venta_uc(
         lotes=SqlLoteInventarioRepository(uow),
         sesiones_caja=SqlSesionCajaRepository(uow),
         movimientos_caja=SqlMovimientoCajaRepository(uow),
+        devoluciones=SqlDevolucionRepository(uow),
+        cuentas_cobrar=SqlCxCRepository(uow),
         asignador_folios=AsignadorFoliosSQL(
             uow=uow, rangos=SqlRangoFoliosRepository(uow)
         ),
@@ -2110,3 +2121,115 @@ def build_listar_cxc_por_cliente_uc(
 
     uow = _build_uow(session_factory)
     return ListarCxCPorClienteUseCase(uow=uow, cxc=SqlCxCRepository(uow))
+
+
+# -------- Devoluciones --------
+
+from erp.application.use_cases.devoluciones.listar_devoluciones import (
+    ListarDevolucionesUseCase,
+)
+from erp.application.use_cases.devoluciones.listar_devoluciones_por_venta import (
+    ListarDevolucionesPorVentaUseCase,
+)
+from erp.application.use_cases.devoluciones.obtener_devolucion import (
+    ObtenerDevolucionUseCase,
+)
+from erp.application.use_cases.devoluciones.procesar_devolucion import (
+    ProcesarDevolucionUseCase,
+)
+
+
+def build_procesar_devolucion_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> ProcesarDevolucionUseCase:
+    from erp.adapters.repositories.sql.cxc_repository import SqlCxCRepository
+    from erp.adapters.repositories.sql.detalle_venta_repository import (
+        SqlDetalleVentaRepository,
+    )
+    from erp.adapters.repositories.sql.devolucion_repository import (
+        SqlDevolucionRepository,
+    )
+    from erp.adapters.repositories.sql.documento_tributario_repository import (
+        SqlDocumentoTributarioRepository,
+    )
+    from erp.adapters.repositories.sql.lote_inventario_repository import (
+        SqlLoteInventarioRepository,
+    )
+    from erp.adapters.repositories.sql.mov_inventario_repository import (
+        SqlMovInventarioRepository,
+    )
+    from erp.adapters.repositories.sql.movimiento_caja_repository import (
+        SqlMovimientoCajaRepository,
+    )
+    from erp.adapters.repositories.sql.pago_repository import SqlPagoRepository
+    from erp.adapters.repositories.sql.rango_folios_repository import (
+        SqlRangoFoliosRepository,
+    )
+    from erp.adapters.repositories.sql.sesion_caja_repository import (
+        SqlSesionCajaRepository,
+    )
+    from erp.adapters.repositories.sql.stock_repository import SqlStockRepository
+    from erp.adapters.repositories.sql.sucursal_repository import SqlSucursalRepository
+    from erp.adapters.repositories.sql.venta_repository import SqlVentaRepository
+    from erp.application.services.asignador_folios import AsignadorFoliosSQL
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = _build_uow(session_factory)
+    return ProcesarDevolucionUseCase(
+        uow=uow,
+        ventas=SqlVentaRepository(uow),
+        detalles_venta=SqlDetalleVentaRepository(uow),
+        pagos=SqlPagoRepository(uow),
+        documentos=SqlDocumentoTributarioRepository(uow),
+        sucursales=SqlSucursalRepository(uow),
+        stock=SqlStockRepository(uow),
+        mov_inventario=SqlMovInventarioRepository(uow),
+        lotes=SqlLoteInventarioRepository(uow),
+        sesiones_caja=SqlSesionCajaRepository(uow),
+        movimientos_caja=SqlMovimientoCajaRepository(uow),
+        devoluciones=SqlDevolucionRepository(uow),
+        cuentas_cobrar=SqlCxCRepository(uow),
+        asignador_folios=AsignadorFoliosSQL(
+            uow=uow, rangos=SqlRangoFoliosRepository(uow)
+        ),
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_listar_devoluciones_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ListarDevolucionesUseCase:
+    from erp.adapters.repositories.sql.devolucion_repository import (
+        SqlDevolucionRepository,
+    )
+
+    uow = _build_uow(session_factory)
+    return ListarDevolucionesUseCase(devoluciones=SqlDevolucionRepository(uow))
+
+
+def build_obtener_devolucion_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ObtenerDevolucionUseCase:
+    from erp.adapters.repositories.sql.devolucion_repository import (
+        SqlDevolucionRepository,
+    )
+
+    uow = _build_uow(session_factory)
+    return ObtenerDevolucionUseCase(devoluciones=SqlDevolucionRepository(uow))
+
+
+def build_listar_devoluciones_por_venta_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ListarDevolucionesPorVentaUseCase:
+    from erp.adapters.repositories.sql.devolucion_repository import (
+        SqlDevolucionRepository,
+    )
+    from erp.adapters.repositories.sql.venta_repository import SqlVentaRepository
+
+    uow = _build_uow(session_factory)
+    return ListarDevolucionesPorVentaUseCase(
+        ventas=SqlVentaRepository(uow),
+        devoluciones=SqlDevolucionRepository(uow),
+    )
