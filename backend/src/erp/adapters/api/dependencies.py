@@ -442,6 +442,9 @@ def build_desactivar_usuario_uc(
     session_factory: sessionmaker[Session] = Depends(get_session_factory),
     clock: Clock = Depends(get_clock),
 ) -> DesactivarUsuarioUseCase:
+    from erp.adapters.repositories.sql.refresh_token_repository import (
+        SqlRefreshTokenRepository,
+    )
     from erp.adapters.repositories.sql.usuario_repository import SqlUsuarioRepository
     from erp.infrastructure.audit.audit_writer import SqlAuditWriter
 
@@ -449,6 +452,7 @@ def build_desactivar_usuario_uc(
     return DesactivarUsuarioUseCase(
         uow=uow,
         usuarios=SqlUsuarioRepository(uow),
+        refresh_tokens=SqlRefreshTokenRepository(uow),
         audit=SqlAuditWriter(uow),
         clock=clock,
     )

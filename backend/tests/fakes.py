@@ -25,6 +25,8 @@ from erp.application.ports.repositories import (
     DevolucionConDetalles,
     DevolucionListItem,
     DevolucionesPagina,
+    DocumentoListItem,
+    DocumentosPagina,
     IntentoLogin,
     LotePorVencer,
     MovInventarioConDetalles,
@@ -1174,10 +1176,13 @@ class FakeVentaRepo:
         q: str | None = None,
         limit: int = 50,
         offset: int = 0,
+        sucursales_permitidas: frozenset[UUID] | None = None,
     ) -> VentasPagina:
         items = list(self._by_id.values())
         if sucursal_id is not None:
             items = [v for v in items if v.sucursal_id == sucursal_id]
+        elif sucursales_permitidas:
+            items = [v for v in items if v.sucursal_id in sucursales_permitidas]
         if caja_id is not None:
             items = [v for v in items if v.caja_id == caja_id]
         if usuario_id is not None:

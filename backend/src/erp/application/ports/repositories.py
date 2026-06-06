@@ -613,6 +613,7 @@ class VentaRepository(Protocol):
         q: str | None = None,
         limit: int = 50,
         offset: int = 0,
+        sucursales_permitidas: frozenset[UUID] | None = None,
     ) -> VentasPagina: ...
 
 

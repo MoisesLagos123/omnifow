@@ -41,7 +41,7 @@ class ListarVentasUseCase:
                 "Falta permiso 'venta.crear' o 'reportes.ver'",
                 details={"codigo_requerido": "venta.crear|reportes.ver"},
             )
-        # Si el usuario está restringido a sucursales, force-filter
+        # Si el usuario pasó un sucursal_id explícito, validar que puede operar.
         sucursal_filter = cmd.sucursal_id
         if (
             sucursal_filter is not None
@@ -51,6 +51,16 @@ class ListarVentasUseCase:
                 "No autorizado para listar ventas de esa sucursal",
                 details={"sucursal_id": str(sucursal_filter)},
             )
+        # SEGURIDAD anti-IDOR: si el usuario está restringido a sucursales
+        # específicas y NO pasó filtro, forzamos el conjunto permitido.
+        # Sin esto, listar_ventas devolvía ventas de TODAS las sucursales a un
+        # cajero restringido cuando consultaba sin parámetro de sucursal.
+        # ctx.sucursales_permitidas vacío == sin restricción (ej. Sysadmin).
+        sucursales_scope = (
+            ctx.sucursales_permitidas
+            if sucursal_filter is None and ctx.sucursales_permitidas
+            else None
+        )
         with self._uow:
             return self._ventas.listar(
                 sucursal_id=sucursal_filter,
@@ -63,4 +73,5 @@ class ListarVentasUseCase:
                 q=cmd.q,
                 limit=cmd.limit,
                 offset=cmd.offset,
+                sucursales_permitidas=sucursales_scope,
             )

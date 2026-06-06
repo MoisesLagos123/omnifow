@@ -53,6 +53,7 @@ class SqlVentaRepository:
         q: str | None = None,
         limit: int = 50,
         offset: int = 0,
+        sucursales_permitidas: frozenset[UUID] | None = None,
     ) -> VentasPagina:
         base_stmt = (
             select(
@@ -70,6 +71,15 @@ class SqlVentaRepository:
         if sucursal_id is not None:
             base_stmt = base_stmt.where(VentaORM.sucursal_id == sucursal_id)
             count_stmt = count_stmt.where(VentaORM.sucursal_id == sucursal_id)
+        elif sucursales_permitidas:
+            # Anti-IDOR: si el caller no pasó sucursal_id pero está restringido
+            # a un conjunto de sucursales, scopear la consulta al conjunto.
+            base_stmt = base_stmt.where(
+                VentaORM.sucursal_id.in_(sucursales_permitidas)
+            )
+            count_stmt = count_stmt.where(
+                VentaORM.sucursal_id.in_(sucursales_permitidas)
+            )
         if caja_id is not None:
             base_stmt = base_stmt.where(VentaORM.caja_id == caja_id)
             count_stmt = count_stmt.where(VentaORM.caja_id == caja_id)
