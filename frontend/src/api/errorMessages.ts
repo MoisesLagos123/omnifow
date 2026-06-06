@@ -69,6 +69,25 @@ const CODE_MESSAGES: Record<string, string> = {
   // Inventario — Lotes / Vencimiento
   ERR_VENCIMIENTO_REQUERIDO: "Este producto requiere fecha de vencimiento.",
   ERR_LOTE_INVALIDO: "Los datos del lote no son válidos.",
+  // Proveedores
+  ERR_PROVEEDOR_DUPLICADO: "Ya existe un proveedor con ese RUT.",
+  ERR_PROVEEDOR_INVALIDO: "Los datos del proveedor no son válidos.",
+  ERR_PROVEEDOR_EN_USO:
+    "El proveedor tiene cuentas por pagar pendientes y no puede desactivarse.",
+  ERR_PROVEEDOR_YA_ACTIVO: "Este proveedor ya está activo.",
+  // Compras
+  ERR_COMPRA_INVALIDA:
+    "La compra no es válida. Revisa los ítems, fechas y datos del documento.",
+  ERR_COMPRA_YA_ANULADA: "Esta compra ya fue anulada.",
+  ERR_COMPRA_CON_ABONOS:
+    "No se puede anular una compra con abonos registrados en la cuenta por pagar.",
+  ERR_COMPRA_DESCUADRA_TOTAL:
+    "El total declarado no cuadra con la suma de los ítems.",
+  // CxP
+  ERR_CXP_INVALIDA: "La cuenta por pagar no está en un estado válido para abonar.",
+  ERR_CXP_YA_PAGADA: "Esta cuenta por pagar ya fue liquidada.",
+  ERR_ABONO_INVALIDO:
+    "El monto del abono no es válido (debe ser mayor a 0 y no superar el saldo).",
   // Clientes
   ERR_CLIENTE_INVALIDO: "Los datos del cliente no son válidos.",
   ERR_CLIENTE_DUPLICADO: "Ya existe un cliente con ese RUT.",
@@ -379,6 +398,96 @@ export function extractPagosNoCuadran(
     total_pagado_clp: pagado,
     diferencia_clp: diff,
   };
+}
+
+/** Detalles devueltos por `ERR_PROVEEDOR_EN_USO`. */
+export interface ProveedorEnUsoDetails {
+  cxp_pendientes: number;
+  monto_total_clp: number;
+}
+
+/**
+ * Extrae los detalles de un error `ERR_PROVEEDOR_EN_USO` (cantidad de CxP
+ * pendientes y monto total adeudado). Devuelve `null` si el error no es de
+ * ese tipo o los detalles no tienen la forma esperada.
+ */
+export function extractProveedorEnUso(
+  err: unknown
+): ProveedorEnUsoDetails | null {
+  if (!(err instanceof ApiError)) return null;
+  if (err.code !== "ERR_PROVEEDOR_EN_USO") return null;
+  const details = err.details;
+  if (!details || typeof details !== "object") return null;
+  const d = details as Record<string, unknown>;
+  const cxp =
+    typeof d.cxp_pendientes === "number" && Number.isFinite(d.cxp_pendientes)
+      ? d.cxp_pendientes
+      : 0;
+  const monto =
+    typeof d.monto_total_clp === "number" && Number.isFinite(d.monto_total_clp)
+      ? d.monto_total_clp
+      : 0;
+  return { cxp_pendientes: cxp, monto_total_clp: monto };
+}
+
+/** Detalles devueltos por `ERR_COMPRA_CON_ABONOS`. */
+export interface CompraConAbonosDetails {
+  cxp_id: string;
+  abonos_count: number;
+  abonos_total_clp: number;
+}
+
+/**
+ * Extrae los detalles de un error `ERR_COMPRA_CON_ABONOS`. Devuelve `null` si
+ * el error no es de ese tipo o los campos no tienen la forma esperada.
+ */
+export function extractCompraConAbonos(
+  err: unknown
+): CompraConAbonosDetails | null {
+  if (!(err instanceof ApiError)) return null;
+  if (err.code !== "ERR_COMPRA_CON_ABONOS") return null;
+  const details = err.details;
+  if (!details || typeof details !== "object") return null;
+  const d = details as Record<string, unknown>;
+  const cxp_id = typeof d.cxp_id === "string" ? d.cxp_id : null;
+  if (!cxp_id) return null;
+  const count =
+    typeof d.abonos_count === "number" ? d.abonos_count : 0;
+  const total =
+    typeof d.abonos_total_clp === "number" ? d.abonos_total_clp : 0;
+  return { cxp_id, abonos_count: count, abonos_total_clp: total };
+}
+
+/** Detalles devueltos por `ERR_ABONO_INVALIDO`. */
+export interface AbonoInvalidoDetails {
+  saldo_clp: number;
+  monto_intentado_clp: number;
+}
+
+/**
+ * Extrae los detalles de un error `ERR_ABONO_INVALIDO` (saldo disponible vs
+ * monto intentado). Devuelve `null` si el error no es de ese tipo o los campos
+ * no son numéricos.
+ */
+export function extractAbonoInvalido(
+  err: unknown
+): AbonoInvalidoDetails | null {
+  if (!(err instanceof ApiError)) return null;
+  if (err.code !== "ERR_ABONO_INVALIDO") return null;
+  const details = err.details;
+  if (!details || typeof details !== "object") return null;
+  const d = details as Record<string, unknown>;
+  const saldo =
+    typeof d.saldo_clp === "number" && Number.isFinite(d.saldo_clp)
+      ? d.saldo_clp
+      : null;
+  const intento =
+    typeof d.monto_intentado_clp === "number" &&
+    Number.isFinite(d.monto_intentado_clp)
+      ? d.monto_intentado_clp
+      : null;
+  if (saldo === null || intento === null) return null;
+  return { saldo_clp: saldo, monto_intentado_clp: intento };
 }
 
 /**

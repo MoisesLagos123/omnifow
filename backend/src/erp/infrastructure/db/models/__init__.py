@@ -1,10 +1,14 @@
 """Modelos ORM SQLAlchemy. Importar aquí garantiza que Alembic los detecte."""
 from erp.infrastructure.db.models.base import Base
+from erp.infrastructure.db.models.abono_cxp import AbonoCxPORM
 from erp.infrastructure.db.models.audit_log import AuditLogORM
 from erp.infrastructure.db.models.bodega import BodegaORM
 from erp.infrastructure.db.models.caja import CajaORM
 from erp.infrastructure.db.models.categoria import CategoriaORM
 from erp.infrastructure.db.models.cliente import ClienteORM
+from erp.infrastructure.db.models.compra import CompraORM
+from erp.infrastructure.db.models.cuenta_por_pagar import CuentaPorPagarORM
+from erp.infrastructure.db.models.detalle_compra import DetalleCompraORM
 from erp.infrastructure.db.models.detalle_venta import DetalleVentaORM
 from erp.infrastructure.db.models.documento_tributario import DocumentoTributarioORM
 from erp.infrastructure.db.models.intento_login import IntentoLoginORM
@@ -17,6 +21,7 @@ from erp.infrastructure.db.models.perfil import PerfilORM
 from erp.infrastructure.db.models.perfil_permiso import perfil_permiso_table
 from erp.infrastructure.db.models.permiso import PermisoORM
 from erp.infrastructure.db.models.producto import ProductoORM
+from erp.infrastructure.db.models.proveedor import ProveedorORM
 from erp.infrastructure.db.models.rango_folios import RangoFoliosORM
 from erp.infrastructure.db.models.refresh_token import RefreshTokenORM
 from erp.infrastructure.db.models.reserva_stock import ReservaStockORM
@@ -30,11 +35,15 @@ from erp.infrastructure.db.models.usuario_sucursal import usuario_sucursal_table
 
 __all__ = [
     "Base",
+    "AbonoCxPORM",
     "AuditLogORM",
     "BodegaORM",
     "CajaORM",
     "CategoriaORM",
     "ClienteORM",
+    "CompraORM",
+    "CuentaPorPagarORM",
+    "DetalleCompraORM",
     "DetalleVentaORM",
     "DocumentoTributarioORM",
     "IntentoLoginORM",
@@ -46,6 +55,7 @@ __all__ = [
     "PerfilORM",
     "PermisoORM",
     "ProductoORM",
+    "ProveedorORM",
     "RangoFoliosORM",
     "RefreshTokenORM",
     "ReservaStockORM",

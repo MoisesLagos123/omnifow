@@ -50,3 +50,27 @@ export const CLIENTE_PERMS = [
 
 /** POS — vender o anular ventas. */
 export const POS_PERMS = ["venta.crear", "venta.anular"] as const;
+
+/** Consulta de proveedores (lectura). */
+export const PROVEEDOR_CONSULTAR_PERMS = [
+  "proveedor.consultar",
+  "proveedor.gestionar",
+] as const;
+
+/** Gestión de proveedores (CRUD). */
+export const PROVEEDOR_GESTIONAR_PERMS = ["proveedor.gestionar"] as const;
+
+/** Consulta de compras (lectura). */
+export const COMPRA_CONSULTAR_PERMS = ["compra.consultar"] as const;
+
+/** Crear nueva compra. */
+export const COMPRA_CREAR_PERMS = ["compra.crear"] as const;
+
+/** Consulta de CxP (lectura). */
+export const CXP_CONSULTAR_PERMS = [
+  "cxp.consultar",
+  "cxp.gestionar",
+] as const;
+
+/** Gestión de CxP (registrar abonos). */
+export const CXP_GESTIONAR_PERMS = ["cxp.gestionar"] as const;

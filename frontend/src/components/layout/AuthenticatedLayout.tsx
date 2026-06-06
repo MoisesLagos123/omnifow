@@ -42,6 +42,10 @@ import {
   CAJA_PERMS,
   CLIENTE_PERMS,
   POS_PERMS,
+  PROVEEDOR_CONSULTAR_PERMS,
+  COMPRA_CREAR_PERMS,
+  COMPRA_CONSULTAR_PERMS,
+  CXP_CONSULTAR_PERMS,
 } from "../../auth/menuPermissions";
 
 export function AuthenticatedLayout() {
@@ -61,6 +65,11 @@ export function AuthenticatedLayout() {
   const canCaja = useAnyPermission(CAJA_PERMS);
   const canClientes = useAnyPermission(CLIENTE_PERMS);
   const canPos = useAnyPermission(POS_PERMS);
+  const canProveedores = useAnyPermission(PROVEEDOR_CONSULTAR_PERMS);
+  const canCompraCrear = useAnyPermission(COMPRA_CREAR_PERMS);
+  const canCompraConsultar = useAnyPermission(COMPRA_CONSULTAR_PERMS);
+  const canCxP = useAnyPermission(CXP_CONSULTAR_PERMS);
+  const canCompras = canProveedores || canCompraCrear || canCompraConsultar || canCxP;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(
     location.pathname.startsWith(ROUTES.ADMIN)
@@ -74,6 +83,11 @@ export function AuthenticatedLayout() {
   const [posOpen, setPosOpen] = useState(
     location.pathname.startsWith(ROUTES.POS) ||
       location.pathname.startsWith(ROUTES.VENTAS)
+  );
+  const [comprasOpen, setComprasOpen] = useState(
+    location.pathname.startsWith(ROUTES.COMPRAS) ||
+      location.pathname.startsWith(ROUTES.CXP) ||
+      location.pathname.startsWith(ROUTES.ADMIN_PROVEEDORES)
   );
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [cambiarPasswordOpen, setCambiarPasswordOpen] = useState(false);
@@ -325,6 +339,10 @@ export function AuthenticatedLayout() {
               </NavItem>
             )}
 
+            {canCompras && (
+              <p className={styles.sectionLabel}>Compras</p>
+            )}
+
             {canAdmin && (
               <p className={styles.sectionLabel}>Administración</p>
             )}
@@ -374,11 +392,47 @@ export function AuthenticatedLayout() {
               </div>
             )}
 
+            {canCompras && (
+              <div className={styles.group}>
+                <button
+                  type="button"
+                  className={`${styles.groupHeader} ${comprasOpen ? styles.groupOpen : ""}`}
+                  onClick={() => setComprasOpen((o) => !o)}
+                  aria-expanded={comprasOpen}
+                  aria-controls="nav-compras-children"
+                >
+                  <Package size={18} aria-hidden="true" />
+                  <span className={styles.groupLabel}>Compras</span>
+                  <ChevronDown size={16} aria-hidden="true" className={styles.groupChevron} />
+                </button>
+                {comprasOpen && (
+                  <div id="nav-compras-children" className={styles.subnav}>
+                    {canProveedores && (
+                      <NavItem to={ROUTES.ADMIN_PROVEEDORES} subitem>
+                        Proveedores
+                      </NavItem>
+                    )}
+                    {canCompraCrear && (
+                      <NavItem to={ROUTES.COMPRA_NUEVA} subitem>
+                        Nueva compra
+                      </NavItem>
+                    )}
+                    {canCompraConsultar && (
+                      <NavItem to={ROUTES.COMPRAS} subitem>
+                        Historial de compras
+                      </NavItem>
+                    )}
+                    {canCxP && (
+                      <NavItem to={ROUTES.CXP} subitem>
+                        Cuentas por pagar
+                      </NavItem>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <p className={styles.sectionLabel}>Próximamente</p>
-            <ComingSoonItem
-              icon={<Package size={18} aria-hidden="true" />}
-              label="Compras"
-            />
             <ComingSoonItem
               icon={<Receipt size={18} aria-hidden="true" />}
               label="Documentos"

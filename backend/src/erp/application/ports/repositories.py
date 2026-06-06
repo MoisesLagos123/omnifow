@@ -7,10 +7,14 @@ from decimal import Decimal
 from typing import Protocol
 from uuid import UUID
 
+from erp.domain.entities.abono_cxp import AbonoCxP
 from erp.domain.entities.bodega import Bodega
 from erp.domain.entities.caja import Caja
 from erp.domain.entities.categoria import Categoria
 from erp.domain.entities.cliente import Cliente
+from erp.domain.entities.compra import Compra, EstadoCompra
+from erp.domain.entities.cuenta_por_pagar import CuentaPorPagar, EstadoCxP
+from erp.domain.entities.detalle_compra import DetalleCompra
 from erp.domain.entities.detalle_venta import DetalleVenta
 from erp.domain.entities.documento_tributario import DocumentoTributario
 from erp.domain.entities.lote_inventario import LoteInventario
@@ -20,6 +24,7 @@ from erp.domain.entities.pago import Pago
 from erp.domain.entities.perfil import Perfil
 from erp.domain.entities.permiso import Permiso
 from erp.domain.entities.producto import Producto
+from erp.domain.entities.proveedor import Proveedor
 from erp.domain.entities.rango_folios import RangoFolios
 from erp.domain.entities.reserva_stock import ReservaStock
 from erp.domain.entities.sesion_caja import EstadoSesionCaja, SesionCaja
@@ -711,3 +716,146 @@ class AuditLogRepository(Protocol):
     ) -> AuditLogPagina: ...
 
     def obtener(self, audit_id: UUID) -> AuditLogEntry | None: ...
+
+
+# --- Proveedores ---
+
+@dataclass(frozen=True)
+class ProveedorConContadores:
+    """Proveedor enriquecido con contadores para el detalle/listado."""
+
+    proveedor: Proveedor
+    cantidad_compras: int
+    cxp_pendientes_clp: int
+
+
+@dataclass(frozen=True)
+class ProveedoresPagina:
+    items: list[ProveedorConContadores]
+    total: int
+    limit: int
+    offset: int
+
+
+class ProveedorRepository(Protocol):
+    def guardar(self, proveedor: Proveedor) -> None: ...
+    def obtener(self, proveedor_id: UUID) -> Proveedor | None: ...
+    def obtener_por_rut(self, rut: str) -> Proveedor | None: ...
+    def listar(
+        self,
+        *,
+        q: str | None,
+        activo: bool | None,
+        limit: int,
+        offset: int,
+    ) -> ProveedoresPagina: ...
+    def contar_compras(self, proveedor_id: UUID) -> int: ...
+    def sumar_cxp_pendientes(self, proveedor_id: UUID) -> int: ...
+
+
+# --- Compras ---
+
+@dataclass(frozen=True)
+class CompraConDetalles:
+    """Compra enriquecida con detalles expandidos (para obtener)."""
+
+    compra: Compra
+    detalles: list[DetalleCompra]
+    proveedor_razon_social: str
+    proveedor_rut: str
+    sucursal_codigo: str
+    bodega_codigo: str
+    # Datos de producto por detalle: detalle_id -> (sku, nombre)
+    producto_info: dict[UUID, tuple[str, str]]
+    cxp_id: UUID | None
+
+
+@dataclass(frozen=True)
+class CompraListItem:
+    """Ítem de lista paginada de compras."""
+
+    id: UUID
+    proveedor_razon_social: str
+    sucursal_codigo: str
+    numero_documento: str
+    tipo_documento: str
+    fecha_documento: date
+    estado: str
+    condicion_pago: str
+    total_clp: int
+
+
+@dataclass(frozen=True)
+class ComprasPagina:
+    items: list[CompraListItem]
+    total: int
+    limit: int
+    offset: int
+
+
+class CompraRepository(Protocol):
+    def guardar(self, compra: Compra, detalles: list[DetalleCompra]) -> None: ...
+    def obtener(self, compra_id: UUID) -> CompraConDetalles | None: ...
+    def listar(
+        self,
+        *,
+        proveedor_id: UUID | None,
+        sucursal_id: UUID | None,
+        estado: EstadoCompra | None,
+        desde: date | None,
+        hasta: date | None,
+        limit: int,
+        offset: int,
+    ) -> ComprasPagina: ...
+
+
+# --- CuentaPorPagar ---
+
+@dataclass(frozen=True)
+class CxPConAbonos:
+    """CxP enriquecida con abonos y datos de proveedor."""
+
+    cxp: CuentaPorPagar
+    abonos: list[AbonoCxP]
+    proveedor_razon_social: str
+    compra_numero_documento: str
+
+
+@dataclass(frozen=True)
+class CxPListItem:
+    """Ítem de lista paginada de CxP."""
+
+    id: UUID
+    proveedor_razon_social: str
+    compra_numero_documento: str
+    monto_original_clp: int
+    monto_saldo_clp: int
+    fecha_vencimiento: date
+    estado: str
+    dias_vencido: int
+
+
+@dataclass(frozen=True)
+class CxPPagina:
+    items: list[CxPListItem]
+    total: int
+    limit: int
+    offset: int
+
+
+class CuentaPorPagarRepository(Protocol):
+    def guardar(self, cxp: CuentaPorPagar) -> None: ...
+    def obtener(self, cxp_id: UUID, *, for_update: bool = False) -> CxPConAbonos | None: ...
+    def obtener_por_compra(self, compra_id: UUID) -> CuentaPorPagar | None: ...
+    def listar(
+        self,
+        *,
+        proveedor_id: UUID | None,
+        estado: EstadoCxP | None,
+        vencimiento_desde: date | None,
+        vencimiento_hasta: date | None,
+        limit: int,
+        offset: int,
+        hoy: date,
+    ) -> CxPPagina: ...
+    def registrar_abono(self, abono: AbonoCxP) -> None: ...

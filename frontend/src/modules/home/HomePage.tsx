@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   Boxes,
+  CreditCard,
+  Package,
   Receipt,
   ShieldCheck,
   ShoppingCart,
@@ -18,6 +20,8 @@ import {
   ADMIN_PERMS,
   CAJA_PERMS,
   CLIENTE_PERMS,
+  COMPRA_CONSULTAR_PERMS,
+  CXP_CONSULTAR_PERMS,
   INV_PERMS,
   POS_PERMS,
 } from "../../auth/menuPermissions";
@@ -94,6 +98,20 @@ const QUICK_LINKS: QuickLink[] = [
     description: "Usuarios, perfiles y sucursales.",
     icon: <ShieldCheck size={20} aria-hidden="true" />,
     permission: ADMIN_PERMS,
+  },
+  {
+    to: ROUTES.COMPRAS,
+    label: "Compras",
+    description: "Historial de compras y proveedores.",
+    icon: <Package size={20} aria-hidden="true" />,
+    permission: COMPRA_CONSULTAR_PERMS,
+  },
+  {
+    to: ROUTES.CXP,
+    label: "Cuentas por pagar",
+    description: "Saldos pendientes con proveedores.",
+    icon: <CreditCard size={20} aria-hidden="true" />,
+    permission: CXP_CONSULTAR_PERMS,
   },
 ];
 

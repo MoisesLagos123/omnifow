@@ -33,6 +33,14 @@ import { PorVencerPage } from "./modules/inventario/PorVencerPage";
 import { ClientesPage } from "./modules/clientes/ClientesPage";
 import { EditarClientePage } from "./modules/clientes/EditarClientePage";
 import { ClienteDetallePage } from "./modules/clientes/ClienteDetallePage";
+import { ProveedoresPage } from "./modules/compras/ProveedoresPage";
+import { EditarProveedorPage } from "./modules/compras/EditarProveedorPage";
+import { ProveedorDetallePage } from "./modules/compras/ProveedorDetallePage";
+import { ComprasPage } from "./modules/compras/ComprasPage";
+import { NuevaCompraPage } from "./modules/compras/NuevaCompraPage";
+import { CompraDetallePage } from "./modules/compras/CompraDetallePage";
+import { CxPPage } from "./modules/compras/CxPPage";
+import { CxPDetallePage } from "./modules/compras/CxPDetallePage";
 import { CajaOperacionPage } from "./modules/caja/CajaOperacionPage";
 import { SesionesPage } from "./modules/caja/SesionesPage";
 import { SesionDetallePage } from "./modules/caja/SesionDetallePage";
@@ -51,6 +59,9 @@ const SUCURSAL_PERMS = ["sucursal.gestionar", "sucursal.ver"] as const;
 const INV_READ_PERMS = ["stock.consultar", "producto.gestionar"] as const;
 const CLIENTE_READ_PERMS = ["cliente.consultar", "cliente.gestionar"] as const;
 const VENTA_READ_PERMS = ["venta.crear", "venta.anular"] as const;
+const PROVEEDOR_READ_PERMS = ["proveedor.consultar", "proveedor.gestionar"] as const;
+const COMPRA_READ_PERMS = ["compra.consultar"] as const;
+const CXP_READ_PERMS = ["cxp.consultar", "cxp.gestionar"] as const;
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   return (
@@ -191,6 +202,61 @@ function ClienteGestionGuard({ children }: { children: React.ReactNode }) {
     <RequirePermission
       code="cliente.gestionar"
       fallback={<Navigate to={ROUTES.CLIENTES} replace />}
+    >
+      {children}
+    </RequirePermission>
+  );
+}
+
+function ProveedorReadGuard({ children }: { children: React.ReactNode }) {
+  return (
+    <RequirePermission
+      anyOf={PROVEEDOR_READ_PERMS}
+      fallback={<Navigate to={ROUTES.HOME} replace />}
+    >
+      {children}
+    </RequirePermission>
+  );
+}
+
+function ProveedorGestGuard({ children }: { children: React.ReactNode }) {
+  return (
+    <RequirePermission
+      code="proveedor.gestionar"
+      fallback={<Navigate to={ROUTES.ADMIN_PROVEEDORES} replace />}
+    >
+      {children}
+    </RequirePermission>
+  );
+}
+
+function CompraReadGuard({ children }: { children: React.ReactNode }) {
+  return (
+    <RequirePermission
+      anyOf={COMPRA_READ_PERMS}
+      fallback={<Navigate to={ROUTES.HOME} replace />}
+    >
+      {children}
+    </RequirePermission>
+  );
+}
+
+function CompraCreateGuard({ children }: { children: React.ReactNode }) {
+  return (
+    <RequirePermission
+      code="compra.crear"
+      fallback={<Navigate to={ROUTES.COMPRAS} replace />}
+    >
+      {children}
+    </RequirePermission>
+  );
+}
+
+function CxPReadGuard({ children }: { children: React.ReactNode }) {
+  return (
+    <RequirePermission
+      anyOf={CXP_READ_PERMS}
+      fallback={<Navigate to={ROUTES.HOME} replace />}
     >
       {children}
     </RequirePermission>
@@ -412,6 +478,58 @@ export function AppRoutes() {
           element={
             <ClienteReadGuard><ClienteDetallePage /></ClienteReadGuard>
           }
+        />
+
+        {/* Proveedores */}
+        <Route
+          path={ROUTES.ADMIN_PROVEEDORES}
+          element={<ProveedorReadGuard><ProveedoresPage /></ProveedorReadGuard>}
+        />
+        <Route
+          path={ROUTES.ADMIN_PROVEEDOR_NUEVO}
+          element={
+            <ProveedorGestGuard>
+              <EditarProveedorPage modo="crear" />
+            </ProveedorGestGuard>
+          }
+        />
+        <Route
+          path="/admin/proveedores/:id/editar"
+          element={
+            <ProveedorGestGuard>
+              <EditarProveedorPage modo="editar" />
+            </ProveedorGestGuard>
+          }
+        />
+        <Route
+          path="/admin/proveedores/:id"
+          element={
+            <ProveedorReadGuard><ProveedorDetallePage /></ProveedorReadGuard>
+          }
+        />
+
+        {/* Compras */}
+        <Route
+          path={ROUTES.COMPRAS}
+          element={<CompraReadGuard><ComprasPage /></CompraReadGuard>}
+        />
+        <Route
+          path={ROUTES.COMPRA_NUEVA}
+          element={<CompraCreateGuard><NuevaCompraPage /></CompraCreateGuard>}
+        />
+        <Route
+          path="/compras/:id"
+          element={<CompraReadGuard><CompraDetallePage /></CompraReadGuard>}
+        />
+
+        {/* CxP */}
+        <Route
+          path={ROUTES.CXP}
+          element={<CxPReadGuard><CxPPage /></CxPReadGuard>}
+        />
+        <Route
+          path="/cxp/:id"
+          element={<CxPReadGuard><CxPDetallePage /></CxPReadGuard>}
         />
       </Route>
       <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

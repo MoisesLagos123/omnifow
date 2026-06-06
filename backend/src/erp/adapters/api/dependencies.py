@@ -1829,3 +1829,215 @@ def build_obtener_audit_log_uc(
 
     uow = _build_uow(session_factory)
     return ObtenerAuditLogUseCase(uow=uow, audit=SqlAuditLogRepository(uow))
+
+
+# -------- Proveedores / Compras / CxP --------
+
+from erp.application.use_cases.compras.anular_compra import AnularCompraUseCase
+from erp.application.use_cases.compras.crear_proveedor import CrearProveedorUseCase
+from erp.application.use_cases.compras.desactivar_proveedor import DesactivarProveedorUseCase
+from erp.application.use_cases.compras.editar_proveedor import EditarProveedorUseCase
+from erp.application.use_cases.compras.listar_compras import ListarComprasUseCase
+from erp.application.use_cases.compras.listar_cxp import ListarCxPUseCase
+from erp.application.use_cases.compras.listar_proveedores import ListarProveedoresUseCase
+from erp.application.use_cases.compras.obtener_compra import ObtenerCompraUseCase
+from erp.application.use_cases.compras.obtener_cxp import ObtenerCxPUseCase
+from erp.application.use_cases.compras.obtener_proveedor import ObtenerProveedorUseCase
+from erp.application.use_cases.compras.reactivar_proveedor import ReactivarProveedorUseCase
+from erp.application.use_cases.compras.registrar_abono_cxp import RegistrarAbonoCxPUseCase
+from erp.application.use_cases.compras.registrar_compra import RegistrarCompraUseCase
+
+
+def build_crear_proveedor_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> CrearProveedorUseCase:
+    from erp.adapters.repositories.sql.proveedor_repository import SqlProveedorRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = _build_uow(session_factory)
+    return CrearProveedorUseCase(
+        uow=uow,
+        proveedores=SqlProveedorRepository(uow),
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_editar_proveedor_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> EditarProveedorUseCase:
+    from erp.adapters.repositories.sql.proveedor_repository import SqlProveedorRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = _build_uow(session_factory)
+    return EditarProveedorUseCase(
+        uow=uow,
+        proveedores=SqlProveedorRepository(uow),
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_desactivar_proveedor_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> DesactivarProveedorUseCase:
+    from erp.adapters.repositories.sql.proveedor_repository import SqlProveedorRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = _build_uow(session_factory)
+    return DesactivarProveedorUseCase(
+        uow=uow,
+        proveedores=SqlProveedorRepository(uow),
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_reactivar_proveedor_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> ReactivarProveedorUseCase:
+    from erp.adapters.repositories.sql.proveedor_repository import SqlProveedorRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = _build_uow(session_factory)
+    return ReactivarProveedorUseCase(
+        uow=uow,
+        proveedores=SqlProveedorRepository(uow),
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_listar_proveedores_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ListarProveedoresUseCase:
+    from erp.adapters.repositories.sql.proveedor_repository import SqlProveedorRepository
+
+    uow = _build_uow(session_factory)
+    return ListarProveedoresUseCase(uow=uow, proveedores=SqlProveedorRepository(uow))
+
+
+def build_obtener_proveedor_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ObtenerProveedorUseCase:
+    from erp.adapters.repositories.sql.proveedor_repository import SqlProveedorRepository
+
+    uow = _build_uow(session_factory)
+    return ObtenerProveedorUseCase(uow=uow, proveedores=SqlProveedorRepository(uow))
+
+
+def build_registrar_compra_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> RegistrarCompraUseCase:
+    from erp.adapters.repositories.sql.bodega_repository import SqlBodegaRepository
+    from erp.adapters.repositories.sql.compra_repository import SqlCompraRepository
+    from erp.adapters.repositories.sql.cxp_repository import SqlCxPRepository
+    from erp.adapters.repositories.sql.lote_inventario_repository import (
+        SqlLoteInventarioRepository,
+    )
+    from erp.adapters.repositories.sql.mov_inventario_repository import (
+        SqlMovInventarioRepository,
+    )
+    from erp.adapters.repositories.sql.producto_repository import SqlProductoRepository
+    from erp.adapters.repositories.sql.proveedor_repository import SqlProveedorRepository
+    from erp.adapters.repositories.sql.stock_repository import SqlStockRepository
+    from erp.adapters.repositories.sql.sucursal_repository import SqlSucursalRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = _build_uow(session_factory)
+    return RegistrarCompraUseCase(
+        uow=uow,
+        proveedores=SqlProveedorRepository(uow),
+        sucursales=SqlSucursalRepository(uow),
+        bodegas=SqlBodegaRepository(uow),
+        productos=SqlProductoRepository(uow),
+        stock=SqlStockRepository(uow),
+        movimientos=SqlMovInventarioRepository(uow),
+        lotes=SqlLoteInventarioRepository(uow),
+        compras=SqlCompraRepository(uow),
+        cxp=SqlCxPRepository(uow),
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_anular_compra_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> AnularCompraUseCase:
+    from erp.adapters.repositories.sql.compra_repository import SqlCompraRepository
+    from erp.adapters.repositories.sql.cxp_repository import SqlCxPRepository
+    from erp.adapters.repositories.sql.mov_inventario_repository import (
+        SqlMovInventarioRepository,
+    )
+    from erp.adapters.repositories.sql.stock_repository import SqlStockRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = _build_uow(session_factory)
+    return AnularCompraUseCase(
+        uow=uow,
+        compras=SqlCompraRepository(uow),
+        stock=SqlStockRepository(uow),
+        movimientos=SqlMovInventarioRepository(uow),
+        cxp=SqlCxPRepository(uow),
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_listar_compras_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ListarComprasUseCase:
+    from erp.adapters.repositories.sql.compra_repository import SqlCompraRepository
+
+    uow = _build_uow(session_factory)
+    return ListarComprasUseCase(uow=uow, compras=SqlCompraRepository(uow))
+
+
+def build_obtener_compra_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ObtenerCompraUseCase:
+    from erp.adapters.repositories.sql.compra_repository import SqlCompraRepository
+
+    uow = _build_uow(session_factory)
+    return ObtenerCompraUseCase(uow=uow, compras=SqlCompraRepository(uow))
+
+
+def build_registrar_abono_cxp_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> RegistrarAbonoCxPUseCase:
+    from erp.adapters.repositories.sql.cxp_repository import SqlCxPRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = _build_uow(session_factory)
+    return RegistrarAbonoCxPUseCase(
+        uow=uow,
+        cxp=SqlCxPRepository(uow),
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_listar_cxp_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> ListarCxPUseCase:
+    from erp.adapters.repositories.sql.cxp_repository import SqlCxPRepository
+
+    uow = _build_uow(session_factory)
+    return ListarCxPUseCase(uow=uow, cxp=SqlCxPRepository(uow), clock=clock)
+
+
+def build_obtener_cxp_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ObtenerCxPUseCase:
+    from erp.adapters.repositories.sql.cxp_repository import SqlCxPRepository
+
+    uow = _build_uow(session_factory)
+    return ObtenerCxPUseCase(uow=uow, cxp=SqlCxPRepository(uow))

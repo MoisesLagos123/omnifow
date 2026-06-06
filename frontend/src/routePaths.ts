@@ -47,4 +47,16 @@ export const ROUTES = {
   CLIENTE_NUEVO: "/clientes/nuevo",
   CLIENTE_DETALLE: (id: string) => `/clientes/${id}`,
   CLIENTE_EDITAR: (id: string) => `/clientes/${id}/editar`,
+  // Proveedores
+  ADMIN_PROVEEDORES: "/admin/proveedores",
+  ADMIN_PROVEEDOR_NUEVO: "/admin/proveedores/nuevo",
+  ADMIN_PROVEEDOR_DETALLE: (id: string) => `/admin/proveedores/${id}`,
+  ADMIN_PROVEEDOR_EDITAR: (id: string) => `/admin/proveedores/${id}/editar`,
+  // Compras
+  COMPRAS: "/compras",
+  COMPRA_NUEVA: "/compras/nueva",
+  COMPRA_DETALLE: (id: string) => `/compras/${id}`,
+  // CxP
+  CXP: "/cxp",
+  CXP_DETALLE: (id: string) => `/cxp/${id}`,
 } as const;

@@ -12,6 +12,12 @@ from erp.application.ports.repositories import (
     AuditLogPagina,
     CategoriasPagina,
     ClientesPagina,
+    CompraConDetalles,
+    CompraListItem,
+    ComprasPagina,
+    CxPConAbonos,
+    CxPListItem,
+    CxPPagina,
     IntentoLogin,
     LotePorVencer,
     MovInventarioConDetalles,
@@ -21,6 +27,8 @@ from erp.application.ports.repositories import (
     PerfilesPagina,
     ProductoPosListado,
     ProductosPagina,
+    ProveedorConContadores,
+    ProveedoresPagina,
     RefreshTokenRecord,
     ResumenTipoMovimiento,
     SesionCajaListItem,
@@ -40,7 +48,12 @@ from erp.application.ports.token_provider import (
     IssuedRefreshToken,
 )
 from erp.domain.exceptions import RefreshTokenInvalidoError
+from erp.domain.entities.abono_cxp import AbonoCxP
 from erp.domain.entities.bodega import Bodega
+from erp.domain.entities.compra import Compra, EstadoCompra
+from erp.domain.entities.cuenta_por_pagar import CuentaPorPagar, EstadoCxP
+from erp.domain.entities.detalle_compra import DetalleCompra
+from erp.domain.entities.proveedor import Proveedor
 from erp.domain.entities.caja import Caja
 from erp.domain.entities.categoria import Categoria
 from erp.domain.entities.cliente import Cliente
@@ -1443,3 +1456,236 @@ class FakeEmailSender:
                 "ttl_minutos": ttl_minutos,
             }
         )
+
+
+# ---------------- Proveedores ----------------
+
+class FakeProveedorRepo:
+    def __init__(self) -> None:
+        self._by_id: dict[UUID, Proveedor] = {}
+        # Contadores externos configurables para tests
+        self.compras_count: dict[UUID, int] = {}
+        self.cxp_pendientes: dict[UUID, int] = {}
+
+    def add(self, proveedor: Proveedor) -> None:
+        self._by_id[proveedor.id] = proveedor
+
+    def guardar(self, proveedor: Proveedor) -> None:
+        self._by_id[proveedor.id] = proveedor
+
+    def obtener(self, proveedor_id: UUID) -> Proveedor | None:
+        return self._by_id.get(proveedor_id)
+
+    def obtener_por_rut(self, rut: str) -> Proveedor | None:
+        r = rut.strip().upper()
+        for p in self._by_id.values():
+            if str(p.rut).upper() == r:
+                return p
+        return None
+
+    def listar(
+        self,
+        *,
+        q: str | None,
+        activo: bool | None,
+        limit: int,
+        offset: int,
+    ) -> ProveedoresPagina:
+        items = list(self._by_id.values())
+        if q:
+            ql = q.lower()
+            items = [
+                p
+                for p in items
+                if ql in p.razon_social.lower() or ql in str(p.rut).lower()
+            ]
+        if activo is not None:
+            items = [p for p in items if p.activo is activo]
+        items.sort(key=lambda p: p.razon_social)
+        total = len(items)
+        page = items[offset : offset + limit]
+        return ProveedoresPagina(
+            items=[
+                ProveedorConContadores(
+                    proveedor=p,
+                    cantidad_compras=self.compras_count.get(p.id, 0),
+                    cxp_pendientes_clp=self.cxp_pendientes.get(p.id, 0),
+                )
+                for p in page
+            ],
+            total=total,
+            limit=limit,
+            offset=offset,
+        )
+
+    def contar_compras(self, proveedor_id: UUID) -> int:
+        return self.compras_count.get(proveedor_id, 0)
+
+    def sumar_cxp_pendientes(self, proveedor_id: UUID) -> int:
+        return self.cxp_pendientes.get(proveedor_id, 0)
+
+
+# ---------------- Compras ----------------
+
+class FakeCompraRepo:
+    def __init__(self) -> None:
+        self._by_id: dict[UUID, Compra] = {}
+        self._detalles: dict[UUID, list[DetalleCompra]] = {}
+        # Metadatos opcionales para enriquecer la respuesta
+        self.proveedor_info: dict[UUID, tuple[str, str]] = {}  # proveedor_id -> (razon_social, rut)
+        self.sucursal_info: dict[UUID, str] = {}  # sucursal_id -> codigo
+        self.bodega_info: dict[UUID, str] = {}    # bodega_id -> codigo
+        self.producto_info: dict[UUID, tuple[str, str]] = {}  # producto_id -> (sku, nombre)
+        self.cxp_por_compra: dict[UUID, UUID] = {}  # compra_id -> cxp_id
+
+    def add(self, compra: Compra, detalles: list[DetalleCompra] | None = None) -> None:
+        self._by_id[compra.id] = compra
+        self._detalles[compra.id] = detalles or []
+
+    def guardar(self, compra: Compra, detalles: list[DetalleCompra]) -> None:
+        self._by_id[compra.id] = compra
+        if detalles:
+            self._detalles[compra.id] = detalles
+
+    def obtener(self, compra_id: UUID) -> CompraConDetalles | None:
+        compra = self._by_id.get(compra_id)
+        if compra is None:
+            return None
+        detalles = self._detalles.get(compra_id, [])
+        prov_info = self.proveedor_info.get(compra.proveedor_id, ("", ""))
+        det_producto_info: dict[UUID, tuple[str, str]] = {
+            d.id: self.producto_info.get(d.producto_id, ("", ""))
+            for d in detalles
+        }
+        return CompraConDetalles(
+            compra=compra,
+            detalles=detalles,
+            proveedor_razon_social=prov_info[0],
+            proveedor_rut=prov_info[1],
+            sucursal_codigo=self.sucursal_info.get(compra.sucursal_id, ""),
+            bodega_codigo=self.bodega_info.get(compra.bodega_id, ""),
+            producto_info=det_producto_info,
+            cxp_id=self.cxp_por_compra.get(compra_id),
+        )
+
+    def listar(
+        self,
+        *,
+        proveedor_id: UUID | None,
+        sucursal_id: UUID | None,
+        estado: EstadoCompra | None,
+        desde: date | None,
+        hasta: date | None,
+        limit: int,
+        offset: int,
+    ) -> ComprasPagina:
+        items = list(self._by_id.values())
+        if proveedor_id is not None:
+            items = [c for c in items if c.proveedor_id == proveedor_id]
+        if sucursal_id is not None:
+            items = [c for c in items if c.sucursal_id == sucursal_id]
+        if estado is not None:
+            items = [c for c in items if c.estado is estado]
+        if desde is not None:
+            items = [c for c in items if c.fecha_documento >= desde]
+        if hasta is not None:
+            items = [c for c in items if c.fecha_documento <= hasta]
+        items.sort(key=lambda c: c.fecha_documento, reverse=True)
+        total = len(items)
+        page = items[offset : offset + limit]
+        result = []
+        for c in page:
+            prov_info = self.proveedor_info.get(c.proveedor_id, ("", ""))
+            suc_codigo = self.sucursal_info.get(c.sucursal_id, "")
+            result.append(
+                CompraListItem(
+                    id=c.id,
+                    proveedor_razon_social=prov_info[0],
+                    sucursal_codigo=suc_codigo,
+                    numero_documento=c.numero_documento,
+                    tipo_documento=c.tipo_documento.value,
+                    fecha_documento=c.fecha_documento,
+                    estado=c.estado.value,
+                    condicion_pago=c.condicion_pago.value,
+                    total_clp=c.total_clp,
+                )
+            )
+        return ComprasPagina(items=result, total=total, limit=limit, offset=offset)
+
+
+# ---------------- CxP ----------------
+
+class FakeCxPRepo:
+    def __init__(self) -> None:
+        self._by_id: dict[UUID, CuentaPorPagar] = {}
+        self._abonos: dict[UUID, list[AbonoCxP]] = {}
+        self.proveedor_info: dict[UUID, str] = {}  # proveedor_id -> razon_social
+        self.compra_info: dict[UUID, str] = {}    # compra_id -> numero_documento
+
+    def add(self, cxp: CuentaPorPagar) -> None:
+        self._by_id[cxp.id] = cxp
+        self._abonos.setdefault(cxp.id, [])
+
+    def guardar(self, cxp: CuentaPorPagar) -> None:
+        self._by_id[cxp.id] = cxp
+        self._abonos.setdefault(cxp.id, [])
+
+    def obtener(self, cxp_id: UUID, *, for_update: bool = False) -> CxPConAbonos | None:
+        cxp = self._by_id.get(cxp_id)
+        if cxp is None:
+            return None
+        abonos = self._abonos.get(cxp_id, [])
+        return CxPConAbonos(
+            cxp=cxp,
+            abonos=abonos,
+            proveedor_razon_social=self.proveedor_info.get(cxp.proveedor_id, ""),
+            compra_numero_documento=self.compra_info.get(cxp.compra_id, ""),
+        )
+
+    def obtener_por_compra(self, compra_id: UUID) -> CuentaPorPagar | None:
+        for cxp in self._by_id.values():
+            if cxp.compra_id == compra_id:
+                return cxp
+        return None
+
+    def listar(
+        self,
+        *,
+        proveedor_id: UUID | None,
+        estado: EstadoCxP | None,
+        vencimiento_desde: date | None,
+        vencimiento_hasta: date | None,
+        limit: int,
+        offset: int,
+        hoy: date,
+    ) -> CxPPagina:
+        items = list(self._by_id.values())
+        if proveedor_id is not None:
+            items = [c for c in items if c.proveedor_id == proveedor_id]
+        if estado is not None:
+            items = [c for c in items if c.estado is estado]
+        if vencimiento_desde is not None:
+            items = [c for c in items if c.fecha_vencimiento >= vencimiento_desde]
+        if vencimiento_hasta is not None:
+            items = [c for c in items if c.fecha_vencimiento <= vencimiento_hasta]
+        items.sort(key=lambda c: c.fecha_vencimiento)
+        total = len(items)
+        page = items[offset : offset + limit]
+        result = []
+        for c in page:
+            result.append(
+                CxPListItem(
+                    id=c.id,
+                    proveedor_razon_social=self.proveedor_info.get(c.proveedor_id, ""),
+                    compra_numero_documento=self.compra_info.get(c.compra_id, ""),
+                    monto_original_clp=c.monto_original_clp,
+                    monto_saldo_clp=c.monto_saldo_clp,
+                    fecha_vencimiento=c.fecha_vencimiento,
+                    estado=c.estado.value,
+                    dias_vencido=(hoy - c.fecha_vencimiento).days,
+                )
+            )
+        return CxPPagina(items=result, total=total, limit=limit, offset=offset)
+
+    def registrar_abono(self, abono: AbonoCxP) -> None:
+        self._abonos.setdefault(abono.cxp_id, []).append(abono)

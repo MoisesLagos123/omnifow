@@ -394,6 +394,81 @@ class EstadoVentaInvalidoError(DomainError):
     default_message = "La venta no está en un estado válido para esta operación"
 
 
+# --- Proveedores ---
+class ProveedorDuplicadoError(DomainError):
+    code = "ERR_PROVEEDOR_DUPLICADO"
+    http_status = 409
+    default_message = "Ya existe un proveedor con ese RUT"
+
+
+class ProveedorInvalidoError(ValidacionError):
+    code = "ERR_PROVEEDOR_INVALIDO"
+    http_status = 400
+    default_message = "Datos de proveedor inválidos o RUT mal formado"
+
+
+class ProveedorEnUsoError(DomainError):
+    code = "ERR_PROVEEDOR_EN_USO"
+    http_status = 409
+    default_message = "El proveedor tiene cuentas por pagar pendientes"
+
+
+class ProveedorYaActivoError(DomainError):
+    code = "ERR_PROVEEDOR_YA_ACTIVO"
+    http_status = 409
+    default_message = "El proveedor ya se encuentra activo"
+
+
+# --- Compras ---
+class CompraInvalidaError(ValidacionError):
+    code = "ERR_COMPRA_INVALIDA"
+    http_status = 400
+    default_message = "Datos de compra inválidos"
+
+
+class CompraYaAnuladaError(DomainError):
+    code = "ERR_COMPRA_YA_ANULADA"
+    http_status = 409
+    default_message = "La compra ya se encuentra anulada"
+
+
+class CompraConAbonosError(DomainError):
+    code = "ERR_COMPRA_CON_ABONOS"
+    http_status = 409
+    default_message = "No se puede anular una compra con abonos registrados"
+
+
+class CompraDescuadraTotalError(ValidacionError):
+    code = "ERR_COMPRA_DESCUADRA_TOTAL"
+    http_status = 400
+    default_message = "El total de la compra no cuadra con la suma de los items"
+
+
+class LoteInvalidoCompraError(ValidacionError):
+    code = "ERR_LOTE_INVALIDO"
+    http_status = 400
+    default_message = "Producto perecible requiere fecha de vencimiento"
+
+
+# --- CxP ---
+class CxPInvalidaError(ValidacionError):
+    code = "ERR_CXP_INVALIDA"
+    http_status = 400
+    default_message = "Estado de CxP inválido para abonar"
+
+
+class CxPYaPagadaError(DomainError):
+    code = "ERR_CXP_YA_PAGADA"
+    http_status = 409
+    default_message = "La cuenta por pagar ya está pagada"
+
+
+class AbonoInvalidoError(ValidacionError):
+    code = "ERR_ABONO_INVALIDO"
+    http_status = 400
+    default_message = "El monto del abono es inválido"
+
+
 # --- Reservas de stock (POS) ---
 class ReservaStockInvalidaError(ValidacionError):
     code = "ERR_RESERVA_INVALIDA"

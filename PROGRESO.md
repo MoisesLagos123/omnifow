@@ -12,7 +12,31 @@ Checklist vivo de tareas por módulo. Marcar `- [x]` al completar. Agregar tarea
 - El producto se llama **OMNIFOW** (NO Mini ERP). El directorio del repo sigue siendo `mini erp` por historia; **no renombrar** para no romper rutas absolutas.
 - Logo: archivo PNG en `frontend/public/logo.png` (favicon + logo del header/login). Referenciado como `/logo.png`.
 
-### Última actividad confirmada (2026-06-05) — Forgot password + Reset por email
+### Última actividad confirmada (2026-06-05) — Compras + Proveedores + CxP
+
+Cierra el ciclo de costos del negocio. Implementado con **2 agentes Sonnet en paralelo** (backend + frontend) sobre el contrato compartido en `.claude/contracts/COMPRAS_CONTRACT.md`. **333 backend / 190 frontend tests verdes · mypy 0 errores · tsc clean**.
+
+**Backend** (5 entidades + 13 use cases + migración 0011):
+- Entidades nuevas: `Proveedor`, `Compra`, `DetalleCompra`, `CuentaPorPagar`, `AbonoCxP` (+ enums `TipoDocumentoCompra`, `EstadoCompra`, `CondicionPago`, `EstadoCxP`, `TipoAbono`).
+- Use cases proveedores (6): crear (RUT chileno + dedup), editar (PATCH, RUT readonly), desactivar (falla con `ERR_PROVEEDOR_EN_USO` si tiene CxP pendiente), reactivar, listar (paginado + filtros), obtener (con contadores `cantidad_compras` y `cxp_pendientes_clp`).
+- Use cases compras (4): `RegistrarCompraUseCase` atómico (calcula subtotal/IVA 19%/total, ingresa stock con `Stock.ingresar` recalculando costo promedio, crea MovInventario ENTRADA referencia COMPRA, crea LoteInventario por línea perecible con fecha_vencimiento, crea CxP si condicion=CREDITO con `fecha_vencimiento = fecha_documento + dias_credito`). `AnularCompraUseCase` atómico (valida sin abonos, reverso de stock con SALIDA, anula CxP, todo dentro de UoW). Listar + Obtener con joins a proveedor/sucursal/bodega.
+- Use cases CxP (3): `RegistrarAbonoCxPUseCase` (lock pesimista, valida `0 < monto <= saldo`, actualiza saldo, transición de estado PENDIENTE→PARCIAL→PAGADA, audit). Listar (filtros `proveedor_id`/`estado`/`vencimiento_*`). Obtener (con abonos expandidos).
+- 11 excepciones nuevas: `ERR_PROVEEDOR_DUPLICADO/INVALIDO/EN_USO/YA_ACTIVO`, `ERR_COMPRA_INVALIDA/YA_ANULADA/CON_ABONOS/DESCUADRA_TOTAL`, `ERR_LOTE_INVALIDO`, `ERR_CXP_INVALIDA/YA_PAGADA`, `ERR_ABONO_INVALIDO`.
+- 8 endpoints: `POST/GET/PATCH/DELETE /admin/proveedores` + `POST /reactivar`. `POST/GET /compras` + `GET /compras/:id` + `POST /compras/:id/anular`. `GET /cxp` + `GET /cxp/:id` + `POST /cxp/:id/abonos`. Todos JWT-required con `@requires_permission`.
+- Migración Alembic **0011** crea 5 tablas + insertaba 7 permisos nuevos (`proveedor.gestionar/consultar`, `compra.crear/anular/consultar`, `cxp.gestionar/consultar`) + asignaciones a perfiles base (Administrador, Contador, Jefe de Sucursal, Reponedor, Sysadmin).
+- 30 tests unit nuevos: proveedores (10), registrar compra (8), anular compra (5), CxP (7). Cubre caminos felices + errores + perecibles + IVA + multi-detalle + atomic rollback.
+
+**Frontend** (3 clientes API + 8 páginas + 6 archivos test):
+- `api/proveedores.ts`, `api/compras.ts`, `api/cxp.ts` con tipos completos, payloads, enums con labels en español, métodos con `Idempotency-Key` en mutaciones y `AbortSignal` en lecturas.
+- 8 páginas en `modules/compras/`: `ProveedoresPage` (lista filtrable), `EditarProveedorPage` (crear/editar con zod + RUT chileno), `ProveedorDetallePage` (header + info + últimas compras + CxP pendientes), `ComprasPage` (lista con filtros proveedor/sucursal/estado/fechas), **`NuevaCompraPage`** (la más compleja: cabecera + autocomplete proveedor inline + items dinámicos con `ProductoAutocomplete` + `QuantityInput` + `CurrencyInput`, expand de lote en perecibles, totales en vivo con IVA 19%, validación pre-submit), `CompraDetallePage` (con anulación + CxP asociada), `CxPPage` (lista con badge "vencido X días"/"por vencer Y días"), `CxPDetallePage` (con ProgressBar de % pagado + modal de abono).
+- 9 rutas nuevas + 5 guards de permiso (`ProveedorReadGuard`, `ProveedorGestGuard`, `CompraReadGuard`, `CompraCreateGuard`, `CxPReadGuard`).
+- Sidebar: grupo "Compras" expandible reemplazando el placeholder PRONTO, con sub-items Proveedores/Nueva compra/Historial/Cuentas por pagar gateados por permiso.
+- HomePage: 2 quick-links nuevos (Compras + Cuentas por pagar) gateados por `COMPRA_CONSULTAR_PERMS` y `CXP_CONSULTAR_PERMS`.
+- 20 tests Vitest nuevos: `proveedoresClient` (5), `comprasClient` (4), `cxpClient` (3), `ProveedoresPage` (3), `NuevaCompraPage` (3), `CxPDetallePage` (2).
+
+**Migración Alembic 0011 aplicada en local** — 7 permisos seedeados, asignaciones a perfiles, 5 tablas creadas. Ready para smoke test end-to-end.
+
+### Actividad previa (2026-06-05) — Forgot password + Reset por email
 
 Completa el módulo de Autenticación con el flow público de "olvidé mi contraseña". **303 backend / 170 frontend tests verdes · mypy 0 errores · tsc clean**.
 
@@ -127,9 +151,10 @@ Sesión enfocada en calidad visual / accesibilidad / consistencia. Cero cambios 
 6. **SII en observación**: integración real con SII está documentada pero NO implementada. `estado_sii=PENDIENTE` siempre. Ver bloque "🔭 EN OBSERVACIÓN" al final.
 
 ### Estado técnico confirmado (2026-06-05)
-- Backend: `mypy --strict` ✅ 0 errores · 255 archivos · **303 tests verde** (293 previos + 10 reset password)
-- Frontend: `tsc` ✅ · **170 tests verde** (166 previos + 4 reset client)
-- Migración Alembic actual: **`0010_password_reset_tokens` (head)** — nueva tabla con `token_hash`, `expira_en`, `usado_en` + índice partial activos del usuario
+- Backend: `mypy --strict` ✅ 0 errores · 286 archivos · **333 tests verde** (303 previos + 30 compras/cxp)
+- Frontend: `tsc` ✅ · **190 tests verde** (170 previos + 20 compras/cxp clients + pages)
+- Migración Alembic actual: **`0011_compras_proveedores_cxp` (head)** — 5 tablas + 7 permisos seed + asignaciones a perfiles
+- **Multi-agente**: módulo Compras implementado por 2 agentes Sonnet en paralelo sobre contrato `.claude/contracts/COMPRAS_CONTRACT.md` — backend y frontend completamente sincronizados sin conflicto
 - **Repo GitHub público**: https://github.com/MoisesLagos123/omnifow — branch `main`, "All Rights Reserved" en README (portafolio, no uso libre).
 - Postgres en Docker · 9 módulos full-stack funcionando
 - Bug fix backend (2026-06-04): FK violation al crear Usuario (`usuario_perfil` insert antes de flush) → arreglado en `SqlUsuarioRepository.guardar` con `session.flush()` (mismo patrón que `SqlVentaRepository`)
@@ -162,14 +187,14 @@ Credenciales seed:
   La arquitectura ya está lista — solo falta el adapter + tests.
 
 ### Próximo paso recomendado (orden sugerido por valor)
-1. **Compras + Proveedores + CxP** (🟡 medio — cierra ciclo de costos)
-2. **Cuentas por Cobrar (CxC)** (🟡 medio — habilita ventas a crédito)
-3. **Configuración global SII** (🟡 medio — prerrequisito para integración real con SII)
-4. **Configuración SMTP real** (🟢 chico — adapter `SmtpEmailSender` + tests)
-5. ~~Refresh token + Logout~~ ✅ completado 2026-06-05
-6. ~~Audit Log viewer~~ ✅ completado 2026-06-05
-7. ~~Cambiar contraseña~~ ✅ completado 2026-06-05
-8. ~~Forgot password + Reset por email~~ ✅ completado 2026-06-05 — usa `LoggingEmailSender`
+1. **Cuentas por Cobrar (CxC)** (🟡 medio — espejo de CxP, habilita ventas a crédito)
+2. **Configuración global SII** (🟡 medio — prerrequisito para integración real con SII)
+3. **Configuración SMTP real** (🟢 chico — adapter `SmtpEmailSender` + tests)
+4. ~~Refresh token + Logout~~ ✅ completado 2026-06-05
+5. ~~Audit Log viewer~~ ✅ completado 2026-06-05
+6. ~~Cambiar contraseña~~ ✅ completado 2026-06-05
+7. ~~Forgot password + Reset por email~~ ✅ completado 2026-06-05 — usa `LoggingEmailSender`
+8. ~~Compras + Proveedores + CxP~~ ✅ completado 2026-06-05 — multi-agente paralelo
 
 > Para cualquiera de estos, el patrón de trabajo es: lanzar agente backend + frontend en paralelo con el contrato pactado, validar con `mypy`/`pytest` y `tsc`/`build`/`test`, aplicar migración + seed, smoke curl. Hay ~15 ejemplos previos en este PROGRESO.md.
 
@@ -227,7 +252,7 @@ Buscar en el archivo: "TODO" y "fuera de alcance" para la lista completa. Los m�
 | ✅ done | ~~**Cambiar contraseña**~~ | 🟢 chico | Completado 2026-06-05 — backend + modal en dropdown del usuario |
 | ✅ done | ~~**Forgot password + Reset por email**~~ | 🟢 chico | Completado 2026-06-05 — usa `LoggingEmailSender` (dev). SMTP real pendiente ⬇ |
 | 🟢 pendiente | **Configuración SMTP real** | 🟢 chico | `SmtpEmailSender` + env vars. Hoy el reset usa logging-only. Arquitectura lista, solo falta el adapter |
-| 🟡 medio | **Compras + Proveedores + CxP** | 🟡 medio | Cierra el ciclo de costos (recepción con `compra_id` real) |
+| ✅ done | ~~**Compras + Proveedores + CxP**~~ | 🟡 medio | Completado 2026-06-05 — 5 entidades + 13 use cases + 8 endpoints + 8 páginas + migración 0011. Ciclo de costos cerrado |
 | 🟡 medio | **Cuentas por Cobrar** (CxC) | 🟡 medio | Habilita ventas parcialmente pagadas a crédito |
 | 🟢 nice-to-have | **Configuración global SII** (IVA, datos emisor, certificado) | 🟡 medio | Prerrequisito para integración real con SII |
 | 🟢 nice-to-have | **Devoluciones parciales** | 🟡 medio | Hoy se anula la venta completa |

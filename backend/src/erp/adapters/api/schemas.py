@@ -906,3 +906,182 @@ class AuditLogPaginaResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+# ---------------- Proveedores ----------------
+
+class CrearProveedorRequest(BaseModel):
+    rut: str = Field(min_length=1)
+    razon_social: str = Field(min_length=1, max_length=200)
+    giro: str | None = None
+    direccion: str | None = None
+    email: EmailStr | None = None
+    telefono: str | None = None
+
+
+class ActualizarProveedorRequest(BaseModel):
+    razon_social: str | None = None
+    giro: str | None = None
+    direccion: str | None = None
+    email: EmailStr | None = None
+    telefono: str | None = None
+
+
+class ProveedorResponse(BaseModel):
+    id: UUID
+    rut: str
+    razon_social: str
+    giro: str | None
+    direccion: str | None
+    email: str | None
+    telefono: str | None
+    activo: bool
+    cantidad_compras: int
+    cxp_pendientes_clp: int
+    creado_en: datetime
+    actualizado_en: datetime
+
+
+class ProveedoresPaginaResponse(BaseModel):
+    items: list[ProveedorResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+# ---------------- Compras ----------------
+
+class CrearCompraDetalleRequest(BaseModel):
+    producto_id: UUID
+    cantidad: str  # Decimal serializado como string
+    costo_unitario_clp: int = Field(ge=0)
+    fecha_vencimiento: date | None = None
+    numero_lote: str | None = None
+    fecha_elaboracion: date | None = None
+
+
+class CrearCompraRequest(BaseModel):
+    proveedor_id: UUID
+    sucursal_id: UUID
+    bodega_id: UUID
+    numero_documento: str = Field(min_length=1, max_length=80)
+    tipo_documento: str
+    fecha_documento: date
+    condicion_pago: str
+    dias_credito: int = Field(default=0, ge=0, le=365)
+    observaciones: str | None = None
+    items: list[CrearCompraDetalleRequest] = Field(min_length=1)
+
+
+class AnularCompraRequest(BaseModel):
+    motivo: str | None = None
+
+
+class CompraDetalleResponse(BaseModel):
+    id: UUID
+    producto_id: UUID
+    producto_sku: str
+    producto_nombre: str
+    cantidad: str
+    costo_unitario_clp: int
+    subtotal_clp: int
+    fecha_vencimiento: date | None
+    numero_lote: str | None
+
+
+class CompraResponse(BaseModel):
+    id: UUID
+    proveedor_id: UUID
+    proveedor_razon_social: str
+    proveedor_rut: str
+    sucursal_id: UUID
+    sucursal_codigo: str
+    bodega_id: UUID
+    bodega_codigo: str
+    numero_documento: str
+    tipo_documento: str
+    fecha_documento: date
+    fecha_recepcion: datetime
+    usuario_id: UUID
+    estado: str
+    condicion_pago: str
+    dias_credito: int
+    subtotal_neto_clp: int
+    iva_clp: int
+    total_clp: int
+    observaciones: str | None
+    items: list[CompraDetalleResponse]
+    cxp_id: UUID | None
+    creado_en: datetime
+
+
+class CompraListItemResponse(BaseModel):
+    id: UUID
+    proveedor_razon_social: str
+    sucursal_codigo: str
+    numero_documento: str
+    tipo_documento: str
+    fecha_documento: date
+    estado: str
+    condicion_pago: str
+    total_clp: int
+
+
+class ComprasPaginaResponse(BaseModel):
+    items: list[CompraListItemResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+# ---------------- CxP ----------------
+
+class RegistrarAbonoRequest(BaseModel):
+    monto_clp: int = Field(ge=1)
+    fecha_pago: date
+    tipo_pago: str
+    referencia: str | None = None
+    observaciones: str | None = None
+
+
+class AbonoResponse(BaseModel):
+    id: UUID
+    monto_clp: int
+    fecha_pago: date
+    tipo_pago: str
+    referencia: str | None
+    usuario_id: UUID
+    observaciones: str | None
+    creado_en: datetime
+
+
+class CxPResponse(BaseModel):
+    id: UUID
+    compra_id: UUID
+    proveedor_id: UUID
+    proveedor_razon_social: str
+    monto_original_clp: int
+    monto_saldo_clp: int
+    fecha_emision: date
+    fecha_vencimiento: date
+    estado: str
+    abonos: list[AbonoResponse]
+    creado_en: datetime
+
+
+class CxPListItemResponse(BaseModel):
+    id: UUID
+    proveedor_razon_social: str
+    compra_numero_documento: str
+    monto_original_clp: int
+    monto_saldo_clp: int
+    fecha_vencimiento: date
+    estado: str
+    dias_vencido: int
+
+
+class CxPPaginaResponse(BaseModel):
+    items: list[CxPListItemResponse]
+    total: int
+    limit: int
+    offset: int
