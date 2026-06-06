@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 from decimal import Decimal
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -61,7 +61,7 @@ _PRECIO = 11900
 def _ctx(
     *,
     permisos: frozenset[str] | None = None,
-    sucursales: frozenset | None = None,
+    sucursales: frozenset[UUID] | None = None,
 ) -> ContextoSeguridad:
     return ContextoSeguridad(
         usuario_id=uuid4(),

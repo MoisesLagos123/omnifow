@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -44,7 +44,7 @@ _AHORA = datetime(2026, 6, 6, 14, 0, 0, tzinfo=timezone.utc)
 def _make_ctx(
     *,
     permisos: frozenset[str] | None = None,
-    sucursales_permitidas: frozenset | None = None,
+    sucursales_permitidas: frozenset[UUID] | None = None,
 ) -> ContextoSeguridad:
     return ContextoSeguridad(
         usuario_id=new_uuid7(),
@@ -120,7 +120,7 @@ class _World:
         self,
         *,
         permisos: frozenset[str] | None = None,
-        sucursales_permitidas: frozenset | None = None,
+        sucursales_permitidas: frozenset[UUID] | None = None,
     ) -> ContextoSeguridad:
         return _make_ctx(
             permisos=permisos, sucursales_permitidas=sucursales_permitidas

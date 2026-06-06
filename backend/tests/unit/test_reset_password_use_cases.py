@@ -93,7 +93,7 @@ def test_solicitar_genera_token_y_envia_email_si_usuario_existe() -> None:
     )
 
     # 1 token persistido + 1 email "enviado".
-    assert len(tokens._by_id) == 1  # type: ignore[attr-defined]
+    assert len(tokens._by_id) == 1
     assert len(email.enviados) == 1
     sent = email.enviados[0]
     assert sent["destinatario"] == "ada@erp.cl"
@@ -122,7 +122,7 @@ def test_solicitar_no_revela_si_email_no_existe_antienumeracion() -> None:
     )
 
     # NO se generó token ni se envió email.
-    assert len(tokens._by_id) == 0  # type: ignore[attr-defined]
+    assert len(tokens._by_id) == 0
     assert len(email.enviados) == 0
     # Pero sí se audita el intento (con motivo).
     assert any(
@@ -146,7 +146,7 @@ def test_solicitar_no_envia_si_usuario_desactivado() -> None:
         )
     )
 
-    assert len(tokens._by_id) == 0  # type: ignore[attr-defined]
+    assert len(tokens._by_id) == 0
     assert len(email.enviados) == 0
     assert any(
         e["accion"] == "auth.password.reset.solicitar"
@@ -173,7 +173,7 @@ def test_solicitar_no_propaga_si_envio_email_falla() -> None:
     )
 
     # Token sí persistido aunque el envío falló.
-    assert len(tokens._by_id) == 1  # type: ignore[attr-defined]
+    assert len(tokens._by_id) == 1
     assert len(email.enviados) == 0
 
 
@@ -271,7 +271,7 @@ def test_reset_aplica_nueva_password_y_revoca_sesiones() -> None:
     assert activos == []
 
     # Token marcado como usado.
-    assert all(r.usado_en is not None for r in tokens._by_id.values())  # type: ignore[attr-defined]
+    assert all(r.usado_en is not None for r in tokens._by_id.values())
 
     # Audit OK.
     assert any(
@@ -342,4 +342,4 @@ def test_reset_lanza_si_usuario_fue_desactivado() -> None:
         )
 
     # El token quedó marcado como usado para que no se pueda re-intentar.
-    assert all(r.usado_en is not None for r in tokens._by_id.values())  # type: ignore[attr-defined]
+    assert all(r.usado_en is not None for r in tokens._by_id.values())

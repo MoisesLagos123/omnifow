@@ -16,7 +16,7 @@ Cubre:
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -88,7 +88,7 @@ class _World:
         self,
         *,
         permisos: frozenset[str] | None = None,
-        sucursales_permitidas: frozenset | None = None,
+        sucursales_permitidas: frozenset[UUID] | None = None,
     ) -> ContextoSeguridad:
         return ContextoSeguridad(
             usuario_id=self.usuario_id,
@@ -103,7 +103,7 @@ class _World:
     def make_doc_boleta(
         self,
         *,
-        sucursal_id: "uuid4 | None" = None,
+        sucursal_id: UUID | None = None,
         tipo: TipoDocumento = TipoDocumento.BOLETA,
         estado_sii: EstadoSII = EstadoSII.PENDIENTE,
     ) -> DocumentoTributario:
@@ -136,8 +136,8 @@ class _World:
     def make_cmd(
         self,
         *,
-        documento_referencia_id: "uuid4 | None" = None,
-        sucursal_id: "uuid4 | None" = None,
+        documento_referencia_id: UUID | None = None,
+        sucursal_id: UUID | None = None,
         motivo: str = "Intereses por mora",
         monto_neto_clp: int = _NETO,
         monto_iva_clp: int = _IVA,

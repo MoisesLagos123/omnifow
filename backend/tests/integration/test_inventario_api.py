@@ -470,8 +470,8 @@ def test_recepcionar_perecible_con_fechas_y_reporte_por_vencer(
     assert r.status_code == 201, r.text
     assert r.json()["controla_vencimiento"] is True
     pid = r.json()["id"]
-    lts.productos[_UUID(pid)] = ("LECHE1L", "Leche 1L")  # type: ignore[assignment]
-    lts.bodegas[_UUID(bid)] = ("B1", "B1")  # type: ignore[assignment]
+    lts.productos[_UUID(pid)] = ("LECHE1L", "Leche 1L")
+    lts.bodegas[_UUID(bid)] = ("B1", "B1")
 
     # FakeClock fija hoy = 2026-05-02. Crítico: vence 2026-05-06 (4 días).
     r = client.post(

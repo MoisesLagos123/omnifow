@@ -17,7 +17,7 @@ Cubre:
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -39,7 +39,7 @@ _AYER = datetime(2026, 6, 5, 14, 0, 0, tzinfo=timezone.utc)
 def _make_ctx(
     *,
     permisos: frozenset[str] | None = None,
-    sucursales_permitidas: frozenset | None = None,
+    sucursales_permitidas: frozenset[UUID] | None = None,
 ) -> ContextoSeguridad:
     return ContextoSeguridad(
         usuario_id=new_uuid7(),
