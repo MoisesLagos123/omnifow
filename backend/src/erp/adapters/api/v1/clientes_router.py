@@ -11,6 +11,7 @@ from erp.adapters.api.dependencies import (
     build_desactivar_cliente_uc,
     build_editar_cliente_uc,
     build_listar_clientes_uc,
+    build_listar_cxc_por_cliente_uc,
     build_obtener_cliente_uc,
     build_reactivar_cliente_uc,
     get_current_context,
@@ -20,6 +21,7 @@ from erp.adapters.api.schemas import (
     ClienteResponse,
     ClientesPaginaResponse,
     CrearClienteRequest,
+    CxCListItemResponse,
     EditarClienteRequest,
 )
 from erp.application.security.contexto import ContextoSeguridad
@@ -50,6 +52,10 @@ from erp.application.use_cases.cliente.obtener_cliente import (
 from erp.application.use_cases.cliente.reactivar_cliente import (
     ReactivarClienteCommand,
     ReactivarClienteUseCase,
+)
+from erp.application.use_cases.cxc.listar_cxc_por_cliente import (
+    ListarCxCPorClienteCommand,
+    ListarCxCPorClienteUseCase,
 )
 
 router = APIRouter(prefix="/clientes", tags=["clientes"])
@@ -205,6 +211,40 @@ def desactivar_cliente(
         DesactivarClienteCommand(contexto=contexto, cliente_id=cliente_id)
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/{cliente_id}/cxc", response_model=list[CxCListItemResponse])
+def listar_cxc_de_cliente(
+    cliente_id: UUID,
+    contexto: Annotated[ContextoSeguridad, Depends(get_current_context)],
+    use_case: Annotated[
+        ListarCxCPorClienteUseCase, Depends(build_listar_cxc_por_cliente_uc)
+    ],
+    solo_activas: bool = Query(default=False),
+) -> list[CxCListItemResponse]:
+    items = use_case.execute(
+        ListarCxCPorClienteCommand(
+            contexto=contexto,
+            cliente_id=cliente_id,
+            solo_activas=solo_activas,
+        )
+    )
+    return [
+        CxCListItemResponse(
+            id=item.id,
+            venta_id=item.venta_id,
+            venta_numero_documento=item.venta_numero_documento,
+            venta_tipo_documento=item.venta_tipo_documento,
+            cliente_razon_social=item.cliente_razon_social,
+            monto_original_clp=item.monto_original_clp,
+            monto_saldo_clp=item.monto_saldo_clp,
+            fecha_emision=item.fecha_emision,
+            fecha_vencimiento=item.fecha_vencimiento,
+            estado=item.estado,
+            dias_vencido=item.dias_vencido,
+        )
+        for item in items
+    ]
 
 
 @router.post("/{cliente_id}/reactivar", response_model=ClienteResponse)

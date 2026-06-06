@@ -15,6 +15,9 @@ from erp.application.ports.repositories import (
     CompraConDetalles,
     CompraListItem,
     ComprasPagina,
+    CxCConAbonos,
+    CxCListItem,
+    CxCPagina,
     CxPConAbonos,
     CxPListItem,
     CxPPagina,
@@ -48,9 +51,11 @@ from erp.application.ports.token_provider import (
     IssuedRefreshToken,
 )
 from erp.domain.exceptions import RefreshTokenInvalidoError
+from erp.domain.entities.abono_cxc import AbonoCxC
 from erp.domain.entities.abono_cxp import AbonoCxP
 from erp.domain.entities.bodega import Bodega
 from erp.domain.entities.compra import Compra, EstadoCompra
+from erp.domain.entities.cuenta_por_cobrar import CuentaPorCobrar, EstadoCxC
 from erp.domain.entities.cuenta_por_pagar import CuentaPorPagar, EstadoCxP
 from erp.domain.entities.detalle_compra import DetalleCompra
 from erp.domain.entities.proveedor import Proveedor
@@ -1689,3 +1694,114 @@ class FakeCxPRepo:
 
     def registrar_abono(self, abono: AbonoCxP) -> None:
         self._abonos.setdefault(abono.cxp_id, []).append(abono)
+
+
+class FakeCxCRepo:
+    def __init__(self) -> None:
+        self._by_id: dict[UUID, CuentaPorCobrar] = {}
+        self._abonos: dict[UUID, list[AbonoCxC]] = {}
+        self.cliente_info: dict[UUID, str] = {}  # cliente_id -> razon_social
+        self.venta_info: dict[UUID, tuple[str, str]] = {}  # venta_id -> (numero_doc, tipo_doc)
+
+    def add(self, cxc: CuentaPorCobrar) -> None:
+        self._by_id[cxc.id] = cxc
+        self._abonos.setdefault(cxc.id, [])
+
+    def guardar(self, cxc: CuentaPorCobrar) -> None:
+        self._by_id[cxc.id] = cxc
+        self._abonos.setdefault(cxc.id, [])
+
+    def obtener(self, cxc_id: UUID, *, for_update: bool = False) -> CxCConAbonos | None:
+        cxc = self._by_id.get(cxc_id)
+        if cxc is None:
+            return None
+        abonos = self._abonos.get(cxc_id, [])
+        venta_docs = self.venta_info.get(cxc.venta_id, ("", ""))
+        return CxCConAbonos(
+            cxc=cxc,
+            abonos=abonos,
+            cliente_razon_social=self.cliente_info.get(cxc.cliente_id, ""),
+            venta_numero_documento=venta_docs[0],
+            venta_tipo_documento=venta_docs[1],
+        )
+
+    def obtener_por_venta(self, venta_id: UUID) -> CuentaPorCobrar | None:
+        for cxc in self._by_id.values():
+            if cxc.venta_id == venta_id:
+                return cxc
+        return None
+
+    def listar(
+        self,
+        *,
+        cliente_id: UUID | None,
+        estado: EstadoCxC | None,
+        vencimiento_desde: date | None,
+        vencimiento_hasta: date | None,
+        limit: int,
+        offset: int,
+        hoy: date,
+    ) -> CxCPagina:
+        items = list(self._by_id.values())
+        if cliente_id is not None:
+            items = [c for c in items if c.cliente_id == cliente_id]
+        if estado is not None:
+            items = [c for c in items if c.estado is estado]
+        if vencimiento_desde is not None:
+            items = [c for c in items if c.fecha_vencimiento >= vencimiento_desde]
+        if vencimiento_hasta is not None:
+            items = [c for c in items if c.fecha_vencimiento <= vencimiento_hasta]
+        items.sort(key=lambda c: c.fecha_vencimiento)
+        total = len(items)
+        page = items[offset : offset + limit]
+        result = []
+        for c in page:
+            venta_docs = self.venta_info.get(c.venta_id, ("", ""))
+            result.append(
+                CxCListItem(
+                    id=c.id,
+                    venta_id=c.venta_id,
+                    venta_numero_documento=venta_docs[0],
+                    venta_tipo_documento=venta_docs[1],
+                    cliente_razon_social=self.cliente_info.get(c.cliente_id, ""),
+                    monto_original_clp=c.monto_original_clp,
+                    monto_saldo_clp=c.monto_saldo_clp,
+                    fecha_emision=c.fecha_emision,
+                    fecha_vencimiento=c.fecha_vencimiento,
+                    estado=c.estado.value,
+                    dias_vencido=(hoy - c.fecha_vencimiento).days,
+                )
+            )
+        return CxCPagina(items=result, total=total, limit=limit, offset=offset)
+
+    def listar_por_cliente(
+        self, cliente_id: UUID, *, solo_activas: bool = False
+    ) -> list[CxCListItem]:
+        from datetime import date as date_type  # noqa: PLC0415
+        hoy = date_type.today()
+        items = [c for c in self._by_id.values() if c.cliente_id == cliente_id]
+        if solo_activas:
+            items = [c for c in items if c.estado in (EstadoCxC.PENDIENTE, EstadoCxC.PARCIAL)]
+        items.sort(key=lambda c: c.fecha_vencimiento)
+        result = []
+        for c in items:
+            venta_docs = self.venta_info.get(c.venta_id, ("", ""))
+            result.append(
+                CxCListItem(
+                    id=c.id,
+                    venta_id=c.venta_id,
+                    venta_numero_documento=venta_docs[0],
+                    venta_tipo_documento=venta_docs[1],
+                    cliente_razon_social=self.cliente_info.get(c.cliente_id, ""),
+                    monto_original_clp=c.monto_original_clp,
+                    monto_saldo_clp=c.monto_saldo_clp,
+                    fecha_emision=c.fecha_emision,
+                    fecha_vencimiento=c.fecha_vencimiento,
+                    estado=c.estado.value,
+                    dias_vencido=(hoy - c.fecha_vencimiento).days,
+                )
+            )
+        return result
+
+    def registrar_abono(self, abono: AbonoCxC) -> None:
+        self._abonos.setdefault(abono.cxc_id, []).append(abono)

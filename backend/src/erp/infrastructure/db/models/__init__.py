@@ -1,7 +1,9 @@
 """Modelos ORM SQLAlchemy. Importar aquí garantiza que Alembic los detecte."""
 from erp.infrastructure.db.models.base import Base
+from erp.infrastructure.db.models.abono_cxc import AbonoCxCORM
 from erp.infrastructure.db.models.abono_cxp import AbonoCxPORM
 from erp.infrastructure.db.models.audit_log import AuditLogORM
+from erp.infrastructure.db.models.cuenta_por_cobrar import CuentaPorCobrarORM
 from erp.infrastructure.db.models.bodega import BodegaORM
 from erp.infrastructure.db.models.caja import CajaORM
 from erp.infrastructure.db.models.categoria import CategoriaORM
@@ -35,7 +37,9 @@ from erp.infrastructure.db.models.usuario_sucursal import usuario_sucursal_table
 
 __all__ = [
     "Base",
+    "AbonoCxCORM",
     "AbonoCxPORM",
+    "CuentaPorCobrarORM",
     "AuditLogORM",
     "BodegaORM",
     "CajaORM",

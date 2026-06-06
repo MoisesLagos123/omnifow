@@ -24,6 +24,7 @@ Flujo completo dentro de un único `UnitOfWork`:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import timedelta
 from decimal import Decimal
 from uuid import UUID
 
@@ -34,6 +35,7 @@ from erp.application.ports.repositories import (
     BodegaRepository,
     CajaRepository,
     ClienteRepository,
+    CuentaPorCobrarRepository,
     DetalleVentaRepository,
     DocumentoTributarioRepository,
     LoteInventarioRepository,
@@ -55,7 +57,8 @@ from erp.domain.entities.documento_tributario import DocumentoTributario
 from erp.domain.entities.mov_inventario import MovInventario, TipoMovInventario
 from erp.domain.entities.movimiento_caja import MovimientoCaja, TipoMovimientoCaja
 from erp.domain.entities.pago import Pago, TipoPago
-from erp.domain.entities.venta import Venta
+from erp.domain.entities.cuenta_por_cobrar import CuentaPorCobrar, EstadoCxC
+from erp.domain.entities.venta import CondicionPagoVenta, EstadoVenta, Venta
 from erp.domain.entities.reserva_stock import EstadoReserva
 from erp.domain.exceptions import (
     BodegaInvalidaError,
@@ -66,6 +69,9 @@ from erp.domain.exceptions import (
     ReservaNoEncontradaError,
     SesionCajaNoActivaError,
     StockInsuficienteError,
+    VentaCreditoInvalidaError,
+    VentaCreditoRequiereClienteError,
+    VentaDescuadraCreditoError,
     VentaInvalidaError,
 )
 from erp.domain.value_objects.tipo_documento import TipoDocumento
@@ -100,6 +106,10 @@ class ProcesarVentaCommand:
     pagos: tuple[PagoVentaCommand, ...]
     cliente_id: UUID | None = None
     idempotency_key: str | None = None
+    # Crédito: campos opcionales, activos solo si condicion_pago == CREDITO
+    condicion_pago: CondicionPagoVenta = CondicionPagoVenta.CONTADO
+    monto_credito_clp: int = 0
+    dias_credito: int = 0
 
 
 @dataclass(frozen=True)
@@ -109,6 +119,7 @@ class ProcesarVentaResult:
     pagos: tuple[Pago, ...]
     documento: DocumentoTributario
     movimientos_caja_ids: tuple[UUID, ...]
+    cxc_id: UUID | None = None
 
 
 class ProcesarVentaUseCase:
@@ -134,6 +145,7 @@ class ProcesarVentaUseCase:
         asignador_folios: AsignadorFolios,
         audit: AuditPublisher,
         clock: Clock,
+        cxc: CuentaPorCobrarRepository | None = None,
     ) -> None:
         self._uow = uow
         self._ventas = ventas
@@ -154,17 +166,45 @@ class ProcesarVentaUseCase:
         self._asignador_folios = asignador_folios
         self._audit = audit
         self._clock = clock
+        self._cxc = cxc
 
     @requires_permission("venta.crear")
     def execute(self, cmd: ProcesarVentaCommand) -> ProcesarVentaResult:
         if not cmd.items:
             raise VentaInvalidaError("La venta debe tener al menos un item")
-        if not cmd.pagos:
+        if not cmd.pagos and cmd.condicion_pago is not CondicionPagoVenta.CREDITO:
             raise VentaInvalidaError("La venta debe tener al menos un pago")
         if cmd.tipo_documento not in (TipoDocumento.BOLETA, TipoDocumento.FACTURA):
             raise VentaInvalidaError(
                 "tipo_documento debe ser BOLETA o FACTURA en una venta"
             )
+
+        # Validaciones de crédito (antes de abrir el UoW)
+        if cmd.condicion_pago is CondicionPagoVenta.CREDITO:
+            # Permiso adicional: venta.credito
+            if "venta.credito" not in cmd.contexto.permisos:
+                raise PermisoDenegadoError(
+                    "Se requiere el permiso 'venta.credito' para vender a crédito"
+                )
+            if cmd.cliente_id is None:
+                raise VentaCreditoRequiereClienteError()
+            if not (1 <= cmd.dias_credito <= 365):
+                raise VentaCreditoInvalidaError(
+                    "dias_credito debe estar entre 1 y 365",
+                    details={"dias_credito": cmd.dias_credito},
+                )
+            if cmd.monto_credito_clp <= 0:
+                raise VentaCreditoInvalidaError(
+                    "monto_credito_clp debe ser > 0",
+                    details={"monto_credito_clp": cmd.monto_credito_clp},
+                )
+        else:
+            # CONTADO: los campos de crédito deben ser 0
+            if cmd.monto_credito_clp != 0 or cmd.dias_credito != 0:
+                raise VentaInvalidaError(
+                    "monto_credito_clp y dias_credito deben ser 0 para ventas al contado"
+                )
+
         ahora = self._clock.now()
 
         with self._uow:
@@ -457,7 +497,46 @@ class ProcesarVentaUseCase:
                 venta.agregar_pago(pago)
 
             # 6. Confirmar (valida sum(pagos) == total y materializa totales)
-            venta.confirmar(ahora=ahora)
+            # Para crédito: validar que sum(pagos) + monto_credito == total ANTES de
+            # confirmar, ya que confirmar() hace sum(pagos) == total_clp.
+            if cmd.condicion_pago is CondicionPagoVenta.CREDITO:
+                # Calcular totales sin confirmar para validar
+                neto_pre = sum(d.neto_clp for d in venta.detalles)
+                iva_pre = sum(d.iva_clp for d in venta.detalles)
+                total_pre = neto_pre + iva_pre
+                total_pagado_pre = sum(p.monto_clp for p in venta.pagos)
+                suma_cubierta = total_pagado_pre + cmd.monto_credito_clp
+                if suma_cubierta != total_pre:
+                    raise VentaDescuadraCreditoError(
+                        details={
+                            "total_clp": total_pre,
+                            "total_pagado_clp": total_pagado_pre,
+                            "monto_credito_clp": cmd.monto_credito_clp,
+                            "diferencia_clp": suma_cubierta - total_pre,
+                        }
+                    )
+                if cmd.monto_credito_clp > total_pre:
+                    raise VentaCreditoInvalidaError(
+                        "monto_credito_clp no puede exceder el total de la venta",
+                        details={
+                            "total_clp": total_pre,
+                            "monto_credito_clp": cmd.monto_credito_clp,
+                        },
+                    )
+                # Agregar un pago ficticio de crédito para que confirmar() cuadre:
+                # No — en cambio, calculamos los totales manualmente y seteamos estado
+                # sin llamar confirmar() si los pagos no cubren el total completo.
+                # Confirmar crédito: totales ya validados, los seteamos manualmente
+                # ya que confirmar() exige sum(pagos) == total (sin crédito).
+                if not venta.detalles:
+                    raise VentaInvalidaError("Una venta requiere al menos un detalle")
+                venta.subtotal_clp = neto_pre
+                venta.iva_clp = iva_pre
+                venta.total_clp = total_pre
+                venta.estado = EstadoVenta.CONFIRMADA
+                venta.fecha = ahora
+            else:
+                venta.confirmar(ahora=ahora)
 
             # 7. Reservar folio + emitir documento
             folio = self._asignador_folios.reservar(
@@ -503,7 +582,27 @@ class ProcesarVentaUseCase:
                     self._movimientos_caja.guardar(mov_caja)
                     movs_caja_ids.append(mov_caja.id)
 
-            # 10. Audit
+            # 10. Crear CxC si es venta a crédito
+            cxc_id: UUID | None = None
+            if cmd.condicion_pago is CondicionPagoVenta.CREDITO:
+                assert cmd.cliente_id is not None  # validado antes
+                assert self._cxc is not None, (
+                    "ProcesarVentaUseCase requiere cxc= para ventas a crédito"
+                )
+                fecha_doc = documento.emitido_en.date()
+                cxc_nueva = CuentaPorCobrar(
+                    venta_id=venta.id,
+                    cliente_id=cmd.cliente_id,
+                    monto_original_clp=cmd.monto_credito_clp,
+                    monto_saldo_clp=cmd.monto_credito_clp,
+                    fecha_emision=fecha_doc,
+                    fecha_vencimiento=fecha_doc + timedelta(days=cmd.dias_credito),
+                    estado=EstadoCxC.PENDIENTE,
+                )
+                self._cxc.guardar(cxc_nueva)
+                cxc_id = cxc_nueva.id
+
+            # 11. Audit
             self._audit.publicar(
                 accion="venta.procesar",
                 resultado="OK",
@@ -532,6 +631,8 @@ class ProcesarVentaUseCase:
                     "movimientos_inventario": [str(m.id) for m in movs_inv],
                     "movimientos_caja": [str(m) for m in movs_caja_ids],
                     "idempotency_key": cmd.idempotency_key,
+                    "condicion_pago": cmd.condicion_pago.value,
+                    "cxc_id": str(cxc_id) if cxc_id else None,
                 },
             )
 
@@ -543,4 +644,5 @@ class ProcesarVentaUseCase:
             pagos=tuple(venta.pagos),
             documento=documento,
             movimientos_caja_ids=tuple(movs_caja_ids),
+            cxc_id=cxc_id,
         )

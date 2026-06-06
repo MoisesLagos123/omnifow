@@ -450,6 +450,55 @@ class LoteInvalidoCompraError(ValidacionError):
     default_message = "Producto perecible requiere fecha de vencimiento"
 
 
+# --- CxC (Cuentas por Cobrar) ---
+class VentaCreditoRequiereClienteError(DomainError):
+    code = "ERR_VENTA_CREDITO_REQUIERE_CLIENTE"
+    http_status = 400
+    default_message = "La venta a crédito requiere un cliente identificado"
+
+
+class VentaCreditoInvalidaError(DomainError):
+    code = "ERR_VENTA_CREDITO_INVALIDA"
+    http_status = 400
+    default_message = "Datos de venta a crédito inválidos (días o monto fuera de rango)"
+
+
+class VentaDescuadraCreditoError(DomainError):
+    code = "ERR_VENTA_DESCUADRA_CON_CREDITO"
+    http_status = 400
+    default_message = "La suma de pagos + crédito no coincide con el total de la venta"
+
+
+class CxCInvalidaError(ValidacionError):
+    code = "ERR_CXC_INVALIDA"
+    http_status = 400
+    default_message = "Estado de CxC inválido para abonar"
+
+
+class CxCYaPagadaError(DomainError):
+    code = "ERR_CXC_YA_PAGADA"
+    http_status = 409
+    default_message = "La cuenta por cobrar ya está pagada"
+
+
+class CxCYaCerradaError(DomainError):
+    code = "ERR_CXC_YA_PAGADA"
+    http_status = 409
+    default_message = "La cuenta por cobrar ya está cerrada (pagada o anulada)"
+
+
+class CxCNoEncontradaError(DomainError):
+    code = "ERR_CXC_NO_ENCONTRADA"
+    http_status = 404
+    default_message = "Cuenta por cobrar no encontrada"
+
+
+class AbonoCxCInvalidoError(ValidacionError):
+    code = "ERR_ABONO_CXC_INVALIDO"
+    http_status = 400
+    default_message = "El monto del abono es inválido"
+
+
 # --- CxP ---
 class CxPInvalidaError(ValidacionError):
     code = "ERR_CXP_INVALIDA"

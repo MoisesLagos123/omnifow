@@ -46,6 +46,7 @@ import {
   COMPRA_CREAR_PERMS,
   COMPRA_CONSULTAR_PERMS,
   CXP_CONSULTAR_PERMS,
+  CXC_CONSULTAR_PERMS,
 } from "../../auth/menuPermissions";
 
 export function AuthenticatedLayout() {
@@ -69,6 +70,7 @@ export function AuthenticatedLayout() {
   const canCompraCrear = useAnyPermission(COMPRA_CREAR_PERMS);
   const canCompraConsultar = useAnyPermission(COMPRA_CONSULTAR_PERMS);
   const canCxP = useAnyPermission(CXP_CONSULTAR_PERMS);
+  const canCxC = useAnyPermission(CXC_CONSULTAR_PERMS);
   const canCompras = canProveedores || canCompraCrear || canCompraConsultar || canCxP;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(
@@ -336,6 +338,15 @@ export function AuthenticatedLayout() {
                 icon={<Users size={18} aria-hidden="true" />}
               >
                 Clientes
+              </NavItem>
+            )}
+
+            {canCxC && (
+              <NavItem
+                to={ROUTES.CXC}
+                icon={<Receipt size={18} aria-hidden="true" />}
+              >
+                Cuentas por cobrar
               </NavItem>
             )}
 

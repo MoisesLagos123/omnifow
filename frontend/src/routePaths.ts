@@ -59,4 +59,7 @@ export const ROUTES = {
   // CxP
   CXP: "/cxp",
   CXP_DETALLE: (id: string) => `/cxp/${id}`,
+  // CxC
+  CXC: "/cxc",
+  CXC_DETALLE: (id: string) => `/cxc/${id}`,
 } as const;

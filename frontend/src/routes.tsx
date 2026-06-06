@@ -41,6 +41,8 @@ import { NuevaCompraPage } from "./modules/compras/NuevaCompraPage";
 import { CompraDetallePage } from "./modules/compras/CompraDetallePage";
 import { CxPPage } from "./modules/compras/CxPPage";
 import { CxPDetallePage } from "./modules/compras/CxPDetallePage";
+import { CxCPage } from "./modules/cxc/CxCPage";
+import { CxCDetallePage } from "./modules/cxc/CxCDetallePage";
 import { CajaOperacionPage } from "./modules/caja/CajaOperacionPage";
 import { SesionesPage } from "./modules/caja/SesionesPage";
 import { SesionDetallePage } from "./modules/caja/SesionDetallePage";
@@ -62,6 +64,7 @@ const VENTA_READ_PERMS = ["venta.crear", "venta.anular"] as const;
 const PROVEEDOR_READ_PERMS = ["proveedor.consultar", "proveedor.gestionar"] as const;
 const COMPRA_READ_PERMS = ["compra.consultar"] as const;
 const CXP_READ_PERMS = ["cxp.consultar", "cxp.gestionar"] as const;
+const CXC_READ_PERMS = ["cxc.consultar", "cxc.gestionar"] as const;
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   return (
@@ -256,6 +259,17 @@ function CxPReadGuard({ children }: { children: React.ReactNode }) {
   return (
     <RequirePermission
       anyOf={CXP_READ_PERMS}
+      fallback={<Navigate to={ROUTES.HOME} replace />}
+    >
+      {children}
+    </RequirePermission>
+  );
+}
+
+function CxCReadGuard({ children }: { children: React.ReactNode }) {
+  return (
+    <RequirePermission
+      anyOf={CXC_READ_PERMS}
       fallback={<Navigate to={ROUTES.HOME} replace />}
     >
       {children}
@@ -530,6 +544,16 @@ export function AppRoutes() {
         <Route
           path="/cxp/:id"
           element={<CxPReadGuard><CxPDetallePage /></CxPReadGuard>}
+        />
+
+        {/* CxC */}
+        <Route
+          path={ROUTES.CXC}
+          element={<CxCReadGuard><CxCPage /></CxCReadGuard>}
+        />
+        <Route
+          path="/cxc/:id"
+          element={<CxCReadGuard><CxCDetallePage /></CxCReadGuard>}
         />
       </Route>
       <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

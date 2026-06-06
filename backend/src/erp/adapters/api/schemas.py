@@ -738,8 +738,14 @@ class ProcesarVentaRequest(BaseModel):
     caja_id: UUID
     tipo_documento: str = Field(pattern="^(BOLETA|FACTURA)$")
     items: list[ItemVentaRequest] = Field(min_length=1)
-    pagos: list[PagoVentaRequest] = Field(min_length=1)
+    pagos: list[PagoVentaRequest] = Field(default_factory=list)
     cliente_id: UUID | None = None
+    # Crédito
+    condicion_pago: str = Field(
+        default="CONTADO", pattern="^(CONTADO|CREDITO)$"
+    )
+    monto_credito_clp: int = Field(default=0, ge=0)
+    dias_credito: int = Field(default=0, ge=0, le=365)
 
 
 class DetalleVentaResponse(BaseModel):
@@ -1082,6 +1088,64 @@ class CxPListItemResponse(BaseModel):
 
 class CxPPaginaResponse(BaseModel):
     items: list[CxPListItemResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+# ---------------- CxC ----------------
+
+class RegistrarAbonoCxCRequest(BaseModel):
+    monto_clp: int = Field(ge=1)
+    fecha_pago: date
+    tipo_pago: str
+    referencia: str | None = None
+    observaciones: str | None = None
+
+
+class AbonoCxCResponse(BaseModel):
+    id: UUID
+    monto_clp: int
+    fecha_pago: date
+    tipo_pago: str
+    referencia: str | None
+    usuario_id: UUID
+    observaciones: str | None
+    creado_en: datetime
+
+
+class CxCResponse(BaseModel):
+    id: UUID
+    venta_id: UUID
+    cliente_id: UUID
+    cliente_razon_social: str
+    venta_numero_documento: str
+    venta_tipo_documento: str
+    monto_original_clp: int
+    monto_saldo_clp: int
+    fecha_emision: date
+    fecha_vencimiento: date
+    estado: str
+    abonos: list[AbonoCxCResponse]
+    creado_en: datetime
+
+
+class CxCListItemResponse(BaseModel):
+    id: UUID
+    venta_id: UUID
+    venta_numero_documento: str
+    venta_tipo_documento: str
+    cliente_razon_social: str
+    monto_original_clp: int
+    monto_saldo_clp: int
+    fecha_emision: date
+    fecha_vencimiento: date
+    estado: str
+    dias_vencido: int
+
+
+class CxCPaginaResponse(BaseModel):
+    items: list[CxCListItemResponse]
     total: int
     limit: int
     offset: int

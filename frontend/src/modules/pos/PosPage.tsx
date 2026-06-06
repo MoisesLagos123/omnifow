@@ -12,6 +12,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { usePermission } from "../../auth/usePermission";
+import { cxcApi, type CxCListItem } from "../../api/cxc";
 
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -135,6 +137,9 @@ export function PosPage() {
   const activa = useSucursalActiva();
   const { sucursales } = useSucursalesParaSelector();
 
+  // ----- Permisos de crédito -----
+  const puedeVenderCredito = usePermission("venta.credito");
+
   // ----- Selección de sucursal/caja -----
   const [sucursalId, setSucursalId] = useState<string>(activa?.id ?? "");
   const [cajas, setCajas] = useState<Caja[] | null>(null);
@@ -150,11 +155,15 @@ export function PosPage() {
   const [tipoDocumento, setTipoDocumento] = useState<"BOLETA" | "FACTURA">(
     "BOLETA"
   );
+  const [condicionPago, setCondicionPago] = useState<"CONTADO" | "CREDITO">("CONTADO");
+  const [diasCredito, setDiasCredito] = useState<number>(30);
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [rutInput, setRutInput] = useState("");
   const [rutBuscando, setRutBuscando] = useState(false);
   const [rutNoEncontrado, setRutNoEncontrado] = useState(false);
   const [crearClienteOpen, setCrearClienteOpen] = useState(false);
+  // CxC vencidas del cliente seleccionado (warning)
+  const [cxcVencidasCliente, setCxcVencidasCliente] = useState<CxCListItem[]>([]);
 
   const [pagos, setPagos] = useState<PagoDraft[]>([
     newPagoDraft("EFECTIVO"),
@@ -266,7 +275,9 @@ export function PosPage() {
         .reduce((a, p) => a + (p.monto_clp || 0), 0),
     [pagos]
   );
-  const vuelto = totalEfectivo > 0 ? Math.max(0, diferencia) : 0;
+  const vuelto = totalEfectivo > 0 && condicionPago === "CONTADO" ? Math.max(0, diferencia) : 0;
+  // Crédito: el saldo que queda a crédito = total - lo que ya se paga en efectivo/tarjeta
+  const montoCredito = condicionPago === "CREDITO" ? Math.max(0, totalBruto - totalPagado) : 0;
 
   // ----- Bodega "default" para los detalles -----
   // Heurística temporal hasta que exista selector multi-bodega por línea:
@@ -520,9 +531,35 @@ export function PosPage() {
     setRutInput("");
     setRutNoEncontrado(false);
     setTipoDocumento("BOLETA");
+    setCondicionPago("CONTADO");
+    setDiasCredito(30);
+    setCxcVencidasCliente([]);
     setErrorEnvio(null);
     setResultado(null);
   }
+
+  // ----- Consulta silenciosa CxC del cliente seleccionado -----
+  useEffect(() => {
+    if (!cliente) {
+      setCxcVencidasCliente([]);
+      return;
+    }
+    const ctl = new AbortController();
+    cxcApi
+      .listarPorCliente(cliente.id, ctl.signal)
+      .then((items) => {
+        const vencidas = items.filter(
+          (c) => c.dias_vencido > 0 && (c.estado === "PENDIENTE" || c.estado === "PARCIAL")
+        );
+        setCxcVencidasCliente(vencidas);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        // Silencioso: es solo un warning, no bloqueante.
+        setCxcVencidasCliente([]);
+      });
+    return () => ctl.abort();
+  }, [cliente]);
 
   // ----- Cliente RUT -----
   async function buscarCliente() {
@@ -622,6 +659,22 @@ export function PosPage() {
     if (pagos.length === 0) return "Agrega al menos un pago.";
     if (pagosInvalidos)
       return "Revisa los pagos: monto > 0 y referencia/autorización en tarjeta.";
+
+    // Validaciones de crédito
+    if (condicionPago === "CREDITO") {
+      if (!cliente) return "Venta a crédito requiere cliente identificado.";
+      if (diasCredito < 1 || diasCredito > 365)
+        return "Días de crédito debe estar entre 1 y 365.";
+      if (totalPagado >= totalBruto)
+        return "Venta a crédito requiere que el saldo sea > 0. Ajusta los pagos o cambia a Contado.";
+      // La suma de pagos + monto_credito debe ser igual al total
+      const sumaCreditoYPagos = totalPagado + montoCredito;
+      if (sumaCreditoYPagos !== totalBruto)
+        return `Los pagos (${formatCLP(totalPagado)}) más el crédito (${formatCLP(montoCredito)}) no cubren el total.`;
+      return null;
+    }
+
+    // Validaciones CONTADO
     const diff = totalBruto - totalPagado;
     if (diff > 0) {
       return `Falta cobrar ${formatCLP(diff)}.`;
@@ -687,6 +740,9 @@ export function PosPage() {
               ? null
               : p.ultimos_4_digitos.trim(),
         })),
+        condicion_pago: condicionPago,
+        monto_credito_clp: condicionPago === "CREDITO" ? montoCredito : 0,
+        dias_credito: condicionPago === "CREDITO" ? diasCredito : 0,
       });
       setResultado(result);
       toast.success(
@@ -724,6 +780,9 @@ export function PosPage() {
     cajaId,
     cliente,
     tipoDocumento,
+    condicionPago,
+    diasCredito,
+    montoCredito,
     cart,
     pagos,
     toast,
@@ -982,10 +1041,76 @@ export function PosPage() {
                 </button>
               </div>
 
-              <p className={styles.muted}>
+              {/* Toggle Condición de pago — solo visible si el usuario tiene permiso */}
+              {puedeVenderCredito && (
+                <>
+                  <p className={styles.cartTitle} style={{ marginTop: "var(--space-3)" }}>Condición de pago</p>
+                  <div className={styles.docToggle} role="group" aria-label="Condición de pago">
+                    <button
+                      type="button"
+                      className={`${styles.docToggleBtn} ${condicionPago === "CONTADO" ? styles.active : ""}`}
+                      onClick={() => setCondicionPago("CONTADO")}
+                      aria-pressed={condicionPago === "CONTADO"}
+                    >
+                      Contado
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.docToggleBtn} ${condicionPago === "CREDITO" ? styles.active : ""}`}
+                      onClick={() => setCondicionPago("CREDITO")}
+                      aria-pressed={condicionPago === "CREDITO"}
+                    >
+                      Crédito
+                    </button>
+                  </div>
+                  {condicionPago === "CREDITO" && (
+                    <div style={{ marginTop: "var(--space-2)" }}>
+                      <label
+                        htmlFor="dias-credito-input"
+                        style={{
+                          display: "block",
+                          fontSize: "0.85rem",
+                          color: "var(--color-text-muted)",
+                          marginBottom: "var(--space-1)",
+                        }}
+                      >
+                        Días de crédito
+                      </label>
+                      <input
+                        id="dias-credito-input"
+                        type="number"
+                        min={1}
+                        max={365}
+                        value={diasCredito}
+                        onChange={(e) => {
+                          const v = parseInt(e.target.value, 10);
+                          setDiasCredito(Number.isNaN(v) ? 1 : v);
+                        }}
+                        style={{
+                          width: "100px",
+                          padding: "var(--space-2) var(--space-3)",
+                          background: "var(--color-surface)",
+                          border: "1px solid var(--color-border)",
+                          borderRadius: "var(--radius-sm)",
+                          color: "var(--color-text)",
+                          fontSize: "0.9rem",
+                          fontFamily: "var(--font-sans)",
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+              <p className={styles.muted} style={{ marginTop: "var(--space-3)" }}>
                 {tipoDocumento === "FACTURA" ? (
                   <>
                     <strong>Cliente requerido</strong> para emitir factura.
+                    Identifícalo con su RUT.
+                  </>
+                ) : condicionPago === "CREDITO" ? (
+                  <>
+                    <strong>Cliente requerido</strong> para venta a crédito.
                     Identifícalo con su RUT.
                   </>
                 ) : (
@@ -1012,9 +1137,31 @@ export function PosPage() {
                   setCliente(null);
                   setRutInput("");
                   setRutNoEncontrado(false);
+                  setCxcVencidasCliente([]);
                 }}
                 onCrearNuevo={() => setCrearClienteOpen(true)}
               />
+
+              {/* Warning: CxC vencidas del cliente */}
+              {cxcVencidasCliente.length > 0 && (
+                <div
+                  className={styles.banner}
+                  role="status"
+                  style={{ marginTop: "var(--space-2)" }}
+                >
+                  <AlertTriangle size={18} className={styles.bannerIcon} aria-hidden />
+                  <div className={styles.bannerText}>
+                    <p className={styles.bannerTitle} style={{ fontSize: "0.85rem" }}>
+                      Este cliente tiene {cxcVencidasCliente.length}{" "}
+                      {cxcVencidasCliente.length === 1 ? "CxC vencida" : "CxC vencidas"} por{" "}
+                      {formatCLP(cxcVencidasCliente.reduce((a, c) => a + c.monto_saldo_clp, 0))}
+                    </p>
+                    <p className={styles.bannerSub} style={{ fontSize: "0.78rem" }}>
+                      Considera cobrar antes de vender a crédito.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -1058,6 +1205,8 @@ export function PosPage() {
                 totalPagado={totalPagado}
                 diferencia={diferencia}
                 vuelto={vuelto}
+                montoCredito={montoCredito}
+                esCredito={condicionPago === "CREDITO"}
               />
             </div>
           </Card>
@@ -1187,6 +1336,40 @@ export function PosPage() {
             </div>
           }
         >
+          {/* CxC info si fue venta a crédito */}
+          {resultado.cxc_id && (
+            <div
+              style={{
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-md)",
+                padding: "var(--space-3)",
+                marginBottom: "var(--space-3)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "var(--space-1)",
+              }}
+            >
+              <p style={{ margin: 0, fontWeight: 600, color: "var(--color-text)" }}>
+                Venta a crédito
+              </p>
+              <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-muted)" }}>
+                Saldo:{" "}
+                <strong style={{ color: "var(--color-danger)" }}>
+                  {formatCLP(resultado.cxc_monto_clp ?? 0)}
+                </strong>
+                {resultado.cxc_fecha_vencimiento && (
+                  <> · Vencimiento: {resultado.cxc_fecha_vencimiento}</>
+                )}
+              </p>
+              <Link
+                to={`/cxc/${resultado.cxc_id}`}
+                style={{ color: "var(--color-brand)", fontSize: "0.88rem" }}
+              >
+                Ver CxC →
+              </Link>
+            </div>
+          )}
           <div className={styles.receiptPreview}>
             <PrintableReceipt
               venta={resultado.venta}
@@ -1733,6 +1916,8 @@ interface TotalsPanelProps {
   totalPagado: number;
   diferencia: number;
   vuelto: number;
+  montoCredito?: number;
+  esCredito?: boolean;
 }
 
 export function TotalsPanel({
@@ -1742,8 +1927,10 @@ export function TotalsPanel({
   totalPagado,
   diferencia,
   vuelto,
+  montoCredito = 0,
+  esCredito = false,
 }: TotalsPanelProps) {
-  const falta = diferencia < 0 ? -diferencia : 0;
+  const falta = !esCredito && diferencia < 0 ? -diferencia : 0;
   return (
     <div className={styles.totals} aria-live="polite">
       <div className={styles.totalLine}>
@@ -1766,7 +1953,7 @@ export function TotalsPanel({
         <span className={styles.totalLabel}>Total pagado</span>
         <span
           className={`${styles.totalValue} ${
-            totalBruto > 0 && totalPagado >= totalBruto
+            totalBruto > 0 && (esCredito ? totalPagado + montoCredito >= totalBruto : totalPagado >= totalBruto)
               ? styles.diffOk
               : styles.diffBad
           }`}
@@ -1774,6 +1961,22 @@ export function TotalsPanel({
           {formatCLP(totalPagado)}
         </span>
       </div>
+      {esCredito && montoCredito > 0 && (
+        <div className={styles.totalLine}>
+          <span
+            className={styles.totalLabel}
+            style={{ color: "var(--color-warning)" }}
+          >
+            Saldo a crédito
+          </span>
+          <span
+            className={styles.totalValue}
+            style={{ color: "var(--color-warning)", fontWeight: 600 }}
+          >
+            {formatCLP(montoCredito)}
+          </span>
+        </div>
+      )}
       {vuelto > 0 && (
         <div className={styles.totalLine}>
           <span className={styles.vueltoLabel}>Vuelto</span>

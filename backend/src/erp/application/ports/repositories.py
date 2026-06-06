@@ -7,12 +7,14 @@ from decimal import Decimal
 from typing import Protocol
 from uuid import UUID
 
+from erp.domain.entities.abono_cxc import AbonoCxC
 from erp.domain.entities.abono_cxp import AbonoCxP
 from erp.domain.entities.bodega import Bodega
 from erp.domain.entities.caja import Caja
 from erp.domain.entities.categoria import Categoria
 from erp.domain.entities.cliente import Cliente
 from erp.domain.entities.compra import Compra, EstadoCompra
+from erp.domain.entities.cuenta_por_cobrar import CuentaPorCobrar, EstadoCxC
 from erp.domain.entities.cuenta_por_pagar import CuentaPorPagar, EstadoCxP
 from erp.domain.entities.detalle_compra import DetalleCompra
 from erp.domain.entities.detalle_venta import DetalleVenta
@@ -859,3 +861,62 @@ class CuentaPorPagarRepository(Protocol):
         hoy: date,
     ) -> CxPPagina: ...
     def registrar_abono(self, abono: AbonoCxP) -> None: ...
+
+
+# --- CuentaPorCobrar ---
+
+@dataclass(frozen=True)
+class CxCConAbonos:
+    """CxC enriquecida con abonos y datos de cliente y venta."""
+
+    cxc: CuentaPorCobrar
+    abonos: list[AbonoCxC]
+    cliente_razon_social: str
+    venta_numero_documento: str
+    venta_tipo_documento: str
+
+
+@dataclass(frozen=True)
+class CxCListItem:
+    """Ítem de lista paginada de CxC."""
+
+    id: UUID
+    venta_id: UUID
+    venta_numero_documento: str
+    venta_tipo_documento: str
+    cliente_razon_social: str
+    monto_original_clp: int
+    monto_saldo_clp: int
+    fecha_emision: date
+    fecha_vencimiento: date
+    estado: str
+    dias_vencido: int
+
+
+@dataclass(frozen=True)
+class CxCPagina:
+    items: list[CxCListItem]
+    total: int
+    limit: int
+    offset: int
+
+
+class CuentaPorCobrarRepository(Protocol):
+    def guardar(self, cxc: CuentaPorCobrar) -> None: ...
+    def obtener(self, cxc_id: UUID, *, for_update: bool = False) -> CxCConAbonos | None: ...
+    def obtener_por_venta(self, venta_id: UUID) -> CuentaPorCobrar | None: ...
+    def listar(
+        self,
+        *,
+        cliente_id: UUID | None,
+        estado: EstadoCxC | None,
+        vencimiento_desde: date | None,
+        vencimiento_hasta: date | None,
+        limit: int,
+        offset: int,
+        hoy: date,
+    ) -> CxCPagina: ...
+    def listar_por_cliente(
+        self, cliente_id: UUID, *, solo_activas: bool = False
+    ) -> list[CxCListItem]: ...
+    def registrar_abono(self, abono: AbonoCxC) -> None: ...

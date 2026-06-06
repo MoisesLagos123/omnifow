@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Pencil, RotateCcw, Trash2, Wallet } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Pencil, Receipt, RotateCcw, Trash2 } from "lucide-react";
 
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -8,11 +8,14 @@ import { Card } from "../../components/ui/Card";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
 import { Skeleton } from "../../components/ui/Skeleton";
+import { Table, type TableColumn } from "../../components/ui/Table";
 import { useToast } from "../../components/ui/Toast";
 import { RequirePermission } from "../../auth/RequirePermission";
 import { usePermission } from "../../auth/usePermission";
 import { clientesApi, type Cliente } from "../../api/clientes";
+import { cxcApi, type CxCListItem, ESTADO_CXC_LABELS } from "../../api/cxc";
 import { describeError } from "../../api/errorMessages";
+import { formatCLP, formatFechaSoloDia } from "../../lib/format";
 import { formatearRut } from "../administracion/rut";
 import { ROUTES } from "../../routePaths";
 import styles from "./ClientesPages.module.css";
@@ -29,6 +32,13 @@ export function ClienteDetallePage() {
   const [confirmDeact, setConfirmDeact] = useState(false);
   const [working, setWorking] = useState(false);
 
+  // CxC del cliente
+  const [cxcItems, setCxcItems] = useState<CxCListItem[] | null>(null);
+  const [cxcLoading, setCxcLoading] = useState(false);
+  const canCxCConsultar = usePermission("cxc.consultar");
+  const canCxCGestionar = usePermission("cxc.gestionar");
+  const canVerCxC = canCxCConsultar || canCxCGestionar;
+
   useEffect(() => {
     if (!id) return;
     const ctl = new AbortController();
@@ -42,6 +52,23 @@ export function ClienteDetallePage() {
       });
     return () => ctl.abort();
   }, [id, reloadTick]);
+
+  // Cargar CxC del cliente
+  useEffect(() => {
+    if (!id || !canVerCxC) return;
+    const ctl = new AbortController();
+    setCxcLoading(true);
+    cxcApi
+      .listarPorCliente(id, ctl.signal)
+      .then(setCxcItems)
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        // No bloquea la página si falla; solo queda null.
+        setCxcItems([]);
+      })
+      .finally(() => setCxcLoading(false));
+    return () => ctl.abort();
+  }, [id, canVerCxC, reloadTick]);
 
   function reload() {
     setReloadTick((t) => t + 1);
@@ -195,22 +222,121 @@ export function ClienteDetallePage() {
         <Skeleton height="300px" />
       )}
 
-      {/* Estado de cuenta — placeholder. TODO: habilitar con el módulo de
-          Cuentas por Cobrar (CxC). No implementar hasta entonces. */}
-      <section aria-labelledby="estado-cuenta-title">
-        <h2 id="estado-cuenta-title" className={styles.sectionTitle}>
-          Estado de cuenta
-        </h2>
-        <div className={styles.placeholderCard} aria-disabled="true">
-          <p className={styles.placeholderTitle}>
-            <Wallet size={18} aria-hidden="true" />
-            Próximamente
-          </p>
-          <p className={styles.placeholderText}>
-            Disponible cuando se habilite el módulo de Cuentas por Cobrar.
-          </p>
-        </div>
-      </section>
+      {/* Estado de cuenta — CxC del cliente */}
+      {canVerCxC && (
+        <section aria-labelledby="estado-cuenta-title">
+          <h2 id="estado-cuenta-title" className={styles.sectionTitle}>
+            Estado de cuenta
+          </h2>
+          {cxcLoading ? (
+            <Skeleton height="120px" />
+          ) : cxcItems && cxcItems.length > 0 ? (
+            <Card>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
+                <Receipt size={18} aria-hidden="true" />
+                <strong>Cuentas por cobrar</strong>
+              </div>
+              <Table<CxCListItem>
+                density="compact"
+                columns={[
+                  {
+                    key: "documento",
+                    header: "Documento",
+                    cell: (c) => (
+                      <Link
+                        to={ROUTES.CXC_DETALLE(c.id)}
+                        style={{ color: "var(--color-brand)" }}
+                      >
+                        {c.venta_tipo_documento} #{c.venta_numero_documento}
+                      </Link>
+                    ),
+                  },
+                  {
+                    key: "original",
+                    header: "Monto original",
+                    width: "130px",
+                    align: "right",
+                    cell: (c) => formatCLP(c.monto_original_clp),
+                  },
+                  {
+                    key: "saldo",
+                    header: "Saldo",
+                    width: "120px",
+                    align: "right",
+                    cell: (c) => (
+                      <span
+                        style={{
+                          color: c.monto_saldo_clp > 0 ? "var(--color-danger)" : "var(--color-text-muted)",
+                          fontWeight: c.monto_saldo_clp > 0 ? 600 : undefined,
+                        }}
+                      >
+                        {formatCLP(c.monto_saldo_clp)}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "vence",
+                    header: "Vencimiento",
+                    width: "140px",
+                    cell: (c) => (
+                      <span>
+                        {formatFechaSoloDia(c.fecha_vencimiento)}{" "}
+                        {c.dias_vencido > 0 && (
+                          <span style={{ color: "var(--color-danger)", fontWeight: 600, fontSize: "0.8rem" }}>
+                            Vencido {c.dias_vencido}d
+                          </span>
+                        )}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "estado",
+                    header: "Estado",
+                    width: "90px",
+                    cell: (c) => (
+                      <Badge
+                        variant={
+                          c.estado === "PAGADA"
+                            ? "success"
+                            : c.estado === "ANULADA"
+                              ? "neutral"
+                              : c.estado === "PARCIAL"
+                                ? "warning"
+                                : "info"
+                        }
+                      >
+                        {ESTADO_CXC_LABELS[c.estado]}
+                      </Badge>
+                    ),
+                  },
+                ] as TableColumn<CxCListItem>[]}
+                rows={cxcItems}
+                rowKey={(c) => c.id}
+                caption="Cuentas por cobrar del cliente"
+              />
+              <div
+                style={{
+                  marginTop: "var(--space-3)",
+                  textAlign: "right",
+                  fontSize: "0.9rem",
+                  color: "var(--color-text-muted)",
+                }}
+              >
+                Total adeudado:{" "}
+                <strong style={{ color: "var(--color-danger)" }}>
+                  {formatCLP(cxcItems.reduce((a, c) => a + c.monto_saldo_clp, 0))}
+                </strong>
+              </div>
+            </Card>
+          ) : (
+            <Card>
+              <p style={{ margin: 0, color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
+                Sin cuentas por cobrar para este cliente.
+              </p>
+            </Card>
+          )}
+        </section>
+      )}
 
       <ConfirmDialog
         open={confirmDeact}

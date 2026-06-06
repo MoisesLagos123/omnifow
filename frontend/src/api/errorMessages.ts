@@ -88,6 +88,20 @@ const CODE_MESSAGES: Record<string, string> = {
   ERR_CXP_YA_PAGADA: "Esta cuenta por pagar ya fue liquidada.",
   ERR_ABONO_INVALIDO:
     "El monto del abono no es válido (debe ser mayor a 0 y no superar el saldo).",
+  // Ventas a crédito
+  ERR_VENTA_CREDITO_REQUIERE_CLIENTE:
+    "La venta a crédito requiere identificar al cliente con RUT y razón social.",
+  ERR_VENTA_CREDITO_INVALIDA:
+    "La venta a crédito no es válida. Verifica los días de crédito (1-365) y el monto.",
+  ERR_VENTA_DESCUADRA_CON_CREDITO:
+    "La suma de pagos más el monto a crédito no coincide con el total de la venta.",
+  // CxC
+  ERR_CXC_INVALIDA:
+    "La cuenta por cobrar no está en un estado válido para esta operación.",
+  ERR_CXC_YA_PAGADA: "Esta cuenta por cobrar ya fue liquidada.",
+  ERR_CXC_NO_ENCONTRADA: "No se encontró la cuenta por cobrar.",
+  ERR_ABONO_CXC_INVALIDO:
+    "El monto del abono no es válido (debe ser mayor a 0 y no superar el saldo).",
   // Clientes
   ERR_CLIENTE_INVALIDO: "Los datos del cliente no son válidos.",
   ERR_CLIENTE_DUPLICADO: "Ya existe un cliente con ese RUT.",
@@ -474,6 +488,86 @@ export function extractAbonoInvalido(
 ): AbonoInvalidoDetails | null {
   if (!(err instanceof ApiError)) return null;
   if (err.code !== "ERR_ABONO_INVALIDO") return null;
+  const details = err.details;
+  if (!details || typeof details !== "object") return null;
+  const d = details as Record<string, unknown>;
+  const saldo =
+    typeof d.saldo_clp === "number" && Number.isFinite(d.saldo_clp)
+      ? d.saldo_clp
+      : null;
+  const intento =
+    typeof d.monto_intentado_clp === "number" &&
+    Number.isFinite(d.monto_intentado_clp)
+      ? d.monto_intentado_clp
+      : null;
+  if (saldo === null || intento === null) return null;
+  return { saldo_clp: saldo, monto_intentado_clp: intento };
+}
+
+/** Detalles devueltos por `ERR_VENTA_DESCUADRA_CON_CREDITO`. */
+export interface VentaDescuadraCreditoDetails {
+  total_clp: number;
+  total_pagado_clp: number;
+  monto_credito_clp: number;
+  diferencia_clp: number;
+}
+
+/**
+ * Extrae los detalles de un error `ERR_VENTA_DESCUADRA_CON_CREDITO`. Devuelve
+ * `null` si el error no es de ese tipo o los campos no son numéricos.
+ */
+export function extractVentaDescuadraCredito(
+  err: unknown
+): VentaDescuadraCreditoDetails | null {
+  if (!(err instanceof ApiError)) return null;
+  if (err.code !== "ERR_VENTA_DESCUADRA_CON_CREDITO") return null;
+  const details = err.details;
+  if (!details || typeof details !== "object") return null;
+  const d = details as Record<string, unknown>;
+  const total =
+    typeof d.total_clp === "number" && Number.isFinite(d.total_clp)
+      ? d.total_clp
+      : null;
+  const pagado =
+    typeof d.total_pagado_clp === "number" &&
+    Number.isFinite(d.total_pagado_clp)
+      ? d.total_pagado_clp
+      : null;
+  const credito =
+    typeof d.monto_credito_clp === "number" &&
+    Number.isFinite(d.monto_credito_clp)
+      ? d.monto_credito_clp
+      : null;
+  const diff =
+    typeof d.diferencia_clp === "number" && Number.isFinite(d.diferencia_clp)
+      ? d.diferencia_clp
+      : null;
+  if (total === null || pagado === null || credito === null || diff === null)
+    return null;
+  return {
+    total_clp: total,
+    total_pagado_clp: pagado,
+    monto_credito_clp: credito,
+    diferencia_clp: diff,
+  };
+}
+
+/** Detalles devueltos por `ERR_ABONO_CXC_INVALIDO`. */
+export interface AbonoCxCInvalidoDetails {
+  saldo_clp: number;
+  monto_intentado_clp: number;
+}
+
+/**
+ * Extrae los detalles de un error `ERR_ABONO_CXC_INVALIDO` (saldo disponible
+ * vs monto intentado). Devuelve `null` si el error no es de ese tipo o los
+ * campos no son numéricos.
+ */
+export function extractAbonoCxCInvalido(
+  err: unknown
+): AbonoCxCInvalidoDetails | null {
+  if (!(err instanceof ApiError)) return null;
+  if (err.code !== "ERR_ABONO_CXC_INVALIDO") return null;
   const details = err.details;
   if (!details || typeof details !== "object") return null;
   const d = details as Record<string, unknown>;

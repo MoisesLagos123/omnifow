@@ -1688,6 +1688,8 @@ def build_procesar_venta_uc(
     from erp.application.services.asignador_folios import AsignadorFoliosSQL
     from erp.infrastructure.audit.audit_writer import SqlAuditWriter
 
+    from erp.adapters.repositories.sql.cxc_repository import SqlCxCRepository
+
     uow = _build_uow(session_factory)
     return ProcesarVentaUseCase(
         uow=uow,
@@ -1711,6 +1713,7 @@ def build_procesar_venta_uc(
         ),
         audit=SqlAuditWriter(uow),
         clock=clock,
+        cxc=SqlCxCRepository(uow),
     )
 
 
@@ -1846,6 +1849,10 @@ from erp.application.use_cases.compras.obtener_proveedor import ObtenerProveedor
 from erp.application.use_cases.compras.reactivar_proveedor import ReactivarProveedorUseCase
 from erp.application.use_cases.compras.registrar_abono_cxp import RegistrarAbonoCxPUseCase
 from erp.application.use_cases.compras.registrar_compra import RegistrarCompraUseCase
+from erp.application.use_cases.cxc.listar_cxc import ListarCxCUseCase
+from erp.application.use_cases.cxc.listar_cxc_por_cliente import ListarCxCPorClienteUseCase
+from erp.application.use_cases.cxc.obtener_cxc import ObtenerCxCUseCase
+from erp.application.use_cases.cxc.registrar_abono_cxc import RegistrarAbonoCxCUseCase
 
 
 def build_crear_proveedor_uc(
@@ -2041,3 +2048,49 @@ def build_obtener_cxp_uc(
 
     uow = _build_uow(session_factory)
     return ObtenerCxPUseCase(uow=uow, cxp=SqlCxPRepository(uow))
+
+
+# -------- Builders CxC --------
+
+def build_listar_cxc_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> ListarCxCUseCase:
+    from erp.adapters.repositories.sql.cxc_repository import SqlCxCRepository
+
+    uow = _build_uow(session_factory)
+    return ListarCxCUseCase(uow=uow, cxc=SqlCxCRepository(uow), clock=clock)
+
+
+def build_obtener_cxc_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ObtenerCxCUseCase:
+    from erp.adapters.repositories.sql.cxc_repository import SqlCxCRepository
+
+    uow = _build_uow(session_factory)
+    return ObtenerCxCUseCase(uow=uow, cxc=SqlCxCRepository(uow))
+
+
+def build_registrar_abono_cxc_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+    clock: Clock = Depends(get_clock),
+) -> RegistrarAbonoCxCUseCase:
+    from erp.adapters.repositories.sql.cxc_repository import SqlCxCRepository
+    from erp.infrastructure.audit.audit_writer import SqlAuditWriter
+
+    uow = _build_uow(session_factory)
+    return RegistrarAbonoCxCUseCase(
+        uow=uow,
+        cxc=SqlCxCRepository(uow),
+        audit=SqlAuditWriter(uow),
+        clock=clock,
+    )
+
+
+def build_listar_cxc_por_cliente_uc(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> ListarCxCPorClienteUseCase:
+    from erp.adapters.repositories.sql.cxc_repository import SqlCxCRepository
+
+    uow = _build_uow(session_factory)
+    return ListarCxCPorClienteUseCase(uow=uow, cxc=SqlCxCRepository(uow))

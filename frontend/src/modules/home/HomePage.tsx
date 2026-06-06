@@ -22,6 +22,7 @@ import {
   CLIENTE_PERMS,
   COMPRA_CONSULTAR_PERMS,
   CXP_CONSULTAR_PERMS,
+  CXC_CONSULTAR_PERMS,
   INV_PERMS,
   POS_PERMS,
 } from "../../auth/menuPermissions";
@@ -112,6 +113,13 @@ const QUICK_LINKS: QuickLink[] = [
     description: "Saldos pendientes con proveedores.",
     icon: <CreditCard size={20} aria-hidden="true" />,
     permission: CXP_CONSULTAR_PERMS,
+  },
+  {
+    to: ROUTES.CXC,
+    label: "Cuentas por cobrar",
+    description: "Saldos de clientes por ventas a crédito.",
+    icon: <Receipt size={20} aria-hidden="true" />,
+    permission: CXC_CONSULTAR_PERMS,
   },
 ];
 

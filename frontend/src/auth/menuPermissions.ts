@@ -74,3 +74,15 @@ export const CXP_CONSULTAR_PERMS = [
 
 /** Gestión de CxP (registrar abonos). */
 export const CXP_GESTIONAR_PERMS = ["cxp.gestionar"] as const;
+
+/** Permiso para vender a crédito. */
+export const VENTA_CREDITO_PERMS = ["venta.credito"] as const;
+
+/** Consulta de CxC — clientes (lectura). */
+export const CXC_CONSULTAR_PERMS = [
+  "cxc.consultar",
+  "cxc.gestionar",
+] as const;
+
+/** Gestión de CxC — registrar abonos de clientes. */
+export const CXC_GESTIONAR_PERMS = ["cxc.gestionar"] as const;

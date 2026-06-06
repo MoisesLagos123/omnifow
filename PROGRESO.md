@@ -12,6 +12,30 @@ Checklist vivo de tareas por módulo. Marcar `- [x]` al completar. Agregar tarea
 - El producto se llama **OMNIFOW** (NO Mini ERP). El directorio del repo sigue siendo `mini erp` por historia; **no renombrar** para no romper rutas absolutas.
 - Logo: archivo PNG en `frontend/public/logo.png` (favicon + logo del header/login). Referenciado como `/logo.png`.
 
+### Última actividad confirmada (2026-06-06) — CxC (Cuentas por Cobrar) + Venta a crédito
+
+Cierra el ciclo financiero de ventas: ahora se pueden vender boletas/facturas a crédito desde el POS y gestionar el cobro posterior con abonos. **2do experimento multi-agente paralelo** sobre el contrato `.claude/contracts/CXC_CONTRACT.md` (espejo casi exacto de CxP). **349 backend / 200 frontend tests verdes · mypy 0 errores · tsc clean · migración 0012 aplicada**.
+
+**Backend** (2 entidades nuevas + 4 use cases + migración 0012):
+- Entidades: `CuentaPorCobrar` (con `EstadoCxC`, método `aplicar_abono`), `AbonoCxC` (reutiliza `TipoAbono` de CxP), `CondicionPagoVenta` (CONTADO/CREDITO) en `venta.py`.
+- 7 excepciones nuevas: `ERR_VENTA_CREDITO_REQUIERE_CLIENTE`, `ERR_VENTA_CREDITO_INVALIDA`, `ERR_VENTA_DESCUADRA_CON_CREDITO`, `ERR_CXC_INVALIDA`, `ERR_CXC_YA_PAGADA`, `ERR_CXC_NO_ENCONTRADA`, `ERR_ABONO_CXC_INVALIDO`.
+- `ProcesarVentaUseCase` extendido (con defaults seguros que mantienen el comportamiento previo CONTADO): campos `condicion_pago`, `monto_credito_clp`, `dias_credito` al Command; permiso extra `venta.credito`; crea `CuentaPorCobrar` dentro del UoW si CREDITO; `cxc_id` en el Result. Audit metadata incluye `condicion_pago` y `cxc_id`.
+- 4 use cases CxC: `RegistrarAbonoCxCUseCase` (lock pesimista + transición de estado), `ListarCxCUseCase` (paginado, filtros cliente/estado/vencimiento, calcula `dias_vencido`), `ObtenerCxCUseCase` (con abonos), `ListarCxCPorClienteUseCase` (estado de cuenta del cliente).
+- `CuentaPorCobrarRepository` port + `SqlCxCRepository` (JOIN a clientes + outerjoin a documentos_tributarios).
+- 4 endpoints: `GET /cxc`, `GET /cxc/{id}`, `POST /cxc/{id}/abonos`, `GET /clientes/{cliente_id}/cxc`.
+- Migración **0012**: tablas `cuentas_por_cobrar` + `abonos_cxc` + 3 permisos seedeados (`venta.credito`, `cxc.gestionar`, `cxc.consultar`) + asignaciones a perfiles base.
+- 16 tests nuevos: 9 en `test_cxc_use_cases.py` + 7 en `test_procesar_venta_credito.py` (incluyendo que CONTADO sigue funcionando intacto).
+
+**Frontend** (1 cliente API + 2 páginas + cambio invasivo en POS):
+- `api/cxc.ts` con tipos, enums con labels, métodos `listar/obtener/registrarAbono/listarPorCliente` (con `Idempotency-Key` + `AbortSignal`).
+- `api/ventas.ts` extendido: `CrearVentaPayload` con `condicion_pago` / `monto_credito_clp` / `dias_credito`; `VentaConfirmadaResponse` con `cxc_id` / `cxc_fecha_vencimiento` / `cxc_monto_clp`.
+- Páginas: `CxCPage` (lista con badges vencido/por-vencer + filtros + total saldo) y `CxCDetallePage` (header cliente+venta + montos con ProgressBar % pagado + lista abonos + modal de abono validado contra saldo).
+- **`PosPage.tsx` extendido**: toggle CONTADO/CRÉDITO gated por permiso `venta.credito` (oculto si no lo tiene), campo "Días crédito" (1-365, default 30) visible en CRÉDITO, "Saldo a crédito" en vivo en `TotalsPanel`, validaciones extendidas en `motivoNoPodemosConfirmar`, warning visible cuando cliente tiene CxC vencidas, modal de éxito con saldo + vencimiento + link a la CxC creada.
+- **`ClienteDetallePage.tsx`**: reemplaza el placeholder "Estado de cuenta" por tabla compact con CxC del cliente + total adeudado al pie.
+- Sidebar: item "Cuentas por cobrar" en Catálogo (`Receipt` icon), gated por `CXC_CONSULTAR_PERMS`. HomePage: quick-link nuevo.
+- Mensajes amigables: `ERR_VENTA_CREDITO_*`, `ERR_VENTA_DESCUADRA_CON_CREDITO` con helper, `ERR_CXC_*`, `ERR_ABONO_CXC_INVALIDO` con helper.
+- 10 tests Vitest: `cxcClient` (4), `CxCDetallePage` (2), `PosPage.credito` (4 — toggle oculto sin permiso, visible con permiso, disabled sin cliente, payload de submit correcto).
+
 ### Última actividad confirmada (2026-06-05) — Compras + Proveedores + CxP
 
 Cierra el ciclo de costos del negocio. Implementado con **2 agentes Sonnet en paralelo** (backend + frontend) sobre el contrato compartido en `.claude/contracts/COMPRAS_CONTRACT.md`. **333 backend / 190 frontend tests verdes · mypy 0 errores · tsc clean**.
@@ -150,11 +174,11 @@ Sesión enfocada en calidad visual / accesibilidad / consistencia. Cero cambios 
 5. **Rebrand**: Mini ERP → OMNIFOW (UI, comprobantes, package.json, favicon, título).
 6. **SII en observación**: integración real con SII está documentada pero NO implementada. `estado_sii=PENDIENTE` siempre. Ver bloque "🔭 EN OBSERVACIÓN" al final.
 
-### Estado técnico confirmado (2026-06-05)
-- Backend: `mypy --strict` ✅ 0 errores · 286 archivos · **333 tests verde** (303 previos + 30 compras/cxp)
-- Frontend: `tsc` ✅ · **190 tests verde** (170 previos + 20 compras/cxp clients + pages)
-- Migración Alembic actual: **`0011_compras_proveedores_cxp` (head)** — 5 tablas + 7 permisos seed + asignaciones a perfiles
-- **Multi-agente**: módulo Compras implementado por 2 agentes Sonnet en paralelo sobre contrato `.claude/contracts/COMPRAS_CONTRACT.md` — backend y frontend completamente sincronizados sin conflicto
+### Estado técnico confirmado (2026-06-06)
+- Backend: `mypy --strict` ✅ 0 errores · 298 archivos · **349 tests verde** (333 previos + 16 cxc/venta-credito)
+- Frontend: `tsc` ✅ · **200 tests verde** (190 previos + 10 cxc/credito en POS)
+- Migración Alembic actual: **`0012_cxc_venta_credito` (head)** — 2 tablas + 3 permisos seed + asignaciones a perfiles
+- **2 experimentos multi-agente exitosos**: módulos Compras (0011) y CxC (0012) con 2 agentes Sonnet paralelos cada uno sobre contratos en `.claude/contracts/*.md` — backend y frontend sincronizados sin conflictos en ambas iteraciones
 - **Repo GitHub público**: https://github.com/MoisesLagos123/omnifow — branch `main`, "All Rights Reserved" en README (portafolio, no uso libre).
 - Postgres en Docker · 9 módulos full-stack funcionando
 - Bug fix backend (2026-06-04): FK violation al crear Usuario (`usuario_perfil` insert antes de flush) → arreglado en `SqlUsuarioRepository.guardar` con `session.flush()` (mismo patrón que `SqlVentaRepository`)
@@ -187,14 +211,16 @@ Credenciales seed:
   La arquitectura ya está lista — solo falta el adapter + tests.
 
 ### Próximo paso recomendado (orden sugerido por valor)
-1. **Cuentas por Cobrar (CxC)** (🟡 medio — espejo de CxP, habilita ventas a crédito)
-2. **Configuración global SII** (🟡 medio — prerrequisito para integración real con SII)
-3. **Configuración SMTP real** (🟢 chico — adapter `SmtpEmailSender` + tests)
-4. ~~Refresh token + Logout~~ ✅ completado 2026-06-05
-5. ~~Audit Log viewer~~ ✅ completado 2026-06-05
-6. ~~Cambiar contraseña~~ ✅ completado 2026-06-05
-7. ~~Forgot password + Reset por email~~ ✅ completado 2026-06-05 — usa `LoggingEmailSender`
-8. ~~Compras + Proveedores + CxP~~ ✅ completado 2026-06-05 — multi-agente paralelo
+1. **Configuración global SII** (🟡 medio — prerrequisito para integración real con SII)
+2. **Configuración SMTP real** (🟢 chico — adapter `SmtpEmailSender` + tests) — habilita reset password end-to-end
+3. **Devoluciones parciales** (🟡 medio — hoy se anula la venta completa)
+4. **Primer deploy** (🟢 chico — seguir `docs/deploy/GUIA_DEPLOY.md` local)
+5. ~~Refresh token + Logout~~ ✅ completado 2026-06-05
+6. ~~Audit Log viewer~~ ✅ completado 2026-06-05
+7. ~~Cambiar contraseña~~ ✅ completado 2026-06-05
+8. ~~Forgot password + Reset por email~~ ✅ completado 2026-06-05 — usa `LoggingEmailSender`
+9. ~~Compras + Proveedores + CxP~~ ✅ completado 2026-06-05 — multi-agente paralelo
+10. ~~CxC + Venta a crédito~~ ✅ completado 2026-06-06 — multi-agente paralelo
 
 > Para cualquiera de estos, el patrón de trabajo es: lanzar agente backend + frontend en paralelo con el contrato pactado, validar con `mypy`/`pytest` y `tsc`/`build`/`test`, aplicar migración + seed, smoke curl. Hay ~15 ejemplos previos en este PROGRESO.md.
 
@@ -253,7 +279,7 @@ Buscar en el archivo: "TODO" y "fuera de alcance" para la lista completa. Los m�
 | ✅ done | ~~**Forgot password + Reset por email**~~ | 🟢 chico | Completado 2026-06-05 — usa `LoggingEmailSender` (dev). SMTP real pendiente ⬇ |
 | 🟢 pendiente | **Configuración SMTP real** | 🟢 chico | `SmtpEmailSender` + env vars. Hoy el reset usa logging-only. Arquitectura lista, solo falta el adapter |
 | ✅ done | ~~**Compras + Proveedores + CxP**~~ | 🟡 medio | Completado 2026-06-05 — 5 entidades + 13 use cases + 8 endpoints + 8 páginas + migración 0011. Ciclo de costos cerrado |
-| 🟡 medio | **Cuentas por Cobrar** (CxC) | 🟡 medio | Habilita ventas parcialmente pagadas a crédito |
+| ✅ done | ~~**Cuentas por Cobrar (CxC) + venta a crédito**~~ | 🟡 medio | Completado 2026-06-06 — 2 entidades + 4 use cases + extensión POS + 2 páginas + migración 0012. Ciclo financiero cerrado |
 | 🟢 nice-to-have | **Configuración global SII** (IVA, datos emisor, certificado) | 🟡 medio | Prerrequisito para integración real con SII |
 | 🟢 nice-to-have | **Devoluciones parciales** | 🟡 medio | Hoy se anula la venta completa |
 | 🔭 **en observación** | **Firma electrónica SII (DTE real)** — ver bloque dedicado al final | 🔴 grande (multi-fase) | Hoy `estado_sii=PENDIENTE`; entidad lista. NO se factura/boleta legalmente hasta que se complete |

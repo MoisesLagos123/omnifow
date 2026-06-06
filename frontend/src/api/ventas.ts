@@ -93,6 +93,12 @@ export interface VentaConfirmadaResponse {
   detalles: DetalleVenta[];
   pagos: Pago[];
   documento: DocumentoTributario;
+  /** Presente si la venta fue a crédito y se creó una CxC. */
+  cxc_id?: string | null;
+  /** Fecha de vencimiento de la CxC (ISO date string). */
+  cxc_fecha_vencimiento?: string | null;
+  /** Monto a crédito en CLP. */
+  cxc_monto_clp?: number | null;
 }
 
 // ---------- Payloads ----------
@@ -125,6 +131,12 @@ export interface CrearVentaPayload {
   // El backend espera `items` (lista de líneas de la venta).
   items: CrearVentaDetallePayload[];
   pagos: CrearVentaPagoPayload[];
+  /** Condición de pago: CONTADO (default) o CREDITO. */
+  condicion_pago?: "CONTADO" | "CREDITO";
+  /** Monto a crédito en CLP. Solo si condicion_pago = CREDITO. */
+  monto_credito_clp?: number;
+  /** Días de crédito (1-365). Solo si condicion_pago = CREDITO. */
+  dias_credito?: number;
 }
 
 export interface AnularVentaPayload {

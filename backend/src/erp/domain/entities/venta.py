@@ -28,6 +28,11 @@ class EstadoVenta(str, Enum):
     ANULADA = "ANULADA"
 
 
+class CondicionPagoVenta(str, Enum):
+    CONTADO = "CONTADO"
+    CREDITO = "CREDITO"
+
+
 _TIPOS_DOC_VENTA = {TipoDocumento.BOLETA, TipoDocumento.FACTURA}
 
 
