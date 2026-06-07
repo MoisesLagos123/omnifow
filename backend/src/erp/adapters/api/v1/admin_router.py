@@ -498,13 +498,19 @@ def asignar_sucursales_a_usuario(
 
 def _audit_entry_to_response(entry: object) -> AuditLogResponse:
     # entry es un `AuditLogEntry` (dataclass) — mapeo por atributos.
+    # NOTA: la columna `ip` en Postgres es tipo `inet`, que SQLAlchemy
+    # devuelve como `ipaddress.IPv4Address`/`IPv6Address`. El schema
+    # Pydantic espera `str | None`, así que lo serializamos explícitamente
+    # acá. En SQLite (tests) viene ya como `str`.
+    ip_raw = entry.ip  # type: ignore[attr-defined]
+    ip_str: str | None = str(ip_raw) if ip_raw is not None else None
     return AuditLogResponse(
         id=entry.id,  # type: ignore[attr-defined]
         ts=entry.ts,  # type: ignore[attr-defined]
         usuario_id=entry.usuario_id,  # type: ignore[attr-defined]
         usuario_nombre=entry.usuario_nombre,  # type: ignore[attr-defined]
         usuario_email=entry.usuario_email,  # type: ignore[attr-defined]
-        ip=entry.ip,  # type: ignore[attr-defined]
+        ip=ip_str,
         user_agent=entry.user_agent,  # type: ignore[attr-defined]
         accion=entry.accion,  # type: ignore[attr-defined]
         recurso_tipo=entry.recurso_tipo,  # type: ignore[attr-defined]
