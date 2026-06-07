@@ -141,7 +141,7 @@ export function ForgotPasswordPage() {
         </Card>
 
         <p className={styles.footer}>
-          OMNIFOW · Sistema POS · Chile
+          OMNIFLOW · Sistema POS · Chile
         </p>
       </div>
     </main>

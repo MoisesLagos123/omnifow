@@ -96,7 +96,7 @@ export function LoginPage() {
               <img src="/logo.png" alt="" className={styles.brandMark} />
             </div>
             <h1 id="login-title" className={styles.title}>
-              OMNIFOW
+              OMNIFLOW
             </h1>
             <p className={styles.subtitle}>Inicia sesión para continuar</p>
           </header>
@@ -192,7 +192,7 @@ export function LoginPage() {
         </Card>
 
         <p className={styles.footer}>
-          OMNIFOW &middot; Sistema POS &middot; Chile
+          OMNIFLOW &middot; Sistema POS &middot; Chile
         </p>
       </div>
     </main>

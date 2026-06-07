@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     # Dirección remitente (RFC 5322). Para Resend gratis: usar el dominio
     # compartido `onboarding@resend.dev` mientras no tengas dominio propio.
     email_from: str = Field(
-        "OMNIFOW <onboarding@resend.dev>", alias="EMAIL_FROM"
+        "OMNIFLOW <onboarding@resend.dev>", alias="EMAIL_FROM"
     )
 
     @property

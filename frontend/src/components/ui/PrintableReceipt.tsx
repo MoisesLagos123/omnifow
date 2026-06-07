@@ -48,7 +48,7 @@ export function PrintableReceipt({
     <div className={styles.wrapper}>
       <div className={styles.header}>
         <p className={styles.emisorNombre}>
-          {sucursal?.nombre ?? "OMNIFOW"}
+          {sucursal?.nombre ?? "OMNIFLOW"}
         </p>
         {sucursal?.direccion && (
           <p className={styles.emisorMeta}>

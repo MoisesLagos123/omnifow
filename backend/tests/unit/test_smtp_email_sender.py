@@ -23,7 +23,7 @@ def sender() -> SmtpEmailSender:
         port=587,
         user="test_user",
         password="test_password",
-        from_addr="OMNIFOW <noreply@test.local>",
+        from_addr="OMNIFLOW <noreply@test.local>",
         use_tls=True,
         timeout_seconds=5,
     )
@@ -72,8 +72,8 @@ def test_email_tiene_subject_from_to_y_contenido_esperado(sender: SmtpEmailSende
         )
 
     msg: EmailMessage = mock_smtp_instance.send_message.call_args.args[0]
-    assert msg["Subject"] == "Recupera tu contraseña — OMNIFOW"
-    assert msg["From"] == "OMNIFOW <noreply@test.local>"
+    assert msg["Subject"] == "Recupera tu contraseña — OMNIFLOW"
+    assert msg["From"] == "OMNIFLOW <noreply@test.local>"
     assert msg["To"] == "ada@erp.cl"
     # Contenido plain text incluye nombre + link + TTL.
     payloads = [part.get_content() for part in msg.iter_parts()]

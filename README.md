@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="icono.png" alt="OMNIFOW" width="96" height="96" />
+  <img src="icono.png" alt="OMNIFLOW" width="96" height="96" />
 
-  # OMNIFOW
+  # OMNIFLOW
 
   **Sistema POS multi-sucursal para retail chileno con módulo financiero integrado.**
 
@@ -24,7 +24,7 @@
 > revisión, estudio y demostración. **No es software de uso libre** — ver la
 > sección [Licencia](#licencia) al final.
 
-OMNIFOW es un sistema de **Punto de Venta multi-sucursal** desarrollado bajo
+OMNIFLOW es un sistema de **Punto de Venta multi-sucursal** desarrollado bajo
 **Clean Architecture** estricta, con cobertura de tests del 100% del dominio,
 tipado estático completo (`mypy --strict`) y un módulo financiero/contable
 integrado pensado para retail chileno.
@@ -184,7 +184,7 @@ npx tsc --noEmit                              # clean
 ## Estructura del proyecto
 
 ```
-omnifow/
+omniflow/
 ├── backend/
 │   ├── src/erp/
 │   │   ├── domain/              # Entidades + value objects + reglas puras
@@ -280,7 +280,7 @@ omnifow/
 
 ## Roadmap a producción
 
-Para operar legalmente con OMNIFOW en Chile faltan tres bloques:
+Para operar legalmente con OMNIFLOW en Chile faltan tres bloques:
 
 - **Integración real SII** (firma electrónica DTE, generación XML conforme XSD,
   envío al SII en certificación, set de pruebas, salto a producción). Ver

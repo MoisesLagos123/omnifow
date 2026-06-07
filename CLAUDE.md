@@ -1,6 +1,6 @@
-# OMNIFOW — Sistema POS con Módulo Financiero
+# OMNIFLOW — Sistema POS con Módulo Financiero
 
-> **Nota de naming**: el producto se llama **OMNIFOW** (el directorio del repo todavía dice `mini erp` por historia; no se renombra para no romper rutas). En la UI, comprobantes y comunicación con el usuario siempre se usa **OMNIFOW**.
+> **Nota de naming**: el producto se llama **OMNIFLOW** (el directorio del repo todavía dice `mini erp` por historia; no se renombra para no romper rutas). En la UI, comprobantes y comunicación con el usuario siempre se usa **OMNIFLOW**.
 
 Sistema de Punto de Venta (POS) escalable con módulo financiero/contable integrado, diseñado bajo principios de Clean Architecture y SOLID.
 

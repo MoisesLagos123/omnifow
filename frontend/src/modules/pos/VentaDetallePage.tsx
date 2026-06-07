@@ -157,7 +157,7 @@ export function VentaDetallePage() {
   const sucursalParaImpresion = useMemo(() => {
     if (!data) return null;
     return {
-      nombre: sucursalNombre ?? "OMNIFOW",
+      nombre: sucursalNombre ?? "OMNIFLOW",
       direccion: null,
       comuna: null,
       region: null,

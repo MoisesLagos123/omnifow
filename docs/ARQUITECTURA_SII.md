@@ -373,7 +373,7 @@ except Exception as exc:
 - **Comunicación**: HTTP REST (simple) o cola tipo Redis/RabbitMQ (más resiliente). Empezar con HTTP, migrar a cola si el volumen lo amerita.
 - **Worker de polling**: cronjob interno con APScheduler, o servicio separado. Por simplicidad, APScheduler dentro del mismo proceso FastAPI.
 - **Almacenamiento del XML firmado**: ¿en Postgres como BYTEA o en S3/object storage? Postgres está bien hasta ~50k DTEs/mes. Después migrar a S3.
-- **Multi-tenancy futuro**: si en algún momento OMNIFOW atiende a múltiples contribuyentes, el `sii-service` debe ser multi-tenant (un cert por tenant). Diseño actual asume single-tenant.
+- **Multi-tenancy futuro**: si en algún momento OMNIFLOW atiende a múltiples contribuyentes, el `sii-service` debe ser multi-tenant (un cert por tenant). Diseño actual asume single-tenant.
 - **Cert en HSM**: para mayor seguridad en producción, el cert puede vivir en un HSM (Hardware Security Module). El `sii-service` se conecta vía PKCS#11. Decisión: implementar primero con cert en archivo, migrar a HSM si el cliente lo exige.
 
 ## 13. Seguridad

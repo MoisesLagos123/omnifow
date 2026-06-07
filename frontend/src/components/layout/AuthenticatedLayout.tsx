@@ -151,14 +151,14 @@ export function AuthenticatedLayout() {
               <Menu size={20} aria-hidden="true" />
             )}
           </button>
-          <Link to={ROUTES.HOME} className={styles.brand} aria-label="OMNIFOW — Inicio">
+          <Link to={ROUTES.HOME} className={styles.brand} aria-label="OMNIFLOW — Inicio">
             <img
               src="/logo.png"
               alt=""
               className={styles.brandMark}
               aria-hidden="true"
             />
-            <span className={styles.brandName}>OMNIFOW</span>
+            <span className={styles.brandName}>OMNIFLOW</span>
           </Link>
         </div>
 

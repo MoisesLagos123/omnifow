@@ -184,7 +184,7 @@ export function ResetPasswordPage() {
             </Button>
           </form>
         </Card>
-        <p className={styles.footer}>OMNIFOW · Sistema POS · Chile</p>
+        <p className={styles.footer}>OMNIFLOW · Sistema POS · Chile</p>
       </div>
     </main>
   );

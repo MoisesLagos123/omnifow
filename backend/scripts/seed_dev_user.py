@@ -19,8 +19,8 @@ from erp.infrastructure.db.models.perfil import PerfilORM
 from erp.infrastructure.db.models.usuario import UsuarioORM
 from erp.infrastructure.db.models.usuario_perfil import usuario_perfil_table
 
-EMAIL = "admin@minierp.cl"
-PASSWORD = "Admin12345!"
+EMAIL = "moises.lagos.f@gmail.com"
+PASSWORD = "=bn|C&vndvn:$R>T)TN@]hXD{@diK#yvpkV8F%"
 RUT_VALOR = "11111111-1"
 NOMBRE = "Administrador Dev"
 PERFIL_NOMBRE = "Sysadmin"

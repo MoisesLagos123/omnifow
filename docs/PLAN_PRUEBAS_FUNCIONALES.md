@@ -1,4 +1,4 @@
-# Plan de Pruebas Funcionales — OMNIFOW
+# Plan de Pruebas Funcionales — OMNIFLOW
 
 ---
 
@@ -8,12 +8,12 @@
 |---|---|
 | Versión del documento | 1.0 |
 | Fecha | 2026-06-06 |
-| Autores | Equipo QA OMNIFOW |
+| Autores | Equipo QA OMNIFLOW |
 | Estado | Borrador inicial |
 
 ### 0.1 Alcance
 
-Este plan cubre las pruebas funcionales manuales de los módulos full-stack implementados en OMNIFOW a la fecha de este documento:
+Este plan cubre las pruebas funcionales manuales de los módulos full-stack implementados en OMNIFLOW a la fecha de este documento:
 
 - **Autenticación**: Login, Logout, Refresh token, Cambiar contraseña, Forgot/Reset password.
 - **Administración**: Usuarios, Perfiles, Permisos, Sucursales, Cajas, Rangos de folios, Audit log.
@@ -29,7 +29,7 @@ Este plan cubre las pruebas funcionales manuales de los módulos full-stack impl
 
 ### 0.2 Fuera de alcance
 
-- Firma electrónica XML conforme SII (DTE real). Corresponde al microservicio `omnifow-sii` (no implementado). El campo `estado_sii` siempre es `PENDIENTE` en el sistema actual.
+- Firma electrónica XML conforme SII (DTE real). Corresponde al microservicio `omniflow-sii` (no implementado). El campo `estado_sii` siempre es `PENDIENTE` en el sistema actual.
 - Envío real de correos SMTP (en entorno local, el email usa `LoggingEmailSender` que escribe el link al log de uvicorn; en staging/prod se activa `EMAIL_BACKEND=smtp`).
 - Persistencia formal de `Idempotency-Key` en tabla dedicada (actualmente el header se acepta pero no deduplica en base de datos).
 - Tests de rendimiento o carga.
@@ -38,7 +38,7 @@ Este plan cubre las pruebas funcionales manuales de los módulos full-stack impl
 
 ### 0.3 Roles requeridos para ejecutar el plan
 
-| Rol tester | Perfil OMNIFOW necesario | Descripción |
+| Rol tester | Perfil OMNIFLOW necesario | Descripción |
 |---|---|---|
 | Sysadmin | Sysadmin | Acceso total. Configura datos base, usuarios semilla y sucursales. |
 | Administrador | Administrador | Gestión de catálogos, precios y proveedores. |
@@ -154,11 +154,11 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 | Email | Contraseña | Perfil | Sucursales asignadas | Notas |
 |---|---|---|---|---|
 | admin@minierp.cl | Admin12345! | Sysadmin | Todas (sin restricción) | Usuario generado por `seed_dev_user.py`. |
-| jefe@omnifow.cl | Jefe12345! | Jefe de Sucursal | Casa Matriz | Crear manualmente desde el panel Admin. |
-| cajero@omnifow.cl | Cajero12345! | Vendedor / Cajero | Casa Matriz | Crear manualmente. |
-| cajero2@omnifow.cl | Cajero12345! | Vendedor / Cajero | Sucursal 2 | Para pruebas multi-sucursal. |
-| contador@omnifow.cl | Conta12345! | Contador | Todas | Para pruebas de reportes y CxC/CxP. |
-| reponedor@omnifow.cl | Repo12345! | Reponedor | Casa Matriz | Para pruebas de recepción y guías de despacho. |
+| jefe@omniflow.cl | Jefe12345! | Jefe de Sucursal | Casa Matriz | Crear manualmente desde el panel Admin. |
+| cajero@omniflow.cl | Cajero12345! | Vendedor / Cajero | Casa Matriz | Crear manualmente. |
+| cajero2@omniflow.cl | Cajero12345! | Vendedor / Cajero | Sucursal 2 | Para pruebas multi-sucursal. |
+| contador@omniflow.cl | Conta12345! | Contador | Todas | Para pruebas de reportes y CxC/CxP. |
+| reponedor@omniflow.cl | Repo12345! | Reponedor | Casa Matriz | Para pruebas de recepción y guías de despacho. |
 
 ### 3.2 Sucursales y cajas
 
@@ -209,13 +209,13 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
   - Sistema corriendo en http://localhost:5173 (frontend) y http://localhost:8000 (backend).
 - **Pasos**:
   1. Abrir el navegador en http://localhost:5173.
-  2. Verificar que se muestra la pantalla de Login con el logo OMNIFOW.
+  2. Verificar que se muestra la pantalla de Login con el logo OMNIFLOW.
   3. Ingresar email `admin@minierp.cl`.
   4. Ingresar contraseña `Admin12345!`.
   5. Hacer clic en "Iniciar sesión".
 - **Resultado esperado**:
   - Redirige a `/` (dashboard).
-  - El header muestra el nombre del usuario (ej. "Admin OMNIFOW").
+  - El header muestra el nombre del usuario (ej. "Admin OMNIFLOW").
   - El sidebar muestra todos los módulos (Sysadmin tiene acceso total).
   - En DevTools → Application → localStorage existe `mini-erp-theme` y el cliente HTTP tiene acceso token válido (verificar que una petición a `/api/v1/admin/usuarios` devuelve 200 con `Authorization: Bearer ...`).
 - **Criterio de aceptación**: El dashboard carga en menos de 3 segundos sin errores en consola del navegador.
@@ -225,10 +225,10 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 #### AUTH-02: Login fallido con contraseña incorrecta
 - **Prioridad**: P0
 - **Tipo**: Validación
-- **Precondiciones**: Usuario `cajero@omnifow.cl` existe y está activo.
+- **Precondiciones**: Usuario `cajero@omniflow.cl` existe y está activo.
 - **Pasos**:
   1. Ir a http://localhost:5173.
-  2. Ingresar email `cajero@omnifow.cl`.
+  2. Ingresar email `cajero@omniflow.cl`.
   3. Ingresar contraseña `Incorrecta999!`.
   4. Hacer clic en "Iniciar sesión".
 - **Resultado esperado**:
@@ -242,9 +242,9 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 #### AUTH-03: Bloqueo de cuenta tras 5 intentos fallidos
 - **Prioridad**: P1
 - **Tipo**: Seguridad
-- **Precondiciones**: Usuario `cajero@omnifow.cl` activo. Realizar este test en entorno local o staging (no en producción).
+- **Precondiciones**: Usuario `cajero@omniflow.cl` activo. Realizar este test en entorno local o staging (no en producción).
 - **Pasos**:
-  1. Intentar login con `cajero@omnifow.cl` y contraseña `Mal1!` → falla. Repetir 4 veces más (5 intentos totales).
+  1. Intentar login con `cajero@omniflow.cl` y contraseña `Mal1!` → falla. Repetir 4 veces más (5 intentos totales).
   2. En el intento 5, anotar el mensaje recibido.
   3. Esperar 1 minuto y volver a intentar con la contraseña correcta `Cajero12345!`.
   4. Esperar 15 minutos y volver a intentar con la contraseña correcta.
@@ -259,7 +259,7 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 #### AUTH-04: Cambio de contraseña exitoso
 - **Prioridad**: P1
 - **Tipo**: Funcional
-- **Precondiciones**: Sesión activa con `cajero@omnifow.cl`.
+- **Precondiciones**: Sesión activa con `cajero@omniflow.cl`.
 - **Pasos**:
   1. Hacer clic en el dropdown del usuario en el header (esquina superior derecha).
   2. Seleccionar "Cambiar contraseña".
@@ -298,7 +298,7 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 - **Precondiciones**: Ninguna (flujo público).
 - **Pasos**:
   1. Ir a http://localhost:5173/password/forgot.
-  2. Ingresar `email_inexistente@omnifow.cl` y enviar.
+  2. Ingresar `email_inexistente@omniflow.cl` y enviar.
   3. Anotar el mensaje mostrado.
   4. Ir a http://localhost:5173/password/forgot.
   5. Ingresar `admin@minierp.cl` y enviar.
@@ -313,15 +313,15 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 #### AUTH-07: Reset de contraseña con token válido
 - **Prioridad**: P1
 - **Tipo**: Funcional
-- **Precondiciones**: Usuario `cajero@omnifow.cl` existe. En entorno local, el link de reset aparece en el log de uvicorn (`LoggingEmailSender`).
+- **Precondiciones**: Usuario `cajero@omniflow.cl` existe. En entorno local, el link de reset aparece en el log de uvicorn (`LoggingEmailSender`).
 - **Pasos**:
-  1. Solicitar reset para `cajero@omnifow.cl` desde `/password/forgot`.
+  1. Solicitar reset para `cajero@omniflow.cl` desde `/password/forgot`.
   2. En la terminal del backend, copiar el link de reset que incluye `?token=...`.
   3. Abrir el link en el navegador.
   4. Ingresar nueva contraseña `ResetCajero2026!` y confirmarla.
   5. Hacer clic en "Guardar nueva contraseña".
   6. Verificar que redirige a `/login` con banner verde de éxito.
-  7. Ingresar con `cajero@omnifow.cl` y `ResetCajero2026!`.
+  7. Ingresar con `cajero@omniflow.cl` y `ResetCajero2026!`.
 - **Resultado esperado**:
   - Login exitoso con la nueva contraseña.
   - El token de reset queda marcado como usado (si se reutiliza el mismo link, debe devolver error).
@@ -348,9 +348,9 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 #### AUTH-09: Logout invalida el refresh token en el servidor
 - **Prioridad**: P1
 - **Tipo**: Seguridad
-- **Precondiciones**: Sesión activa como `cajero@omnifow.cl`.
+- **Precondiciones**: Sesión activa como `cajero@omniflow.cl`.
 - **Pasos**:
-  1. Iniciar sesión con `cajero@omnifow.cl` / `Cajero12345!`.
+  1. Iniciar sesión con `cajero@omniflow.cl` / `Cajero12345!`.
   2. En DevTools → Network, copiar el `refreshToken` de la respuesta del login (o de localStorage).
   3. Hacer logout desde el menú del usuario.
   4. Intentar llamar manualmente a `POST /api/v1/auth/refresh` con el refresh token copiado (desde Postman o curl).
@@ -370,13 +370,13 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 - **Pasos**:
   1. Ir a Administración → Usuarios.
   2. Hacer clic en "Nuevo usuario".
-  3. Completar: nombre `Pedro Soto Vera`, RUT `33333333-3`, email `pedro@omnifow.cl`, contraseña `Pedro12345!`, confirmar contraseña.
+  3. Completar: nombre `Pedro Soto Vera`, RUT `33333333-3`, email `pedro@omniflow.cl`, contraseña `Pedro12345!`, confirmar contraseña.
   4. Asignar perfil "Vendedor / Cajero".
   5. Asignar sucursal "Casa Matriz".
   6. Guardar.
 - **Resultado esperado**:
   - El usuario aparece en la lista con estado Activo.
-  - El login con `pedro@omnifow.cl` / `Pedro12345!` es exitoso.
+  - El login con `pedro@omniflow.cl` / `Pedro12345!` es exitoso.
   - El sidebar muestra solo los módulos del perfil Cajero (POS, Caja, Inventario: lectura, Clientes: lectura).
 - **Criterio de aceptación**: Usuario creado y login exitoso con los permisos correctos.
 
@@ -385,12 +385,12 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 #### ADM-02: Desactivar usuario (soft delete)
 - **Prioridad**: P1
 - **Tipo**: Funcional
-- **Precondiciones**: Usuario `pedro@omnifow.cl` activo creado en ADM-01.
+- **Precondiciones**: Usuario `pedro@omniflow.cl` activo creado en ADM-01.
 - **Pasos**:
   1. Ir a Administración → Usuarios → buscar "Pedro Soto".
   2. Hacer clic en "Desactivar".
   3. Confirmar en el `ConfirmDialog`.
-  4. Intentar login con `pedro@omnifow.cl` / `Pedro12345!`.
+  4. Intentar login con `pedro@omniflow.cl` / `Pedro12345!`.
 - **Resultado esperado**:
   - El usuario aparece como Inactivo en la lista (badge).
   - El login devuelve un error de credenciales o cuenta desactivada.
@@ -418,9 +418,9 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 #### ADM-04: Restricción de usuario a sucursal específica
 - **Prioridad**: P1
 - **Tipo**: Multi-sucursal
-- **Precondiciones**: Usuario `cajero2@omnifow.cl` asignado únicamente a "Sucursal 2".
+- **Precondiciones**: Usuario `cajero2@omniflow.cl` asignado únicamente a "Sucursal 2".
 - **Pasos**:
-  1. Iniciar sesión con `cajero2@omnifow.cl`.
+  1. Iniciar sesión con `cajero2@omniflow.cl`.
   2. En el POS, intentar seleccionar "Casa Matriz" como sucursal activa.
   3. Intentar crear una venta en Casa Matriz (si el frontend lo permite, enviar la petición con `sucursal_id` de Casa Matriz).
 - **Resultado esperado**:
@@ -1270,9 +1270,9 @@ Sesiones libres de 30 minutos por módulo donde el tester navega sin guion, busc
 #### DOC-06: Acceso a documentos filtrado por sucursal del usuario
 - **Prioridad**: P1
 - **Tipo**: Multi-sucursal
-- **Precondiciones**: `cajero2@omnifow.cl` asignado solo a "Sucursal 2".
+- **Precondiciones**: `cajero2@omniflow.cl` asignado solo a "Sucursal 2".
 - **Pasos**:
-  1. Iniciar sesión como `cajero2@omnifow.cl`.
+  1. Iniciar sesión como `cajero2@omniflow.cl`.
   2. Acceder a la lista de documentos.
 - **Resultado esperado**:
   - Solo se muestran documentos de "Sucursal 2".
@@ -1370,9 +1370,9 @@ Ejecutar para cada perfil base. Verificar que el sidebar y las rutas directas so
 #### SEC-03: Cajero de Sucursal 2 no puede operar en Casa Matriz
 - **Prioridad**: P1
 - **Tipo**: Multi-sucursal
-- **Precondiciones**: `cajero2@omnifow.cl` asignado solo a "Sucursal 2".
+- **Precondiciones**: `cajero2@omniflow.cl` asignado solo a "Sucursal 2".
 - **Pasos**:
-  1. Iniciar sesión como `cajero2@omnifow.cl`.
+  1. Iniciar sesión como `cajero2@omniflow.cl`.
   2. Intentar enviar una venta con `sucursal_id` de Casa Matriz por API.
 - **Resultado esperado**:
   - El `SucursalSwitcher` solo muestra "Sucursal 2".

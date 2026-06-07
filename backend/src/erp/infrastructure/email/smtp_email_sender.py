@@ -90,17 +90,17 @@ class SmtpEmailSender:
         msg = EmailMessage()
         msg["From"] = self._from
         msg["To"] = destinatario
-        msg["Subject"] = "Recupera tu contraseña — OMNIFOW"
+        msg["Subject"] = "Recupera tu contraseña — OMNIFLOW"
 
         # Texto plano (fallback para clientes sin HTML).
         msg.set_content(
             f"Hola {nombre},\n\n"
-            f"Recibimos una solicitud para restablecer tu contraseña en OMNIFOW.\n\n"
+            f"Recibimos una solicitud para restablecer tu contraseña en OMNIFLOW.\n\n"
             f"Hacé click en este enlace (válido por {ttl_minutos} minutos):\n"
             f"{link}\n\n"
             f"Si vos NO solicitaste este cambio, podés ignorar este email — tu "
             f"contraseña actual sigue activa.\n\n"
-            f"— OMNIFOW\n"
+            f"— OMNIFLOW\n"
             f"Sistema POS"
         )
 
@@ -114,7 +114,7 @@ class SmtpEmailSender:
 
   <p>Hola <strong>{nombre}</strong>,</p>
 
-  <p>Recibimos una solicitud para restablecer tu contraseña en <strong>OMNIFOW</strong>.</p>
+  <p>Recibimos una solicitud para restablecer tu contraseña en <strong>OMNIFLOW</strong>.</p>
 
   <p style="margin: 24px 0;">
     <a href="{link}"
@@ -137,7 +137,7 @@ class SmtpEmailSender:
   </p>
 
   <p style="font-size: 0.85rem; color: #8a93a6; margin-top: 24px;">
-    OMNIFOW · Sistema POS
+    OMNIFLOW · Sistema POS
   </p>
 </body>
 </html>""",

@@ -9,7 +9,7 @@ Checklist vivo de tareas por módulo. Marcar `- [x]` al completar. Agregar tarea
 > Lee **primero** este bloque, luego `CLAUDE.md` y el "📊 Estado actual" más abajo. Todo lo necesario para retomar está aquí.
 
 ### Rebrand actual
-- El producto se llama **OMNIFOW** (NO Mini ERP). El directorio del repo sigue siendo `mini erp` por historia; **no renombrar** para no romper rutas absolutas.
+- El producto se llama **OMNIFLOW** (NO Mini ERP). El directorio del repo sigue siendo `mini erp` por historia; **no renombrar** para no romper rutas absolutas.
 - Logo: archivo PNG en `frontend/public/logo.png` (favicon + logo del header/login). Referenciado como `/logo.png`.
 
 ### Última actividad confirmada (2026-06-06) — Documentos: Nota de Débito + Guía de Despacho + GET listar/obtener + pantalla Documentos
@@ -47,7 +47,7 @@ Checklist vivo de tareas por módulo. Marcar `- [x]` al completar. Agregar tarea
 - `0015_guias_despacho` — tablas `guias_despacho_meta` y `detalle_guia_despacho` + permiso `documento.emitir_guia`.
 - `0016_doc_consultar` — refuerza seed de `documento.consultar` a todos los perfiles que lo necesitan.
 
-**XML SII**: omitido por decisión (irá en el microservicio `omnifow-sii` cuando se implemente).
+**XML SII**: omitido por decisión (irá en el microservicio `omniflow-sii` cuando se implemente).
 
 **Coordinación paralela**: routers separados (`notas_debito_router.py`, `guias_despacho_router.py`, `documentos_router.py`), migraciones lineales asignadas (0014→0015→0016 con `down_revision` encadenado), contrato vinculante en `.claude/contracts/DOCUMENTOS_CONTRACT.md`. El agente #1 detectó y corrigió en el camino un bug pre-existente de precedencia `|` vs `or_()` en el repo de documentos.
 
@@ -107,7 +107,7 @@ Cierra la tarea #19 pendiente. **Reset de contraseña ahora funciona end-to-end*
 - `SmtpEmailSender` en `infrastructure/email/smtp_email_sender.py` — implementación stdlib (`smtplib` + `email.message.EmailMessage`, sin deps nuevas). Email **multipart** con texto plano + HTML responsive (botón CTA, link de fallback, estilo profesional sin frameworks). Maneja `starttls`, login condicional (skip si user/password vacíos para relays sin auth), timeout configurable.
 - Settings extendidos en `infrastructure/config/settings.py`: `EMAIL_BACKEND` (`logging` | `smtp`, default `logging`), `SMTP_HOST` (default `smtp.resend.com`), `SMTP_PORT` (587), `SMTP_USE_TLS`, `SMTP_TIMEOUT_SECONDS`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`.
 - `_email_sender_singleton` en `dependencies.py` ahora elige adapter por `EMAIL_BACKEND`. Para activar SMTP en producción solo hace falta cambiar env vars en Render — el código NO cambia.
-- `.env.example` actualizado con las nuevas vars + comentarios explicativos para Resend (`SMTP_USER=resend`, `SMTP_PASSWORD=re_xxxx`, `EMAIL_FROM=OMNIFOW <onboarding@resend.dev>`).
+- `.env.example` actualizado con las nuevas vars + comentarios explicativos para Resend (`SMTP_USER=resend`, `SMTP_PASSWORD=re_xxxx`, `EMAIL_FROM=OMNIFLOW <onboarding@resend.dev>`).
 - 5 tests unit nuevos en `test_smtp_email_sender.py`: STARTTLS+login+send_message correctos, headers Subject/From/To, multipart text+html, sin login si credenciales vacías, propaga excepción si SMTP falla (el use case ya la captura).
 
 **Documentación**:
@@ -274,7 +274,7 @@ Sesión enfocada en calidad visual / accesibilidad / consistencia. Cero cambios 
 2. **Reservas de stock** ligadas a sesión de caja: validar y reservar al agregar al carrito; liberar al quitar/cerrar sesión/navegar fuera. `SELECT FOR UPDATE` para evitar overselling. Smoke real ejecutado: el segundo cajero ve el disponible bajar y recibe error con detalle exacto.
 3. **Sobrepago en efectivo (vuelto)**: el cajero puede recibir $5.000 por una venta de $3.500 y dar $1.500 de vuelto. Frontend ajusta el monto enviado al backend (lo que físicamente queda en caja).
 4. **Validaciones explícitas**: motivos legibles antes de confirmar (qué falta) + decodificación de errores Pydantic 422 (qué campo exacto falló).
-5. **Rebrand**: Mini ERP → OMNIFOW (UI, comprobantes, package.json, favicon, título).
+5. **Rebrand**: Mini ERP → OMNIFLOW (UI, comprobantes, package.json, favicon, título).
 6. **SII en observación**: integración real con SII está documentada pero NO implementada. `estado_sii=PENDIENTE` siempre. Ver bloque "🔭 EN OBSERVACIÓN" al final.
 
 ### Estado técnico confirmado (2026-06-06)
@@ -584,7 +584,7 @@ Hoy el sistema emite documentos tributarios **solo internamente** (folio + datos
 - [x] Use Case: Emitir Guía de Despacho (`EmitirGuiaDespachoUseCase` + `POST /documentos/guias-despacho` + tablas `guias_despacho_meta` + `detalle_guia_despacho` + descuento stock con FEFO + 13 tests, migración 0015)
 - [x] Listar + Obtener documentos (`ListarDocumentosUseCase` + `ObtenerDocumentoUseCase` + `GET /documentos` y `/documentos/{id}` + 20 tests, migración 0016 con permiso `documento.consultar`)
 - [x] Frontend: pantalla Documentos (`DocumentosPage` + `DocumentoDetalle` por tipo + reimpresión + 9 tests)
-- [ ] Generación XML conforme SII (DELEGADO al microservicio `omnifow-sii` — ver `docs/ARQUITECTURA_SII.md`)
+- [ ] Generación XML conforme SII (DELEGADO al microservicio `omniflow-sii` — ver `docs/ARQUITECTURA_SII.md`)
 - [x] Cálculo IVA 19% por convención bruto (precios incluyen IVA; helper `_desglosar_iva` en `DetalleVenta`).
 - [x] ORM `documentos_tributarios` + UNIQUE `(sucursal_id, tipo, folio)` + CHECK `subtotal_clp + iva_clp = total_clp`. Migración `0008_ventas_documentos`.
 - [ ] TODO: integración real SII (firma DTE, envío, captura `track_id`) — campo `estado_sii` listo para alimentar transición futura.
