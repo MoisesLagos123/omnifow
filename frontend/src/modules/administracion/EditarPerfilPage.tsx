@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { Badge } from "../../components/ui/Badge";
 import { Input } from "../../components/ui/Input";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
 import { SearchInput } from "../../components/ui/SearchInput";
@@ -190,6 +191,9 @@ export function EditarPerfilPage({ modo }: Props) {
     );
   }
 
+  const esSistema = perfil?.es_sistema === true;
+  const SISTEMA_TOOLTIP = "El perfil Sysadmin es de sistema y no puede modificarse";
+
   const totalPermisos = permisosCatalog.length;
   const seleccionados = seleccion.size;
 
@@ -207,11 +211,16 @@ export function EditarPerfilPage({ modo }: Props) {
       </div>
 
       <header>
-        <h1 className={styles.title}>
+        <h1 className={styles.title} style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
           {modo === "crear" ? "Crear perfil" : perfil?.nombre ?? "Cargando..."}
+          {perfil?.es_sistema && (
+            <Badge variant="warning">Sistema (protegido)</Badge>
+          )}
         </h1>
         <p className={styles.subtitle}>
-          Define los permisos que tendrán los usuarios con este perfil.
+          {perfil?.es_sistema
+            ? "Este perfil es de sistema y no puede modificarse."
+            : "Define los permisos que tendrán los usuarios con este perfil."}
         </p>
       </header>
 
@@ -222,11 +231,13 @@ export function EditarPerfilPage({ modo }: Props) {
           <Input
             label="Nombre"
             error={errors.nombre?.message}
+            disabled={esSistema}
             {...register("nombre")}
           />
           <Input
             label="Descripción"
             error={errors.descripcion?.message}
+            disabled={esSistema}
             {...register("descripcion")}
           />
 
@@ -244,8 +255,11 @@ export function EditarPerfilPage({ modo }: Props) {
                   size="sm"
                   onClick={seleccionarTodos}
                   disabled={
-                    totalPermisos === 0 || seleccionados === totalPermisos
+                    esSistema ||
+                    totalPermisos === 0 ||
+                    seleccionados === totalPermisos
                   }
+                  title={esSistema ? SISTEMA_TOOLTIP : undefined}
                 >
                   Seleccionar todos
                 </Button>
@@ -254,7 +268,8 @@ export function EditarPerfilPage({ modo }: Props) {
                   variant="ghost"
                   size="sm"
                   onClick={limpiarSeleccion}
-                  disabled={seleccionados === 0}
+                  disabled={esSistema || seleccionados === 0}
+                  title={esSistema ? SISTEMA_TOOLTIP : undefined}
                 >
                   Limpiar selección
                 </Button>
@@ -295,6 +310,7 @@ export function EditarPerfilPage({ modo }: Props) {
                           className={styles.permCheckbox}
                           checked={allSelected}
                           onChange={() => toggleGrupo(ids, allSelected)}
+                          disabled={esSistema}
                         />
                         {recurso}
                       </label>
@@ -313,6 +329,7 @@ export function EditarPerfilPage({ modo }: Props) {
                               className={styles.permCheckbox}
                               checked={checked}
                               onChange={() => togglePerm(p.id)}
+                              disabled={esSistema}
                             />
                             <span className={styles.permCode}>{p.codigo}</span>
                             <span className={styles.permDesc}>
@@ -336,14 +353,19 @@ export function EditarPerfilPage({ modo }: Props) {
             >
               Cancelar
             </Button>
-            <Button type="submit" loading={submitting}>
+            <Button
+              type="submit"
+              loading={submitting}
+              disabled={esSistema}
+              title={esSistema ? SISTEMA_TOOLTIP : undefined}
+            >
               {modo === "crear" ? "Crear perfil" : "Guardar cambios"}
             </Button>
           </div>
         </form>
       </Card>
 
-      {modo === "editar" && perfil && (
+      {modo === "editar" && perfil && !esSistema && (
         <div className={styles.dangerZone}>
           <div>
             <p className={styles.dangerLabel}>Eliminar perfil</p>

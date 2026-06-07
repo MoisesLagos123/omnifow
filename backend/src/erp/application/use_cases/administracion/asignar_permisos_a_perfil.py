@@ -14,6 +14,7 @@ from erp.application.ports.repositories import (
 from erp.application.ports.unit_of_work import UnitOfWork
 from erp.application.security.contexto import ContextoSeguridad
 from erp.domain.exceptions import (
+    PerfilSistemaInmutableError,
     PermisoNoExisteError,
     RecursoNoEncontradoError,
 )
@@ -54,6 +55,10 @@ class AsignarPermisosAPerfilUseCase:
             perfil = self._perfiles.obtener(cmd.perfil_id)
             if perfil is None:
                 raise RecursoNoEncontradoError("Perfil no encontrado")
+            if perfil.es_sistema:
+                raise PerfilSistemaInmutableError(
+                    f"El perfil '{perfil.nombre}' es de sistema y no se puede modificar"
+                )
 
             ids_unicos = list({pid for pid in cmd.permiso_ids})
             existentes = self._permisos.listar_por_ids(ids_unicos)

@@ -10,7 +10,7 @@ from erp.application.ports.clock import Clock
 from erp.application.ports.repositories import PerfilRepository
 from erp.application.ports.unit_of_work import UnitOfWork
 from erp.application.security.contexto import ContextoSeguridad
-from erp.domain.exceptions import PerfilYaActivoError, RecursoNoEncontradoError
+from erp.domain.exceptions import PerfilSistemaInmutableError, PerfilYaActivoError, RecursoNoEncontradoError
 
 
 @dataclass(frozen=True)
@@ -46,6 +46,10 @@ class ReactivarPerfilUseCase:
             perfil = self._perfiles.obtener(cmd.perfil_id)
             if perfil is None:
                 raise RecursoNoEncontradoError("Perfil no encontrado")
+            if perfil.es_sistema:
+                raise PerfilSistemaInmutableError(
+                    f"El perfil '{perfil.nombre}' es de sistema y no se puede modificar"
+                )
 
             if perfil.activo:
                 raise PerfilYaActivoError()

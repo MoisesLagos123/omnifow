@@ -11,6 +11,7 @@ def to_domain(orm: PerfilORM) -> Perfil:
         nombre=orm.nombre,
         descripcion=orm.descripcion,
         activo=orm.activo,
+        es_sistema=orm.es_sistema,
         creado_en=orm.creado_en,
         actualizado_en=orm.actualizado_en,
     )
@@ -22,6 +23,7 @@ def to_orm(entity: Perfil) -> PerfilORM:
         nombre=entity.nombre,
         descripcion=entity.descripcion,
         activo=entity.activo,
+        es_sistema=entity.es_sistema,
         creado_en=entity.creado_en,
         actualizado_en=entity.actualizado_en,
     )

@@ -160,27 +160,36 @@ def main() -> None:
                     existente.descripcion = descripcion
 
         # 2. Asegurar perfiles + asignaciones (idempotente: reemplaza set)
+        es_sysadmin_nombre = "Sysadmin"
+        todos_permiso_ids = list(codigo_a_id.values())
+
         for nombre, descripcion, codigos in PERFILES_BASE:
+            es_sistema = nombre == es_sysadmin_nombre
             existente_perfil = (
                 s.query(PerfilORM).filter(PerfilORM.nombre == nombre).one_or_none()
             )
             if existente_perfil is None:
-                perfil = Perfil(nombre=nombre, descripcion=descripcion)
+                perfil = Perfil(nombre=nombre, descripcion=descripcion, es_sistema=es_sistema)
                 s.add(perfil_to_orm(perfil))
                 s.flush()
                 perfil_id = perfil.id
             else:
                 existente_perfil.descripcion = descripcion
                 existente_perfil.activo = True
+                existente_perfil.es_sistema = es_sistema
                 perfil_id = existente_perfil.id
 
-            # Reemplazar permisos
+            # Sysadmin recibe TODOS los permisos existentes en la tabla (no solo los del catálogo).
+            # Para otros perfiles: reemplaza el set con la lista definida en PERFILES_BASE.
             s.execute(
                 perfil_permiso_table.delete().where(
                     perfil_permiso_table.c.perfil_id == perfil_id
                 )
             )
-            permiso_ids = [codigo_a_id[c] for c in codigos if c in codigo_a_id]
+            if es_sistema:
+                permiso_ids = todos_permiso_ids
+            else:
+                permiso_ids = [codigo_a_id[c] for c in codigos if c in codigo_a_id]
             if permiso_ids:
                 s.execute(
                     perfil_permiso_table.insert(),

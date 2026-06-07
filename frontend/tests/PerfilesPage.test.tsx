@@ -23,6 +23,7 @@ function perfil(over: Partial<Perfil> = {}): Perfil {
     activo: true,
     cantidad_permisos: 4,
     cantidad_usuarios: 2,
+    es_sistema: false,
     ...over,
   };
 }
@@ -117,6 +118,34 @@ describe("PerfilesPage", () => {
     );
     renderPage();
     await screen.findByText("Inactivo1");
+    expect(
+      screen.queryByRole("button", { name: /reactivar/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("muestra badge 'Sistema' en perfiles con es_sistema=true", async () => {
+    vi.mocked(adminApi.listPerfiles).mockResolvedValue(
+      fakePage([
+        perfil({ id: "sys", nombre: "Sysadmin", es_sistema: true }),
+        perfil({ id: "caj", nombre: "Cajero", es_sistema: false }),
+      ])
+    );
+    renderPage();
+    await screen.findByText("Sysadmin");
+    expect(screen.getByText("Sistema")).toBeInTheDocument();
+    // El perfil normal no tiene el badge
+    const badges = screen.queryAllByText("Sistema");
+    expect(badges).toHaveLength(1);
+  });
+
+  it("no muestra botón Reactivar para perfiles de sistema inactivos", async () => {
+    vi.mocked(adminApi.listPerfiles).mockResolvedValue(
+      fakePage([
+        perfil({ id: "sys", nombre: "Sysadmin", activo: false, es_sistema: true }),
+      ])
+    );
+    renderPage();
+    await screen.findByText("Sysadmin");
     expect(
       screen.queryByRole("button", { name: /reactivar/i })
     ).not.toBeInTheDocument();

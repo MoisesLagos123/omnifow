@@ -302,6 +302,7 @@ def crear_perfil(
         nombre=result.nombre,
         descripcion=result.descripcion,
         activo=result.activo,
+        es_sistema=result.es_sistema,
         permisos=[
             PermisoResponse(id=p.id, codigo=p.codigo, descripcion=p.descripcion)
             for p in result.permisos
@@ -330,6 +331,7 @@ def listar_perfiles(
                 nombre=item.perfil.nombre,
                 descripcion=item.perfil.descripcion,
                 activo=item.perfil.activo,
+                es_sistema=item.perfil.es_sistema,
                 cantidad_permisos=item.cantidad_permisos,
                 cantidad_usuarios=item.cantidad_usuarios,
             )
@@ -353,6 +355,7 @@ def obtener_perfil(
         nombre=result.nombre,
         descripcion=result.descripcion,
         activo=result.activo,
+        es_sistema=result.es_sistema,
         permisos=[
             PermisoResponse(id=p.id, codigo=p.codigo, descripcion=p.descripcion)
             for p in result.permisos
@@ -385,6 +388,7 @@ def editar_perfil(
         nombre=detalle.nombre,
         descripcion=detalle.descripcion,
         activo=detalle.activo,
+        es_sistema=detalle.es_sistema,
         permisos=[
             PermisoResponse(id=p.id, codigo=p.codigo, descripcion=p.descripcion)
             for p in detalle.permisos
@@ -418,6 +422,7 @@ def reactivar_perfil(
         nombre=detalle.nombre,
         descripcion=detalle.descripcion,
         activo=detalle.activo,
+        es_sistema=detalle.es_sistema,
         permisos=[
             PermisoResponse(id=p.id, codigo=p.codigo, descripcion=p.descripcion)
             for p in detalle.permisos
@@ -446,6 +451,7 @@ def asignar_permisos_a_perfil(
         nombre=detalle.nombre,
         descripcion=detalle.descripcion,
         activo=detalle.activo,
+        es_sistema=detalle.es_sistema,
         permisos=[
             PermisoResponse(id=p.id, codigo=p.codigo, descripcion=p.descripcion)
             for p in detalle.permisos

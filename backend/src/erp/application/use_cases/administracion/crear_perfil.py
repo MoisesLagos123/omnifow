@@ -37,6 +37,7 @@ class CrearPerfilResult:
     nombre: str
     descripcion: str | None
     activo: bool
+    es_sistema: bool = False
     permisos: list[PermisoAsignadoDTO] = field(default_factory=list)
 
 
@@ -114,6 +115,7 @@ class CrearPerfilUseCase:
             nombre=perfil.nombre,
             descripcion=perfil.descripcion,
             activo=perfil.activo,
+            es_sistema=perfil.es_sistema,
             permisos=[
                 PermisoAsignadoDTO(id=p.id, codigo=p.codigo, descripcion=p.descripcion)
                 for p in sorted(permisos_asignados, key=lambda p: p.codigo)

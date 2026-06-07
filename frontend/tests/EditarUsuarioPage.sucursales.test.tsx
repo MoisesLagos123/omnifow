@@ -85,6 +85,7 @@ describe("EditarUsuarioPage — asignación de sucursales", () => {
           activo: true,
           cantidad_permisos: 0,
           cantidad_usuarios: 0,
+          es_sistema: false,
         },
       ],
       total: 1,

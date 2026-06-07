@@ -34,6 +34,7 @@ class SqlPerfilRepository:
         existente.nombre = perfil.nombre
         existente.descripcion = perfil.descripcion
         existente.activo = perfil.activo
+        existente.es_sistema = perfil.es_sistema
         existente.actualizado_en = perfil.actualizado_en
 
     def obtener(self, perfil_id: UUID) -> Perfil | None:

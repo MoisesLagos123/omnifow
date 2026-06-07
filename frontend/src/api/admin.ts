@@ -48,6 +48,8 @@ export interface Perfil {
   activo: boolean;
   cantidad_permisos: number;
   cantidad_usuarios: number;
+  /** Perfiles de sistema (ej. Sysadmin) no pueden modificarse ni eliminarse. */
+  es_sistema: boolean;
 }
 
 /** Detalle de un perfil (GET /admin/perfiles/:id) — incluye permisos. */
@@ -57,6 +59,8 @@ export interface PerfilDetalle {
   descripcion: string | null;
   activo: boolean;
   permisos: PermisoSimple[];
+  /** Perfiles de sistema (ej. Sysadmin) no pueden modificarse ni eliminarse. */
+  es_sistema: boolean;
 }
 
 export interface PermisoSimple {

@@ -23,6 +23,9 @@ class PerfilORM(Base):
     nombre: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
     descripcion: Mapped[str | None] = mapped_column(Text, nullable=True)
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    es_sistema: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
     creado_en: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

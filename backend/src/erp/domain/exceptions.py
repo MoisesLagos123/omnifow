@@ -155,6 +155,12 @@ class PerfilInvalidoError(ValidacionError):
     default_message = "Perfil inválido"
 
 
+class PerfilSistemaInmutableError(DomainError):
+    code = "ERR_PERFIL_SISTEMA_INMUTABLE"
+    http_status = 409
+    default_message = "El perfil es de sistema y no puede modificarse"
+
+
 class PermisoNoExisteError(DomainError):
     code = "ERR_PERMISO_NO_EXISTE"
     http_status = 404

@@ -30,6 +30,7 @@ class ObtenerPerfilResult:
     nombre: str
     descripcion: str | None
     activo: bool
+    es_sistema: bool
     permisos: list[PermisoDTO]
 
 
@@ -51,6 +52,7 @@ class ObtenerPerfilUseCase:
             nombre=perfil.nombre,
             descripcion=perfil.descripcion,
             activo=perfil.activo,
+            es_sistema=perfil.es_sistema,
             permisos=[
                 PermisoDTO(id=p.id, codigo=p.codigo, descripcion=p.descripcion) for p in permisos
             ],

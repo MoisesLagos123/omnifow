@@ -79,7 +79,14 @@ export function PerfilesPage() {
       {
         key: "nombre",
         header: "Nombre",
-        cell: (p) => <strong>{p.nombre}</strong>,
+        cell: (p) => (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)" }}>
+            <strong>{p.nombre}</strong>
+            {p.es_sistema && (
+              <Badge variant="warning">Sistema</Badge>
+            )}
+          </span>
+        ),
       },
       {
         key: "descripcion",
@@ -121,7 +128,7 @@ export function PerfilesPage() {
         width: "130px",
         align: "right",
         cell: (p) =>
-          !p.activo && canGestionar ? (
+          !p.activo && canGestionar && !p.es_sistema ? (
             <Button
               size="sm"
               variant="ghost"

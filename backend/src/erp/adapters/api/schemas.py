@@ -165,6 +165,7 @@ class PerfilResponse(BaseModel):
     nombre: str
     descripcion: str | None
     activo: bool
+    es_sistema: bool = False
     # Nuevos contadores (sólo en listados; siempre presentes para no romper el shape).
     cantidad_permisos: int = 0
     cantidad_usuarios: int = 0
@@ -188,6 +189,7 @@ class PerfilDetalleResponse(BaseModel):
     nombre: str
     descripcion: str | None
     activo: bool
+    es_sistema: bool = False
     permisos: list[PermisoResponse]
 
 
