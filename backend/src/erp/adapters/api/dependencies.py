@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from functools import lru_cache
+from typing import Any
 from uuid import UUID
 
 import jwt
@@ -250,6 +251,37 @@ def _build_uow(
     session_factory: sessionmaker[Session],
 ) -> SqlAlchemyUnitOfWork:
     return SqlAlchemyUnitOfWork(session_factory)
+
+
+def build_productos_meta_resolver(
+    session_factory: sessionmaker[Session] = Depends(get_session_factory),
+) -> Any:
+    """Devuelve un resolver que mapea `producto_id` → `(sku, nombre)`.
+
+    Usado por los endpoints de venta (procesar/obtener) para enriquecer
+    cada línea de DetalleVenta con sku + nombre — el comprobante térmico
+    (`PrintableReceipt`) los necesita para renderizar el detalle. Sin esto
+    la sección "Detalle" del comprobante queda vacía.
+
+    El resolver abre su propia session (independiente del UoW transaccional
+    del use case) y queda lista para ser invocada con una lista de IDs.
+    Una sola query SELECT IN — sin N+1.
+    """
+    from erp.infrastructure.db.models import ProductoORM
+    from sqlalchemy import select
+
+    def resolver(producto_ids: list[UUID]) -> dict[UUID, tuple[str, str]]:
+        if not producto_ids:
+            return {}
+        unique_ids = list(set(producto_ids))
+        with session_factory() as session:
+            stmt = select(
+                ProductoORM.id, ProductoORM.sku, ProductoORM.nombre
+            ).where(ProductoORM.id.in_(unique_ids))
+            rows = session.execute(stmt).all()
+        return {row[0]: (row[1], row[2]) for row in rows}
+
+    return resolver
 
 
 def build_login_use_case(

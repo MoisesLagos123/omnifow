@@ -21,6 +21,7 @@ from erp.adapters.api.dependencies import (
     build_liberar_reserva_uc,
     build_listar_reservas_activas_uc,
     build_procesar_venta_uc,
+    build_productos_meta_resolver,
     build_reservar_stock_uc,
     get_current_context,
 )
@@ -230,6 +231,17 @@ def _build_client(b: _Bundle, ctx: ContextoSeguridad) -> TestClient:
             clock=FakeClock(),
         )
 
+    # Resolver fake: usa el FakeProductoRepo del bundle (sin conexión real).
+    def fake_meta_resolver(
+        ids: list[UUID],
+    ) -> dict[UUID, tuple[str, str]]:
+        result: dict[UUID, tuple[str, str]] = {}
+        for pid in set(ids):
+            prod = b.productos.obtener(pid)
+            if prod is not None:
+                result[pid] = (prod.sku, prod.nombre)
+        return result
+
     app.dependency_overrides[get_current_context] = override_ctx
     app.dependency_overrides[build_reservar_stock_uc] = reservar
     app.dependency_overrides[build_liberar_reserva_uc] = liberar
@@ -237,6 +249,9 @@ def _build_client(b: _Bundle, ctx: ContextoSeguridad) -> TestClient:
     app.dependency_overrides[build_listar_reservas_activas_uc] = listar
     app.dependency_overrides[build_procesar_venta_uc] = procesar
     app.dependency_overrides[build_cerrar_sesion_caja_uc] = cerrar
+    app.dependency_overrides[build_productos_meta_resolver] = (
+        lambda: fake_meta_resolver
+    )
     return TestClient(app)
 
 

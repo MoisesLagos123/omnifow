@@ -753,6 +753,11 @@ class ProcesarVentaRequest(BaseModel):
 class DetalleVentaResponse(BaseModel):
     id: UUID
     producto_id: UUID
+    # producto_sku y producto_nombre se llenan desde ProductoRepository en el
+    # adapter — sin ellos el comprobante térmico de venta queda con filas
+    # vacías ("Detalle" sin items visibles).
+    producto_sku: str = ""
+    producto_nombre: str = ""
     bodega_id: UUID | None
     lote_id: UUID | None
     cantidad: str
@@ -762,6 +767,8 @@ class DetalleVentaResponse(BaseModel):
     neto_clp: int
     iva_clp: int
     subtotal_bruto_clp: int
+    # Alias del bruto para el frontend (PrintableReceipt usa `subtotal_clp`).
+    subtotal_clp: int
 
 
 class PagoResponse(BaseModel):

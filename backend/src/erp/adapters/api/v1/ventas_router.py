@@ -8,14 +8,22 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, Query, status
 
+from typing import Callable
+
 from erp.adapters.api.dependencies import (
     build_anular_venta_uc,
     build_buscar_producto_pos_uc,
     build_listar_ventas_uc,
     build_obtener_venta_uc,
     build_procesar_venta_uc,
+    build_productos_meta_resolver,
     get_current_context,
 )
+
+# Resolver: dado una lista de UUID de productos, devuelve dict
+# `{producto_id: (sku, nombre)}`. Lo construye `build_productos_meta_resolver`
+# via Depends.
+ProductosMetaResolver = Callable[[list[UUID]], dict[UUID, tuple[str, str]]]
 from erp.adapters.api.schemas import (
     AnularVentaRequest,
     AnularVentaResponse,
@@ -81,10 +89,26 @@ def _venta_to_response(v: Venta) -> VentaResponse:
     )
 
 
-def _detalle_to_response(d: DetalleVenta) -> DetalleVentaResponse:
+def _detalle_to_response(
+    d: DetalleVenta, productos_meta: dict[UUID, tuple[str, str]] | None = None
+) -> DetalleVentaResponse:
+    """Mapea un `DetalleVenta` a su response.
+
+    `productos_meta` es un dict `{producto_id: (sku, nombre)}` que enriquece
+    cada línea con datos del producto — necesario para que el comprobante
+    térmico del POS y la reimpresión desde `/documentos/:id` puedan mostrar
+    el detalle de la compra. Si no se pasa, los campos quedan vacíos
+    (comportamiento histórico).
+    """
+    sku = ""
+    nombre = ""
+    if productos_meta is not None and d.producto_id in productos_meta:
+        sku, nombre = productos_meta[d.producto_id]
     return DetalleVentaResponse(
         id=d.id,
         producto_id=d.producto_id,
+        producto_sku=sku,
+        producto_nombre=nombre,
         bodega_id=d.bodega_id,
         lote_id=d.lote_id,
         cantidad=str(d.cantidad),
@@ -94,7 +118,19 @@ def _detalle_to_response(d: DetalleVenta) -> DetalleVentaResponse:
         neto_clp=d.neto_clp,
         iva_clp=d.iva_clp,
         subtotal_bruto_clp=d.subtotal_bruto_clp,
+        subtotal_clp=d.subtotal_bruto_clp,
     )
+
+
+def _build_productos_meta(
+    detalles: list[DetalleVenta] | tuple[DetalleVenta, ...],
+    resolver: ProductosMetaResolver,
+) -> dict[UUID, tuple[str, str]]:
+    """Resuelve `(sku, nombre)` para cada producto presente en los detalles.
+
+    Una sola query SELECT IN (resolver se encarga de la deduplicación).
+    """
+    return resolver([d.producto_id for d in detalles])
 
 
 def _pago_to_response(p: Pago) -> PagoResponse:
@@ -137,6 +173,9 @@ def procesar_venta(
     use_case: Annotated[
         ProcesarVentaUseCase, Depends(build_procesar_venta_uc)
     ],
+    productos_meta_resolver: Annotated[
+        ProductosMetaResolver, Depends(build_productos_meta_resolver)
+    ],
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> VentaDetalleResponse:
     items = tuple(
@@ -170,9 +209,14 @@ def procesar_venta(
             idempotency_key=idempotency_key,
         )
     )
+    productos_meta = _build_productos_meta(
+        result.detalles, productos_meta_resolver
+    )
     return VentaDetalleResponse(
         venta=_venta_to_response(result.venta),
-        detalles=[_detalle_to_response(d) for d in result.detalles],
+        detalles=[
+            _detalle_to_response(d, productos_meta) for d in result.detalles
+        ],
         pagos=[_pago_to_response(p) for p in result.pagos],
         documento=_documento_to_response(result.documento),
         movimientos_caja_ids=list(result.movimientos_caja_ids),
@@ -239,13 +283,21 @@ def obtener_venta(
     venta_id: UUID,
     contexto: Annotated[ContextoSeguridad, Depends(get_current_context)],
     use_case: Annotated[ObtenerVentaUseCase, Depends(build_obtener_venta_uc)],
+    productos_meta_resolver: Annotated[
+        ProductosMetaResolver, Depends(build_productos_meta_resolver)
+    ],
 ) -> VentaDetalleResponse:
     result = use_case.execute(
         ObtenerVentaCommand(contexto=contexto, venta_id=venta_id)
     )
+    productos_meta = _build_productos_meta(
+        result.detalles, productos_meta_resolver
+    )
     return VentaDetalleResponse(
         venta=_venta_to_response(result.venta),
-        detalles=[_detalle_to_response(d) for d in result.detalles],
+        detalles=[
+            _detalle_to_response(d, productos_meta) for d in result.detalles
+        ],
         pagos=[_pago_to_response(p) for p in result.pagos],
         documento=_documento_to_response(result.documento)
         if result.documento is not None

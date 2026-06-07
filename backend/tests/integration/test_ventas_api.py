@@ -21,6 +21,7 @@ from erp.adapters.api.dependencies import (
     build_listar_ventas_uc,
     build_obtener_venta_uc,
     build_procesar_venta_uc,
+    build_productos_meta_resolver,
     get_current_context,
 )
 from erp.application.security.contexto import ContextoSeguridad
@@ -220,12 +221,30 @@ def _build_client(b: _Bundle, ctx: ContextoSeguridad) -> TestClient:
             uow=FakeUoW(), productos_pos=b.pos_query
         )
 
+    # Resolver fake: usa el FakeProductoRepo del bundle para no abrir
+    # conexiones reales a Postgres durante los tests integration.
+    def fake_meta_resolver(
+        ids: list[UUID],
+    ) -> dict[UUID, tuple[str, str]]:
+        result: dict[UUID, tuple[str, str]] = {}
+        for pid in set(ids):
+            prod = b.productos.obtener(pid)
+            if prod is not None:
+                result[pid] = (prod.sku, prod.nombre)
+        return result
+
+    def meta_resolver_override() -> object:
+        return fake_meta_resolver
+
     app.dependency_overrides[get_current_context] = override_ctx
     app.dependency_overrides[build_procesar_venta_uc] = procesar
     app.dependency_overrides[build_anular_venta_uc] = anular
     app.dependency_overrides[build_obtener_venta_uc] = obtener
     app.dependency_overrides[build_listar_ventas_uc] = listar
     app.dependency_overrides[build_buscar_producto_pos_uc] = buscar
+    app.dependency_overrides[build_productos_meta_resolver] = (
+        meta_resolver_override
+    )
     return TestClient(app)
 
 

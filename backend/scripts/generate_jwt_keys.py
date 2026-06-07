@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 def main() -> None:
     keys_dir = Path(__file__).resolve().parent.parent / "keys"
+    #keys_dir = Path(__file__).resolve().parent.parent / "keys-prod"
     keys_dir.mkdir(parents=True, exist_ok=True)
 
     private_path = keys_dir / "jwt_private.pem"
