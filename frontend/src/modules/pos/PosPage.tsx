@@ -1212,28 +1212,41 @@ export function PosPage() {
           </Card>
 
           {errorEnvio && <ErrorAlert>{errorEnvio}</ErrorAlert>}
-
-          <div className={styles.confirmBar}>
-            <span
-              className={
-                motivoNoPodemosConfirmar ? styles.warnText : styles.muted
-              }
-              aria-live="polite"
-            >
-              {motivoNoPodemosConfirmar ?? "Todo listo. Confirma la venta."}
-            </span>
-            <Button
-              className={styles.confirmBtn}
-              loading={enviando}
-              disabled={!puedeConfirmar}
-              onClick={handleConfirmar}
-              aria-keyshortcuts="F4"
-              rightIcon={!enviando && <Kbd variant="solid">F4</Kbd>}
-            >
-              Confirmar venta
-            </Button>
-          </div>
         </div>
+      </div>
+
+      {/* Barra "Confirmar venta" — sticky en mobile (fuera del grid),
+          sticky al fondo de la columna derecha en desktop */}
+      <div className={styles.confirmBar}>
+        <span
+          className={
+            motivoNoPodemosConfirmar ? styles.warnText : styles.confirmStatusText
+          }
+          aria-live="polite"
+        >
+          {motivoNoPodemosConfirmar ?? (
+            <>
+              <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>
+                {totalBruto > 0
+                  ? new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(totalBruto)
+                  : ""}
+              </span>
+              {totalBruto > 0 ? " — Todo listo." : "Todo listo. Confirma la venta."}
+            </>
+          )}
+        </span>
+        <Button
+          className={styles.confirmBtn}
+          variant="primary"
+          size="lg"
+          loading={enviando}
+          disabled={!puedeConfirmar}
+          onClick={handleConfirmar}
+          aria-keyshortcuts="F4"
+          rightIcon={!enviando && <Kbd variant="solid">F4</Kbd>}
+        >
+          Confirmar venta
+        </Button>
       </div>
 
       {/* Modal: vaciar carrito */}

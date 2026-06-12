@@ -63,7 +63,6 @@ export function LoginPage() {
     return <Navigate to={from} replace />;
   }
 
-  // Banner cuando el usuario llega tras un reset de contraseña exitoso.
   const passwordResetSuccess = Boolean(
     (location.state as { passwordResetSuccess?: boolean } | null)
       ?.passwordResetSuccess
@@ -85,116 +84,169 @@ export function LoginPage() {
 
   return (
     <main className={styles.page}>
-      <div className={styles.toggleSlot}>
-        <ThemeToggle />
-      </div>
+      {/* ── Columna formulario ── */}
+      <div className={styles.formCol}>
+        <div className={styles.toggleSlot}>
+          <ThemeToggle />
+        </div>
 
-      <div className={styles.cardWrap}>
-        <Card className={`${styles.card} ${shake ? styles.shake : ""}`}>
-          <header className={styles.header}>
-            <div className={styles.brand} aria-hidden="true">
-              <img src="/logo.png" alt="" className={styles.brandMark} />
-            </div>
-            <h1 id="login-title" className={styles.title}>
-              OMNIFLOW
-            </h1>
-            <p className={styles.subtitle}>Inicia sesión para continuar</p>
-          </header>
-
-          <form
-            ref={formRef}
-            onSubmit={handleSubmit(onSubmit)}
-            aria-labelledby="login-title"
-            noValidate
-            className={styles.form}
+        <div className={styles.cardWrap}>
+          <Card
+            variant="elevated"
+            className={`${styles.card} ${shake ? styles.shake : ""}`}
           >
-            {passwordResetSuccess && !serverError && (
-              <div
-                role="status"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-2)",
-                  padding: "var(--space-3)",
-                  background: "var(--color-success-soft)",
-                  color: "var(--color-success)",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--color-success)",
-                  fontSize: "0.88rem",
-                }}
-              >
-                <CheckCircle2 size={18} aria-hidden="true" />
-                <span>Contraseña actualizada. Inicia sesión con la nueva.</span>
+            <header className={styles.header}>
+              <div className={styles.logoMark} aria-hidden="true">
+                <span className={styles.logoIcon}>O</span>
+                <span className={styles.logoText}>OMNIFLOW</span>
               </div>
-            )}
-            {serverError && <ErrorAlert>{serverError}</ErrorAlert>}
+              <h1 id="login-title" className={styles.title}>
+                Bienvenido de nuevo
+              </h1>
+              <p className={styles.subtitle}>Inicia sesión para continuar</p>
+            </header>
 
-            <Input
-              label="Email"
-              type="email"
-              autoComplete="username"
-              inputMode="email"
-              placeholder="tu@empresa.cl"
-              error={errors.email?.message}
-              {...register("email")}
-            />
-
-            <Input
-              label="Contraseña"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              placeholder="••••••••"
-              error={errors.password?.message}
-              rightSlot={
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className={styles.eyeBtn}
-                  aria-label={
-                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-                  }
-                  aria-pressed={showPassword}
-                  tabIndex={0}
+            <form
+              ref={formRef}
+              onSubmit={handleSubmit(onSubmit)}
+              aria-labelledby="login-title"
+              noValidate
+              className={styles.form}
+            >
+              {passwordResetSuccess && !serverError && (
+                <div
+                  role="status"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
+                    padding: "var(--space-3)",
+                    background: "var(--color-success-soft)",
+                    color: "var(--color-success)",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--color-success)",
+                    fontSize: "var(--font-sm)",
+                  }}
                 >
-                  {showPassword ? (
-                    <EyeOff size={18} aria-hidden="true" />
-                  ) : (
-                    <Eye size={18} aria-hidden="true" />
-                  )}
-                </button>
-              }
-              {...register("password")}
-            />
+                  <CheckCircle2 size={18} aria-hidden="true" />
+                  <span>Contraseña actualizada. Inicia sesión con la nueva.</span>
+                </div>
+              )}
 
-            <Button
-              type="submit"
-              variant="primary"
-              fullWidth
-              loading={isSubmitting}
-              leftIcon={!isSubmitting ? <LogIn size={18} /> : undefined}
-            >
-              {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
-            </Button>
+              {serverError && (
+                <ErrorAlert
+                  action={
+                    <button
+                      type="button"
+                      onClick={() => setServerError(null)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "var(--color-danger)",
+                        fontSize: "var(--font-xs)",
+                        padding: 0,
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Cerrar
+                    </button>
+                  }
+                >
+                  {serverError}
+                </ErrorAlert>
+              )}
 
-            <Link
-              to={ROUTES.FORGOT_PASSWORD}
-              style={{
-                textAlign: "center",
-                color: "var(--color-brand)",
-                fontSize: "0.88rem",
-                textDecoration: "none",
-                marginTop: "var(--space-2)",
-              }}
-            >
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </form>
-        </Card>
+              <Input
+                label="Email"
+                type="email"
+                autoComplete="username"
+                inputMode="email"
+                placeholder="tu@empresa.cl"
+                error={errors.email?.message}
+                {...register("email")}
+              />
 
-        <p className={styles.footer}>
-          OMNIFLOW &middot; Sistema POS &middot; Chile
-        </p>
+              <Input
+                label="Contraseña"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                error={errors.password?.message}
+                rightSlot={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className={styles.eyeBtn}
+                    aria-label={
+                      showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                    }
+                    aria-pressed={showPassword}
+                    tabIndex={0}
+                  >
+                    {showPassword ? (
+                      <EyeOff size={18} aria-hidden="true" />
+                    ) : (
+                      <Eye size={18} aria-hidden="true" />
+                    )}
+                  </button>
+                }
+                {...register("password")}
+              />
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                fullWidth
+                loading={isSubmitting}
+                leftIcon={!isSubmitting ? <LogIn size={18} /> : undefined}
+              >
+                {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
+              </Button>
+
+              <Link to={ROUTES.FORGOT_PASSWORD} className={styles.forgotLink}>
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </form>
+          </Card>
+
+          <p className={styles.footer}>
+            &copy; 2026 OMNIFLOW &middot; Hecho con cuidado
+          </p>
+        </div>
       </div>
+
+      {/* ── Columna hero (solo desktop ≥1024px) ── */}
+      <aside className={styles.heroCol} aria-hidden="true">
+        <div className={styles.heroGrid} />
+        <div className={styles.heroInner}>
+          <ul className={styles.heroFeatures}>
+            <li className={styles.heroFeatureItem}>
+              <span className={styles.heroFeatureDot} />
+              Multi-sucursal desde el primer día
+            </li>
+            <li className={styles.heroFeatureItem}>
+              <span className={styles.heroFeatureDot} />
+              Documentos SII: boletas, facturas y NC
+            </li>
+            <li className={styles.heroFeatureItem}>
+              <span className={styles.heroFeatureDot} />
+              Inventario con control de vencimiento
+            </li>
+            <li className={styles.heroFeatureItem}>
+              <span className={styles.heroFeatureDot} />
+              Reportes financieros en tiempo real
+            </li>
+          </ul>
+          <p className={styles.heroSub}>
+            Gestiona tu negocio con trazabilidad total y cumplimiento tributario.
+          </p>
+          <h2 className={styles.heroTagline}>
+            Tu POS multi-sucursal
+          </h2>
+        </div>
+      </aside>
     </main>
   );
 }

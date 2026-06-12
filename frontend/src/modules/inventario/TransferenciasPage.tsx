@@ -270,7 +270,7 @@ export function TransferenciasPage() {
       </Card>
 
       <header>
-        <h2 className={styles.title} style={{ fontSize: "1.1rem" }}>
+        <h2 className={styles.title} style={{ fontSize: "1.1rem", marginBottom: "var(--space-1)" }}>
           Últimas transferencias
         </h2>
         <p className={styles.subtitle}>

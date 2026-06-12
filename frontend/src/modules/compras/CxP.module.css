@@ -1,0 +1,101 @@
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 1200px;
+}
+
+/* ─── KPI Strip ──────────────────────────────────────────────────────────── */
+.kpiStrip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+
+@media (max-width: 1024px) {
+  .kpiStrip { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .kpiStrip { grid-template-columns: 1fr; }
+}
+
+.kpiCard {
+  padding: var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.kpiDanger {
+  border-color: var(--color-danger) !important;
+}
+
+.kpiWarning {
+  border-color: var(--color-warning) !important;
+}
+
+.kpiIcon {
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.kpiLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.kpiValue {
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valueDanger { color: var(--color-danger); }
+.valueWarning { color: var(--color-warning); }
+.valueSuccess { color: var(--color-success); }
+
+/* ─── Filters ────────────────────────────────────────────────────────────── */
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ─── Errors ─────────────────────────────────────────────────────────────── */
+.errorWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+.footerTotal {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: flex-end;
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+}
+
+.footerTotalBold {
+  font-weight: 700;
+  color: var(--color-text);
+}

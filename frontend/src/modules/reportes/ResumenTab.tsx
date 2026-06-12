@@ -7,6 +7,7 @@ import { Card } from "../../components/ui/Card";
 import { DateInput } from "../../components/ui/DateInput";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Select } from "../../components/ui/Select";
+import { Skeleton } from "../../components/ui/Skeleton";
 import { useToast } from "../../components/ui/Toast";
 import { reportesApi, type ResumenFinanciero } from "../../api/reportesApi";
 import { describeError } from "../../api/errorMessages";
@@ -108,9 +109,21 @@ export function ResumenTab() {
       </Card>
 
       {loading && (
-        <div className={styles.loading} role="status" aria-live="polite">
-          Cargando datos…
-        </div>
+        <>
+          <div className={styles.kpiGrid} aria-hidden="true">
+            <Skeleton height="120px" />
+            <Skeleton height="120px" />
+            <Skeleton height="120px" />
+            <Skeleton height="120px" />
+          </div>
+          <div className={styles.desgloseGrid} aria-hidden="true">
+            <Skeleton height="180px" />
+            <Skeleton height="180px" />
+            <Skeleton height="180px" />
+            <Skeleton height="180px" />
+          </div>
+          <span className={styles.loading} role="status" aria-live="polite" aria-label="Cargando datos de reportes" />
+        </>
       )}
 
       {!loading && isEmpty && (

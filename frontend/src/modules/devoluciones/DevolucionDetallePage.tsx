@@ -131,20 +131,28 @@ export function DevolucionDetallePage() {
 
       <header className={styles.head}>
         <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-1)" }}>
+            <Badge variant="warning">NC</Badge>
+            <Badge variant={ventaAnulada ? "danger" : "success"}>
+              Venta {ventaAnulada ? "anulada" : "parcial"}
+            </Badge>
+          </div>
           <h1 className={styles.title}>
-            Nota de Crédito N° {d.nc_folio}
-            <Badge variant="info">NC</Badge>
+            Nota de Crédito N°{" "}
+            <span className={styles.mono}>{d.nc_folio}</span>
           </h1>
           <p className={styles.subtitle}>{formatFechaISO(d.fecha)}</p>
         </div>
         <div
           className={styles.numeric}
-          style={{ fontSize: "1.5rem", fontWeight: 700 }}
+          style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--color-danger)" }}
+          aria-label={`Total nota de crédito: ${formatCLP(d.monto_total_clp)}`}
         >
           {formatCLP(d.monto_total_clp)}
         </div>
       </header>
 
+      {/* 2-col layout: info + totals */}
       <div className={styles.formRow}>
         {/* Información general */}
         <Card>
@@ -162,8 +170,6 @@ export function DevolucionDetallePage() {
                 Ver venta →
               </Link>
             </dd>
-            <dt>Sucursal</dt>
-            <dd className={styles.mono}>{d.sucursal_id.slice(0, 8)}…</dd>
             <dt>Fecha</dt>
             <dd className={styles.mono}>{formatFechaISO(d.fecha)}</dd>
             {d.motivo && (
@@ -177,7 +183,7 @@ export function DevolucionDetallePage() {
 
         {/* Totales */}
         <Card>
-          <h2 className={styles.sectionTitle}>Totales</h2>
+          <h2 className={styles.sectionTitle}>Totales devueltos</h2>
           <dl
             className={styles.detailGrid}
             style={{ gridTemplateColumns: "120px 1fr" }}
@@ -186,7 +192,7 @@ export function DevolucionDetallePage() {
             <dd className={styles.numeric}>{formatCLP(d.monto_neto_clp)}</dd>
             <dt>IVA 19%</dt>
             <dd className={styles.numeric}>{formatCLP(d.iva_clp)}</dd>
-            <dt style={{ fontWeight: 700 }}>Total</dt>
+            <dt style={{ fontWeight: 700 }}>Total NC</dt>
             <dd
               className={styles.numeric}
               style={{ fontWeight: 700, color: "var(--color-danger)" }}
@@ -202,13 +208,15 @@ export function DevolucionDetallePage() {
         <h2 className={styles.sectionTitle}>
           Items devueltos ({d.items.length})
         </h2>
-        <Table<DetalleDevolucion>
-          density="compact"
-          columns={DETALLE_COLUMNS}
-          rows={d.items}
-          rowKey={(item) => item.id}
-          caption="Items de la devolución"
-        />
+        <div style={{ overflowX: "auto" }}>
+          <Table<DetalleDevolucion>
+            density="compact"
+            columns={DETALLE_COLUMNS}
+            rows={d.items}
+            rowKey={(item) => item.id}
+            caption="Items de la devolución"
+          />
+        </div>
       </Card>
 
       {/* Estado final de la venta */}

@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, UserX } from "lucide-react";
 
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { Chip } from "../../components/ui/Chip";
-import { Table, type TableColumn } from "../../components/ui/Table";
+import { Table, type TableColumn, type SortDir } from "../../components/ui/Table";
 import { SearchInput } from "../../components/ui/SearchInput";
 import { Select } from "../../components/ui/Select";
 import { Pagination } from "../../components/ui/Pagination";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { RequirePermission } from "../../auth/RequirePermission";
+import { usePermission } from "../../auth/usePermission";
 import { adminApi, type UsuarioAdmin } from "../../api/admin";
 import { describeError } from "../../api/errorMessages";
 import { ROUTES } from "../../routePaths";
@@ -24,9 +25,12 @@ type ActivoFiltro = "" | "true" | "false";
 
 export function UsuariosPage() {
   const navigate = useNavigate();
+  const canGestionar = usePermission("usuario.gestionar");
   const [q, setQ] = useState("");
   const [activo, setActivo] = useState<ActivoFiltro>("");
   const [offset, setOffset] = useState(0);
+  const [sortKey, setSortKey] = useState<string>("nombre");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [data, setData] = useState<{
     items: UsuarioAdmin[];
     total: number;
@@ -34,6 +38,34 @@ export function UsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
+
+  function handleSort(key: string) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+    setOffset(0);
+  }
+
+  // Client-side sort sobre los items cargados
+  const sortedItems = useMemo(() => {
+    if (!data?.items) return [];
+    const items = [...data.items];
+    items.sort((a, b) => {
+      let va: string | number = "";
+      let vb: string | number = "";
+      if (sortKey === "nombre") { va = a.nombre; vb = b.nombre; }
+      else if (sortKey === "rut") { va = a.rut; vb = b.rut; }
+      else if (sortKey === "email") { va = a.email; vb = b.email; }
+      else if (sortKey === "actualizado_en") { va = a.actualizado_en; vb = b.actualizado_en; }
+      if (va < vb) return sortDir === "asc" ? -1 : 1;
+      if (va > vb) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return items;
+  }, [data?.items, sortKey, sortDir]);
 
   useEffect(() => {
     const ctl = new AbortController();
@@ -65,6 +97,7 @@ export function UsuariosPage() {
       {
         key: "nombre",
         header: "Nombre",
+        sortable: true,
         cell: (u) => (
           <span className={styles.cellName}>
             <strong>{u.nombre}</strong>
@@ -75,8 +108,9 @@ export function UsuariosPage() {
       {
         key: "rut",
         header: "RUT",
+        sortable: true,
         cell: (u) => <span className={styles.mono}>{formatearRut(u.rut)}</span>,
-        width: "140px",
+        width: "150px",
       },
       {
         key: "perfiles",
@@ -92,6 +126,20 @@ export function UsuariosPage() {
         ),
       },
       {
+        key: "sucursales",
+        header: "Sucursales",
+        width: "110px",
+        align: "center",
+        cell: (u) => {
+          const count = (u.sucursales ?? []).length;
+          return count === 0 ? (
+            <Badge variant="neutral" size="sm">Todas</Badge>
+          ) : (
+            <Badge variant="brand" size="sm">{count}</Badge>
+          );
+        },
+      },
+      {
         key: "activo",
         header: "Estado",
         width: "110px",
@@ -103,17 +151,45 @@ export function UsuariosPage() {
           ),
       },
       {
-        key: "actualizado_en",
-        header: "Actualizado",
-        width: "160px",
-        cell: (u) => (
-          <span className={styles.muted}>
-            {formatDate(u.actualizado_en)}
-          </span>
-        ),
+        key: "acciones",
+        header: "",
+        width: "140px",
+        align: "right",
+        cell: (u) =>
+          canGestionar ? (
+            <div style={{ display: "inline-flex", gap: "var(--space-1)", justifyContent: "flex-end" }}>
+              <Button
+                size="sm"
+                variant="ghost"
+                leftIcon={<Pencil size={14} aria-hidden="true" />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(ROUTES.ADMIN_USUARIO_DETALLE(u.id));
+                }}
+                aria-label={`Editar ${u.nombre}`}
+              >
+                Editar
+              </Button>
+              {u.activo && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  leftIcon={<UserX size={14} aria-hidden="true" />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(ROUTES.ADMIN_USUARIO_DETALLE(u.id));
+                  }}
+                  aria-label={`Desactivar ${u.nombre}`}
+                  style={{ color: "var(--color-danger)" }}
+                >
+                  Desactivar
+                </Button>
+              )}
+            </div>
+          ) : null,
       },
     ],
-    []
+    [canGestionar, navigate]
   );
 
   return (
@@ -176,10 +252,13 @@ export function UsuariosPage() {
 
       <Table<UsuarioAdmin>
         columns={columns}
-        rows={data?.items}
+        rows={sortedItems}
         loading={loading}
         rowKey={(u) => u.id}
         onRowClick={(u) => navigate(ROUTES.ADMIN_USUARIO_DETALLE(u.id))}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={handleSort}
         emptyState={
           q
             ? "Sin resultados para tu búsqueda."
@@ -198,14 +277,3 @@ export function UsuariosPage() {
   );
 }
 
-function formatDate(iso: string): string {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString("es-CL", {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
-  } catch {
-    return iso;
-  }
-}

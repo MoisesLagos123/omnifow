@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown, ShieldCheck } from "lucide-react";
 
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -11,6 +11,7 @@ import { Badge } from "../../components/ui/Badge";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
+import { PageHeader } from "../../components/ui/PageHeader";
 import {
   MultiSelect,
   type MultiSelectOption,
@@ -204,166 +205,184 @@ export function EditarUsuarioPage() {
         </Button>
       </div>
 
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: "var(--space-3)",
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <h1 className={styles.title}>
-            {usuario ? usuario.nombre : <Skeleton width={220} />}
-          </h1>
-          <p className={styles.subtitle}>
-            {usuario ? (
-              <>
-                <span className={styles.mono}>{formatearRut(usuario.rut)}</span>
-                {" · "}
-                {usuario.email}
-              </>
-            ) : (
-              <Skeleton width={160} />
-            )}
-          </p>
-        </div>
-        {usuario &&
-          (usuario.activo ? (
-            <Badge variant="success">Activo</Badge>
+      <PageHeader
+        eyebrow="Administración"
+        title={
+          usuario ? (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)", flexWrap: "wrap" }}>
+              {usuario.nombre}
+              {usuario.activo ? (
+                <Badge variant="success" size="sm">Activo</Badge>
+              ) : (
+                <Badge variant="neutral" size="sm">Inactivo</Badge>
+              )}
+            </span>
           ) : (
-            <Badge variant="neutral">Inactivo</Badge>
-          ))}
-      </header>
+            <Skeleton width={220} />
+          )
+        }
+        subtitle={
+          usuario ? (
+            <>
+              <span className={styles.mono}>{formatearRut(usuario.rut)}</span>
+              {" · "}
+              {usuario.email}
+            </>
+          ) : (
+            <Skeleton width={160} />
+          )
+        }
+      />
 
-      <Card className={styles.formCard}>
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          {serverError && <ErrorAlert>{serverError}</ErrorAlert>}
+      <div className={styles.detailCols}>
+        {/* ── Columna izquierda: datos + permisos efectivos ─────────── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+          <Card className={styles.formCard}>
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+              {serverError && <ErrorAlert>{serverError}</ErrorAlert>}
 
-          <Input
-            label="Nombre completo"
-            error={errors.nombre?.message}
-            {...register("nombre")}
-          />
-          <Input
-            label="Email"
-            type="email"
-            error={errors.email?.message}
-            {...register("email")}
-          />
-          <Input
-            label="RUT"
-            value={usuario ? formatearRut(usuario.rut) : ""}
-            readOnly
-            hint="El RUT no se puede modificar."
-          />
-
-          <Controller
-            name="perfiles_ids"
-            control={control}
-            render={({ field, fieldState }) => (
-              <MultiSelect
-                label="Perfiles asignados"
-                options={perfilOptions}
-                value={field.value}
-                onChange={field.onChange}
-                error={fieldState.error?.message}
-                placeholder="Selecciona perfiles..."
+              <Input
+                label="Nombre completo"
+                error={errors.nombre?.message}
+                {...register("nombre")}
               />
-            )}
-          />
+              <Input
+                label="Email"
+                type="email"
+                error={errors.email?.message}
+                {...register("email")}
+              />
+              <Input
+                label="RUT"
+                value={usuario ? formatearRut(usuario.rut) : ""}
+                readOnly
+                hint="El RUT no se puede modificar."
+                style={{ fontFamily: "var(--font-mono)" }}
+              />
 
-          <MultiSelect
-            label="Sucursales con acceso"
-            options={sucursalOptions}
-            value={sucursalIds}
-            onChange={setSucursalIds}
-            placeholder="Sin restricción — todas las sucursales"
-          />
-          <p className={styles.muted}>
-            Deja vacío para permitir acceso a todas las sucursales (modo
-            Sysadmin).
-          </p>
+              <div className={styles.formActions}>
+                <Button
+                  type="submit"
+                  loading={isSubmitting || savingSucursales}
+                  disabled={
+                    (!isDirty && !sucursalesDirty) ||
+                    isSubmitting ||
+                    savingSucursales
+                  }
+                >
+                  Guardar cambios
+                </Button>
+              </div>
+            </form>
+          </Card>
 
-          <div className={styles.formActions}>
-            <Button
-              type="submit"
-              loading={isSubmitting || savingSucursales}
-              disabled={
-                (!isDirty && !sucursalesDirty) ||
-                isSubmitting ||
-                savingSucursales
-              }
+          {/* Permisos efectivos (colapsible) */}
+          <div className={styles.collapsible}>
+            <button
+              type="button"
+              className={styles.collapsibleBtn}
+              onClick={() => setPermisosOpen((o) => !o)}
+              aria-expanded={permisosOpen}
             >
-              Guardar cambios
-            </Button>
-          </div>
-        </form>
-      </Card>
-
-      <div className={styles.collapsible}>
-        <button
-          type="button"
-          className={styles.collapsibleBtn}
-          onClick={() => setPermisosOpen((o) => !o)}
-          aria-expanded={permisosOpen}
-        >
-          <span>Permisos efectivos ({permisosEfectivos.length})</span>
-          <ChevronDown
-            size={16}
-            aria-hidden="true"
-            style={{
-              transform: permisosOpen ? "rotate(180deg)" : "none",
-              transition: "transform var(--transition-fast)",
-            }}
-          />
-        </button>
-        {permisosOpen && (
-          <div className={styles.collapsibleBody}>
-            {permisosEfectivos.length === 0 ? (
-              <p className={styles.muted}>
-                Este usuario no tiene permisos asignados.
-              </p>
-            ) : (
-              permisosAgrupados.map(([recurso, codigos]) => (
-                <div key={recurso} className={styles.permGroup}>
-                  <div className={styles.permGroupHeader}>
-                    <span>{recurso}</span>
-                    <span className={styles.permGroupCount}>
-                      {codigos.length} permisos
-                    </span>
-                  </div>
-                  <div className={styles.permList}>
-                    {codigos.map((c) => (
-                      <div key={c} className={styles.permRow}>
-                        <span className={styles.permCode}>{c}</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)" }}>
+                <ShieldCheck size={15} aria-hidden="true" />
+                Permisos efectivos ({permisosEfectivos.length})
+              </span>
+              <ChevronDown
+                size={16}
+                aria-hidden="true"
+                style={{
+                  transform: permisosOpen ? "rotate(180deg)" : "none",
+                  transition: "transform var(--transition-fast)",
+                }}
+              />
+            </button>
+            {permisosOpen && (
+              <div className={styles.collapsibleBody}>
+                {permisosEfectivos.length === 0 ? (
+                  <p className={styles.muted}>
+                    Este usuario no tiene permisos asignados.
+                  </p>
+                ) : (
+                  permisosAgrupados.map(([recurso, codigos]) => (
+                    <div key={recurso} className={styles.permGroup}>
+                      <div className={styles.permGroupHeader}>
+                        <span>{recurso}</span>
+                        <span className={styles.permGroupCount}>
+                          {codigos.length} permisos
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ))
+                      <div className={styles.permList}>
+                        {codigos.map((c) => (
+                          <div key={c} className={styles.permRow}>
+                            <span className={styles.permCode}>{c}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
 
-      {usuario?.activo && (
-        <div className={styles.dangerZone}>
-          <div>
-            <p className={styles.dangerLabel}>Desactivar usuario</p>
-            <p className={styles.dangerHelp}>
-              No podrá iniciar sesión. Sus datos y trazabilidad se preservan.
-            </p>
-          </div>
-          <Button
-            variant="danger-ghost"
-            onClick={() => setConfirmOpen(true)}
-          >
-            Desactivar
-          </Button>
+          {usuario?.activo && (
+            <div className={styles.dangerZone}>
+              <div>
+                <p className={styles.dangerLabel}>Desactivar usuario</p>
+                <p className={styles.dangerHelp}>
+                  No podrá iniciar sesión. Sus datos y trazabilidad se preservan.
+                </p>
+              </div>
+              <Button
+                variant="danger-ghost"
+                onClick={() => setConfirmOpen(true)}
+              >
+                Desactivar
+              </Button>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* ── Columna derecha: perfiles + sucursales ───────────────── */}
+        <div className={styles.sideCards}>
+          {/* Perfiles */}
+          <Card style={{ padding: "var(--space-4)" }}>
+            <p className={styles.sideCardTitle}>Perfiles asignados</p>
+            <Controller
+              name="perfiles_ids"
+              control={control}
+              render={({ field, fieldState }) => (
+                <>
+                  <MultiSelect
+                    label=""
+                    options={perfilOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={fieldState.error?.message}
+                    placeholder="Selecciona perfiles..."
+                  />
+                </>
+              )}
+            />
+          </Card>
+
+          {/* Sucursales */}
+          <Card style={{ padding: "var(--space-4)" }}>
+            <p className={styles.sideCardTitle}>Sucursales con acceso</p>
+            <MultiSelect
+              label=""
+              options={sucursalOptions}
+              value={sucursalIds}
+              onChange={setSucursalIds}
+              placeholder="Sin restricción — todas las sucursales"
+            />
+            <p className={styles.muted} style={{ marginTop: "var(--space-2)", fontSize: "var(--font-xs)" }}>
+              Vacío = acceso a todas las sucursales.
+            </p>
+          </Card>
+        </div>
+      </div>
 
       <ConfirmDialog
         open={confirmOpen}

@@ -100,16 +100,23 @@ export function PerfilesPage() {
       {
         key: "permisos",
         header: "Permisos",
-        width: "120px",
-        align: "right",
-        cell: (p) => p.cantidad_permisos,
+        width: "110px",
+        align: "center",
+        cell: (p) => (
+          <Badge variant="brand" size="sm">{p.cantidad_permisos}</Badge>
+        ),
       },
       {
         key: "usuarios",
         header: "Usuarios",
-        width: "120px",
-        align: "right",
-        cell: (p) => p.cantidad_usuarios,
+        width: "110px",
+        align: "center",
+        cell: (p) =>
+          p.cantidad_usuarios > 0 ? (
+            <Badge variant="info" size="sm">{p.cantidad_usuarios}</Badge>
+          ) : (
+            <span style={{ color: "var(--color-text-muted)", fontSize: "var(--font-xs)" }}>0</span>
+          ),
       },
       {
         key: "activo",

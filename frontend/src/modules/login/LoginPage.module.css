@@ -1,22 +1,22 @@
+/* ─── Layout externo ────────────────────────────────────────────── */
 .page {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  background: var(--color-bg);
+  position: relative;
+}
+
+/* ─── Columna izquierda: formulario ────────────────────────────── */
+.formCol {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6);
+  padding: var(--space-8) var(--space-6);
   position: relative;
-  background:
-    radial-gradient(
-      circle at 15% 0%,
-      var(--color-brand-soft) 0%,
-      transparent 45%
-    ),
-    radial-gradient(
-      circle at 85% 100%,
-      var(--color-brand-soft) 0%,
-      transparent 40%
-    ),
-    var(--color-bg);
+  /* En mobile ocupa todo el ancho */
 }
 
 .toggleSlot {
@@ -27,60 +27,99 @@
 
 .cardWrap {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  animation: fadeIn 200ms ease both;
+  animation: fadeUp 240ms ease both;
 }
 
 .card {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
+  padding: var(--space-8);
 }
 
+/* ─── Header del form ───────────────────────────────────────────── */
 .header {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-2);
-  text-align: center;
 }
 
-.brand {
-  width: 64px;
-  height: 64px;
+.logoMark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.logoIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-brand);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-2);
+  color: var(--color-on-brand);
+  font-weight: 700;
+  font-size: var(--font-xl);
+  font-family: var(--font-mono);
+  letter-spacing: -0.04em;
+  flex-shrink: 0;
 }
 
-.brandMark {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.logoText {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+  line-height: var(--line-tight);
 }
 
 .title {
-  font-size: 1.5rem;
+  font-size: var(--font-2xl);
+  font-weight: 700;
   color: var(--color-text);
+  line-height: var(--line-tight);
+  margin: 0;
 }
 
 .subtitle {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--font-sm);
   color: var(--color-text-muted);
+  line-height: var(--line-normal);
 }
 
+/* ─── Form ──────────────────────────────────────────────────────── */
 .form {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
+.forgotLink {
+  text-align: center;
+  color: var(--color-text-subtle);
+  font-size: var(--font-sm);
+  text-decoration: none;
+  margin-top: var(--space-1);
+  transition: color var(--transition-fast);
+}
+.forgotLink:hover {
+  color: var(--color-brand);
+}
+.forgotLink:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Eye toggle */
 .eyeBtn {
   display: inline-flex;
   align-items: center;
@@ -97,16 +136,107 @@
   box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
+/* ─── Footer ────────────────────────────────────────────────────── */
 .footer {
   text-align: center;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   color: var(--color-text-subtle);
   margin: 0;
+  line-height: var(--line-normal);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ─── Columna derecha: hero ─────────────────────────────────────── */
+.heroCol {
+  display: none; /* oculto en mobile */
+  width: 44%;
+  flex-shrink: 0;
+  background: linear-gradient(
+    145deg,
+    var(--color-brand-active) 0%,
+    var(--color-brand) 50%,
+    #2563eb 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  padding: var(--space-12) var(--space-10);
+  gap: var(--space-4);
+}
+
+/* Decoración geométrica de fondo */
+.heroCol::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 110% -10%, rgba(255,255,255,0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 80% at -20% 110%, rgba(255,255,255,0.06) 0%, transparent 55%);
+}
+
+.heroGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 30%, transparent 100%);
+}
+
+.heroTagline {
+  font-size: var(--font-3xl);
+  font-weight: 700;
+  color: #ffffff;
+  line-height: var(--line-tight);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.heroSub {
+  font-size: var(--font-base);
+  color: rgba(255,255,255,0.72);
+  margin: 0;
+  line-height: var(--line-relaxed);
+  max-width: 320px;
+}
+
+.heroFeatures {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.heroFeatureItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-sm);
+  color: rgba(255,255,255,0.80);
+}
+
+.heroFeatureDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+/* ─── Animations ────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .shake {
@@ -119,12 +249,20 @@
   75% { transform: translateX(6px); }
 }
 
+/* ─── Reduced motion ────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .cardWrap { animation: none; }
   .shake { animation: none; }
 }
 
+/* ─── Desktop: layout 2 columnas ≥1024px ───────────────────────── */
+@media (min-width: 1024px) {
+  .heroCol { display: flex; }
+}
+
+/* ─── Mobile small ──────────────────────────────────────────────── */
 @media (max-width: 480px) {
   .cardWrap { max-width: 100%; }
   .card { padding: var(--space-6); }
+  .formCol { padding: var(--space-6) var(--space-4); }
 }

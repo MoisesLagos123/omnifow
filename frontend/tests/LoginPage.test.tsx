@@ -45,7 +45,7 @@ describe("LoginPage", () => {
 
   it("renderiza título y campos", () => {
     renderLogin();
-    expect(screen.getByRole("heading", { name: /omniflow/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /bienvenido/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^contraseña$/i)).toBeInTheDocument();
     expect(

@@ -4,6 +4,7 @@ import { Plus, ShoppingBag } from "lucide-react";
 
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
+import { Card } from "../../components/ui/Card";
 import { Table, type TableColumn } from "../../components/ui/Table";
 import { Select } from "../../components/ui/Select";
 import { DateInput } from "../../components/ui/DateInput";
@@ -169,51 +170,53 @@ export function ComprasPage() {
         }
       />
 
-      <div className={styles.filters}>
-        {sucursales.length > 1 && (
+      <Card>
+        <div className={styles.filters}>
+          {sucursales.length > 1 && (
+            <Select
+              label="Sucursal"
+              value={sucursalId}
+              onChange={(e) => {
+                setOffset(0);
+                setSucursalId(e.target.value);
+              }}
+              options={sucursales.map((s) => ({ value: s.id, label: s.nombre }))}
+              emptyLabel="Todas las sucursales"
+            />
+          )}
           <Select
-            label="Sucursal"
-            value={sucursalId}
+            label="Estado"
+            value={estado}
             onChange={(e) => {
               setOffset(0);
-              setSucursalId(e.target.value);
+              setEstado(e.target.value as EstadoFiltro);
             }}
-            options={sucursales.map((s) => ({ value: s.id, label: s.nombre }))}
-            emptyLabel="Todas las sucursales"
+            options={[
+              { value: "CONFIRMADA", label: "Confirmadas" },
+              { value: "ANULADA", label: "Anuladas" },
+            ]}
+            emptyLabel="Todos"
           />
-        )}
-        <Select
-          label="Estado"
-          value={estado}
-          onChange={(e) => {
-            setOffset(0);
-            setEstado(e.target.value as EstadoFiltro);
-          }}
-          options={[
-            { value: "CONFIRMADA", label: "Confirmadas" },
-            { value: "ANULADA", label: "Anuladas" },
-          ]}
-          emptyLabel="Todos"
-        />
-        <DateInput
-          label="Desde"
-          value={desde}
-          onChange={(v) => {
-            setOffset(0);
-            setDesde(v);
-          }}
-          max={hasta || undefined}
-        />
-        <DateInput
-          label="Hasta"
-          value={hasta}
-          onChange={(v) => {
-            setOffset(0);
-            setHasta(v);
-          }}
-          min={desde || undefined}
-        />
-      </div>
+          <DateInput
+            label="Desde"
+            value={desde}
+            onChange={(v) => {
+              setOffset(0);
+              setDesde(v);
+            }}
+            max={hasta || undefined}
+          />
+          <DateInput
+            label="Hasta"
+            value={hasta}
+            onChange={(v) => {
+              setOffset(0);
+              setHasta(v);
+            }}
+            min={desde || undefined}
+          />
+        </div>
+      </Card>
 
       {errorMsg && (
         <div className={styles.errorWrap}>

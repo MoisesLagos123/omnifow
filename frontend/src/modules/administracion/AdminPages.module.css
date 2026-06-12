@@ -5,6 +5,71 @@
   max-width: 1200px;
 }
 
+/* ─── Layout 2 cols desktop (form + sidebar) ────────────────────── */
+.detailCols {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: var(--space-5);
+  align-items: start;
+  max-width: 1100px;
+}
+@media (max-width: 1023px) {
+  .detailCols { grid-template-columns: 1fr; }
+}
+
+.sideCards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sideCardTitle {
+  font-size: var(--font-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.checkList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-sm);
+  color: var(--color-text);
+  transition: background var(--transition-fast);
+}
+.checkItem:hover { background: var(--color-surface-2); }
+.checkItem input[type="checkbox"] {
+  width: 16px; height: 16px;
+  accent-color: var(--color-brand);
+  flex-shrink: 0;
+}
+.checkItemLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.checkItemHint {
+  font-size: var(--font-xs);
+  color: var(--color-text-subtle);
+}
+
 .head {
   display: flex;
   justify-content: space-between;

@@ -42,12 +42,12 @@ function estadoBadgeVariant(
 
 function tipoBadgeVariant(
   tipo: TipoDocumento
-): "info" | "neutral" | "success" | "warning" | "danger" {
+): "info" | "brand" | "neutral" | "success" | "warning" | "danger" {
   switch (tipo) {
     case "BOLETA":
       return "info";
     case "FACTURA":
-      return "info";
+      return "brand";
     case "NC":
       return "warning";
     case "ND":
@@ -190,20 +190,23 @@ export function DocumentoDetalle() {
           >
             Documentos
           </Button>
-          <h1 className={styles.title}>
-            {tipoLabel} N° {data.folio}{" "}
-            <Badge variant={tipoBadgeVariant(data.tipo)}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            <Badge variant={tipoBadgeVariant(data.tipo)} size="md">
               {tipoLabel}
             </Badge>
-            <Badge variant={estadoBadgeVariant(data.estado_sii)}>
+            <Badge variant={estadoBadgeVariant(data.estado_sii)} size="md">
               {ESTADO_SII_LABEL[data.estado_sii]}
             </Badge>
+          </div>
+          <h1 className={styles.titleFolio}>
+            N° {data.folio}
           </h1>
           <p className={styles.subtitle}>{formatFechaISO(data.emitido_en)}</p>
         </div>
-        <div className={styles.headActions}>
+        {/* Desktop sticky actions */}
+        <div className={styles.headActionsSticky}>
           <Button
-            variant="ghost"
+            variant="accent"
             leftIcon={<Printer size={16} aria-hidden />}
             onClick={() => setPrintOpen(true)}
           >
@@ -211,6 +214,18 @@ export function DocumentoDetalle() {
           </Button>
         </div>
       </header>
+
+      {/* Mobile sticky bottom bar */}
+      <div className={styles.mobileActions}>
+        <Button
+          fullWidth
+          variant="accent"
+          leftIcon={<Printer size={16} aria-hidden />}
+          onClick={() => setPrintOpen(true)}
+        >
+          Reimprimir
+        </Button>
+      </div>
 
       <div className={styles.detailGrid}>
         {/* Columna izquierda */}

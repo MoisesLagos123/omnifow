@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type MouseEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { Plus, RotateCcw } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Plus, RotateCcw, Users } from "lucide-react";
 
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
@@ -10,11 +10,13 @@ import { Select } from "../../components/ui/Select";
 import { Pagination } from "../../components/ui/Pagination";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
 import { PageHeader } from "../../components/ui/PageHeader";
+import { EmptyState } from "../../components/ui/EmptyState";
 import { useToast } from "../../components/ui/Toast";
 import { RequirePermission } from "../../auth/RequirePermission";
-import { usePermission } from "../../auth/usePermission";
+import { usePermission, useAnyPermission } from "../../auth/usePermission";
 import { clientesApi, type Cliente } from "../../api/clientes";
 import { describeError } from "../../api/errorMessages";
+import { formatCLP } from "../../lib/format";
 import { formatearRut } from "../administracion/rut";
 import { ROUTES } from "../../routePaths";
 import styles from "./ClientesPages.module.css";
@@ -26,6 +28,7 @@ export function ClientesPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const canGestionar = usePermission("cliente.gestionar");
+  const canCxC = useAnyPermission(["cxc.consultar", "cxc.gestionar"] as const);
   const [q, setQ] = useState("");
   const [activo, setActivo] = useState<ActivoFiltro>("");
   const [offset, setOffset] = useState(0);
@@ -82,8 +85,14 @@ export function ClientesPage() {
       {
         key: "rut",
         header: "RUT",
-        width: "150px",
-        cell: (c) => <span className={styles.mono}>{formatearRut(c.rut)}</span>,
+        width: "140px",
+        cell: (c) => (
+          <span
+            style={{ fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}
+          >
+            {formatearRut(c.rut)}
+          </span>
+        ),
       },
       {
         key: "razon_social",
@@ -91,30 +100,71 @@ export function ClientesPage() {
         cell: (c) => <strong>{c.razon_social}</strong>,
       },
       {
-        key: "ubicacion",
-        header: "Comuna / Región",
+        key: "email",
+        header: "Email",
         cell: (c) =>
-          c.comuna || c.region ? (
-            <span>
-              {c.comuna ?? "—"}
-              {c.region ? (
-                <span className={styles.cellSub}> · {c.region}</span>
-              ) : null}
-            </span>
+          c.email ? (
+            <span style={{ fontSize: "0.88rem" }}>{c.email}</span>
           ) : (
             <em className={styles.muted}>—</em>
           ),
       },
       {
-        key: "email",
-        header: "Email",
+        key: "telefono",
+        header: "Teléfono",
+        width: "130px",
         cell: (c) =>
-          c.email ? c.email : <em className={styles.muted}>—</em>,
+          c.telefono ? (
+            <span
+              style={{ fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}
+            >
+              {c.telefono}
+            </span>
+          ) : (
+            <em className={styles.muted}>—</em>
+          ),
       },
+      ...(canCxC
+        ? ([
+            {
+              key: "saldo_cxc",
+              header: "Saldo CxC",
+              width: "120px",
+              align: "right" as const,
+              cell: (c: Cliente) =>
+                (c.saldo_cxc_clp ?? 0) > 0 ? (
+                  <Link
+                    to={`${ROUTES.CXC}?cliente_id=${c.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.85rem",
+                      color: "var(--color-danger)",
+                      fontWeight: 700,
+                      textDecoration: "none",
+                    }}
+                    title="Ver cuentas por cobrar de este cliente"
+                  >
+                    {formatCLP(c.saldo_cxc_clp ?? 0)}
+                  </Link>
+                ) : (
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.85rem",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    {formatCLP(0)}
+                  </span>
+                ),
+            },
+          ] as TableColumn<Cliente>[])
+        : []),
       {
         key: "activo",
         header: "Estado",
-        width: "110px",
+        width: "100px",
         cell: (c) =>
           c.activo ? (
             <Badge variant="success">Activo</Badge>
@@ -142,7 +192,7 @@ export function ClientesPage() {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [reactivandoId, canGestionar]
+    [reactivandoId, canGestionar, canCxC]
   );
 
   const isEmptyInitial =
@@ -213,20 +263,29 @@ export function ClientesPage() {
         onRowClick={(c) => navigate(ROUTES.CLIENTE_DETALLE(c.id))}
         emptyState={
           isEmptyInitial ? (
-            <div className={styles.emptyState}>
-              <p>No hay clientes aún.</p>
-              <RequirePermission code="cliente.gestionar">
-                <Button
-                  size="sm"
-                  leftIcon={<Plus size={14} aria-hidden="true" />}
-                  onClick={() => navigate(ROUTES.CLIENTE_NUEVO)}
-                >
-                  Crear el primer cliente
-                </Button>
-              </RequirePermission>
-            </div>
+            <EmptyState
+              icon={<Users size={28} />}
+              title="Sin clientes aún"
+              description="Crea el primer cliente para comenzar a emitir documentos tributarios."
+              action={
+                <RequirePermission code="cliente.gestionar">
+                  <Button
+                    size="sm"
+                    leftIcon={<Plus size={14} aria-hidden="true" />}
+                    onClick={() => navigate(ROUTES.CLIENTE_NUEVO)}
+                  >
+                    Crear el primer cliente
+                  </Button>
+                </RequirePermission>
+              }
+            />
           ) : q || activo !== "" ? (
-            "Sin resultados para tu búsqueda."
+            <EmptyState
+              variant="inline"
+              icon={<Users size={22} />}
+              title="Sin resultados"
+              description="No hay clientes que coincidan con los filtros aplicados."
+            />
           ) : (
             "No hay clientes aún."
           )

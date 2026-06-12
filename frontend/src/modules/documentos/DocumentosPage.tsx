@@ -41,7 +41,7 @@ function tipoBadgeVariant(
     case "BOLETA":
       return "info";
     case "FACTURA":
-      return "brand" as never; // Badge acepta "neutral"|"info"|"success"|"warning"|"danger"
+      return "brand";
     case "NC":
       return "warning";
     case "ND":
@@ -76,6 +76,7 @@ export function DocumentosPage() {
   const [tipo, setTipo] = useState<TipoFiltro>("");
   const [estadoSii, setEstadoSii] = useState<EstadoFiltro>("");
   const [folio, setFolio] = useState<string>("");
+  const [rutReceptor, setRutReceptor] = useState<string>("");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [q, setQ] = useState("");
@@ -109,6 +110,7 @@ export function DocumentosPage() {
           tipo: tipo || undefined,
           estado_sii: estadoSii || undefined,
           folio: folio ? Number(folio) : undefined,
+          rut_receptor: rutReceptor || undefined,
           fecha_desde: desde || undefined,
           fecha_hasta: hasta || undefined,
           q: q || undefined,
@@ -127,13 +129,14 @@ export function DocumentosPage() {
       .finally(() => setLoading(false));
     return () => ctl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sucursalId, tipo, estadoSii, folio, desde, hasta, q, page]);
+  }, [sucursalId, tipo, estadoSii, folio, rutReceptor, desde, hasta, q, page]);
 
   const columns = useMemo<TableColumn<DocumentoListItem>[]>(
     () => [
       {
         key: "emitido_en",
         header: "Fecha",
+        sortable: true,
         cell: (d) => (
           <span className={styles.mono}>{formatFechaISO(d.emitido_en)}</span>
         ),
@@ -142,7 +145,7 @@ export function DocumentosPage() {
         key: "tipo",
         header: "Tipo",
         cell: (d) => (
-          <Badge variant={tipoBadgeVariant(d.tipo) as "info" | "neutral" | "success" | "warning" | "danger"}>
+          <Badge variant={tipoBadgeVariant(d.tipo)}>
             {TIPO_DOCUMENTO_LABEL[d.tipo]}
           </Badge>
         ),
@@ -150,6 +153,7 @@ export function DocumentosPage() {
       {
         key: "folio",
         header: "Folio",
+        sortable: true,
         cell: (d) => <span className={styles.mono}>#{d.folio}</span>,
       },
       {
@@ -173,6 +177,7 @@ export function DocumentosPage() {
         key: "total_clp",
         header: "Total",
         align: "right",
+        sortable: true,
         cell: (d) => (
           <span className={styles.numeric}>{formatCLP(d.total_clp)}</span>
         ),
@@ -205,6 +210,18 @@ export function DocumentosPage() {
     ],
     [navigate]
   );
+
+  const [sortKey, setSortKey] = useState<string | undefined>();
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  function handleSort(key: string) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
 
   function resetPage() {
     setPage(1);
@@ -297,6 +314,16 @@ export function DocumentosPage() {
           />
 
           <SearchInput
+            label="RUT Receptor"
+            placeholder="12.345.678-9"
+            value={rutReceptor}
+            onChange={(v) => {
+              setRutReceptor(v);
+              resetPage();
+            }}
+          />
+
+          <SearchInput
             label="Buscar"
             placeholder="Razón social, folio…"
             value={q}
@@ -317,6 +344,10 @@ export function DocumentosPage() {
         loading={loading}
         rowKey={(d) => d.id}
         onRowClick={(d) => navigate(ROUTES.DOCUMENTO_DETALLE(d.id))}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={handleSort}
+        caption="Listado de documentos tributarios"
         emptyState={
           <EmptyState
             variant="inline"

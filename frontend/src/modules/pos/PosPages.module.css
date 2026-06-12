@@ -7,6 +7,7 @@
   max-width: 1400px;
 }
 
+/* ─── Cabecera legacy (solo VentaDetallePage la usa inline) ─── */
 .head {
   display: flex;
   justify-content: space-between;
@@ -16,10 +17,11 @@
 }
 
 .title {
-  font-size: 1.5rem;
+  font-size: var(--font-2xl);
   font-weight: 700;
   margin: 0;
   color: var(--color-text);
+  line-height: var(--line-tight);
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
@@ -27,20 +29,22 @@
 }
 
 .subtitle {
-  margin: 4px 0 0;
+  margin: var(--space-1) 0 0;
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: var(--font-sm);
+  line-height: var(--line-normal);
 }
 
 .headActions {
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
+  align-items: center;
 }
 
-.mono { font-family: var(--font-mono); font-size: 0.85rem; }
-.muted { color: var(--color-text-muted); font-size: 0.85rem; }
-.numeric { font-variant-numeric: tabular-nums; }
+.mono   { font-family: var(--font-mono); font-size: var(--font-sm); }
+.muted  { color: var(--color-text-muted); font-size: var(--font-sm); }
+.numeric { font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
 
 .filters {
   display: flex;
@@ -79,26 +83,26 @@
 .bannerTitle {
   margin: 0;
   font-weight: 600;
+  font-size: var(--font-sm);
 }
 
 .bannerSub {
-  margin: 2px 0 0;
+  margin: var(--space-1) 0 0;
   color: var(--color-text-muted);
-  font-size: 0.85rem;
+  font-size: var(--font-xs);
+  line-height: var(--line-snug);
 }
 
-/* ---------- POS — layout dos columnas ---------- */
+/* ---------- POS — layout dos columnas (desktop ≥ 1024px) ----------
+   Izquierda 60% = buscador + carrito
+   Derecha  40% = doc + cliente + pagos + confirmar              */
 
 .posGrid {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 3fr 2fr;
   gap: var(--space-4);
   align-items: start;
-}
-
-/* En tablet vertical / mobile pasa a stack */
-@media (max-width: 960px) {
-  .posGrid { grid-template-columns: 1fr; }
+  /* En mobile el grid se deshace — ver media query abajo */
 }
 
 .posColumn {
@@ -106,6 +110,13 @@
   flex-direction: column;
   gap: var(--space-4);
   min-width: 0;
+}
+
+/* Tablet vertical y mobile: columna única */
+@media (max-width: 1023px) {
+  .posGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---------- Selector contexto (sucursal + caja) ---------- */
@@ -117,7 +128,7 @@
   flex-wrap: wrap;
 }
 
-.contextRow > * { min-width: 180px; }
+.contextRow > * { min-width: 180px; flex: 1 1 180px; }
 
 /* ---------- Búsqueda de productos ---------- */
 
@@ -131,34 +142,37 @@
   position: relative;
 }
 
+/* Input grande para que sea cómodo en caja (más que el default) */
 .searchInputWrap input {
-  font-size: 1.1rem !important;
-  padding-top: 14px;
-  padding-bottom: 14px;
+  font-size: var(--font-lg) !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
 }
 
 .searchHint {
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   margin: 0;
 }
 
 .searchResults {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  max-height: 360px;
+  max-height: 320px;
   overflow-y: auto;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  /* pequeño espacio visual desde el input */
+  margin-top: var(--space-1);
 }
 
 .searchResultItem {
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: var(--space-3);
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   cursor: pointer;
   border: none;
   background: transparent;
@@ -166,6 +180,7 @@
   color: var(--color-text);
   border-bottom: 1px solid var(--color-border);
   align-items: center;
+  transition: background var(--transition-fast);
 }
 
 .searchResultItem:last-child { border-bottom: none; }
@@ -182,8 +197,9 @@
 
 .searchResultSku {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   color: var(--color-text-muted);
+  letter-spacing: 0.03em;
 }
 
 .searchResultInfo {
@@ -195,30 +211,35 @@
 
 .searchResultNombre {
   font-weight: 500;
+  font-size: var(--font-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .searchResultMeta {
-  font-size: 0.75rem;
+  font-size: var(--font-xs);
   color: var(--color-text-muted);
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .searchResultPrecio {
   text-align: right;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: var(--font-sm);
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  color: var(--color-text);
 }
 
 .searchEmpty {
-  padding: var(--space-4);
+  padding: var(--space-5);
   text-align: center;
   color: var(--color-text-muted);
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
 }
 
 /* ---------- Carrito ---------- */
@@ -237,15 +258,18 @@
 
 .cartTitle {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--font-base);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: var(--line-tight);
 }
 
 .cartEmpty {
   text-align: center;
-  padding: var(--space-6);
+  padding: var(--space-8) var(--space-4);
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: var(--font-sm);
+  line-height: var(--line-relaxed);
 }
 
 .cartTable {
@@ -257,8 +281,9 @@
 .cartTable td {
   padding: var(--space-2) var(--space-2);
   border-bottom: 1px solid var(--color-border);
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
   vertical-align: middle;
+  line-height: var(--line-snug);
 }
 
 .cartTable th {
@@ -266,10 +291,17 @@
   font-weight: 600;
   color: var(--color-text-muted);
   background: var(--color-table-header-bg);
+  font-size: var(--font-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.cartTable td.right,
-.cartTable th.right { text-align: right; font-variant-numeric: tabular-nums; }
+/* Clase para alinear a la derecha (incluye variant numérico) */
+.right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
 
 .cartProductoCell {
   display: flex;
@@ -279,10 +311,12 @@
 
 .cartProductoSku {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--font-xs);
   color: var(--color-text-muted);
+  letter-spacing: 0.02em;
 }
 
+/* Stepper +/- y qty input */
 .qtyCell {
   display: inline-flex;
   align-items: center;
@@ -290,8 +324,8 @@
 }
 
 .qtyBtn {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -300,10 +334,18 @@
   color: var(--color-text);
   border-radius: var(--radius-sm);
   cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.qtyBtn:hover:not(:disabled) {
+  background: var(--color-brand-soft);
+  border-color: var(--color-brand);
+  color: var(--color-brand);
 }
 
 .qtyBtn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -313,14 +355,23 @@
 }
 
 .qtyInputInline {
-  width: 60px;
+  width: 56px;
   text-align: center;
-  padding: 4px;
+  padding: var(--space-1) var(--space-2);
   font-family: var(--font-mono);
+  font-size: var(--font-sm);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-text);
+  /* Evita zoom en iOS (font-size ≥ 16px) */
+  font-size: 16px;
+}
+
+.qtyInputInline:focus {
+  outline: none;
+  border-color: var(--color-brand);
+  box-shadow: var(--shadow-inset-focus);
 }
 
 .removeBtn {
@@ -328,29 +379,37 @@
   border: none;
   color: var(--color-danger);
   cursor: pointer;
-  padding: 4px;
+  padding: var(--space-1);
   border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: background var(--transition-fast);
 }
 
 .removeBtn:hover {
   background: var(--color-danger-soft);
 }
 
+.removeBtn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
 .cartFoot {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: var(--space-2);
-  border-top: 1px dashed var(--color-border-strong);
+  padding-top: var(--space-3);
+  border-top: 2px solid var(--color-border);
 }
 
 .cartFootTotal {
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: 800;
+  font-size: var(--font-xl);
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  color: var(--color-text);
 }
 
 /* ---------- Cliente / RUT ---------- */
@@ -372,6 +431,7 @@
   padding: var(--space-3);
   border-radius: var(--radius-md);
   background: var(--color-success-soft);
+  border: 1px solid var(--color-success);
   color: var(--color-text);
   display: flex;
   flex-direction: column;
@@ -379,11 +439,13 @@
 }
 
 .clienteRazon {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: var(--font-sm);
 }
 
 .clienteGiro {
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
+  font-family: var(--font-mono);
   color: var(--color-text-muted);
 }
 
@@ -391,10 +453,51 @@
   padding: var(--space-3);
   border-radius: var(--radius-md);
   background: var(--color-warning-soft);
+  border: 1px solid var(--color-warning);
   color: var(--color-text);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  font-size: var(--font-sm);
+}
+
+/* ---------- Panel tipo documento (toggle tabs) ---------- */
+
+.docToggle {
+  display: inline-flex;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface-2);
+}
+
+.docToggleBtn {
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: var(--font-sm);
+  transition: background var(--transition-fast), color var(--transition-fast);
+  /* Evita que texto cambie de tamaño al hacer bold toggle */
+  min-width: 90px;
+}
+
+.docToggleBtn.active {
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+  font-weight: 700;
+}
+
+.docToggleBtn:not(.active):hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.docToggleBtn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
 }
 
 /* ---------- Pago ---------- */
@@ -412,18 +515,18 @@
   align-items: end;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .payRow { grid-template-columns: 1fr; }
 }
 
 .payRowExtra {
-  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 1fr 120px;
   gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .payRowExtra { grid-template-columns: 1fr; }
 }
 
@@ -433,102 +536,109 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-3);
+  padding: var(--space-4);
   border-radius: var(--radius-md);
   background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
 }
 
 .totalLine {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: var(--space-4);
 }
 
 .totalLabel {
   color: var(--color-text-muted);
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
 }
 
 .totalValue {
   font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: var(--font-sm);
 }
 
 .totalGrande {
-  font-weight: 700;
-  font-size: 1.3rem;
+  font-weight: 800;
+  font-size: var(--font-2xl);
+  color: var(--color-text);
 }
 
 .totalsDivider {
   height: 1px;
   background: var(--color-border-strong);
-  margin: 2px 0;
+  margin: var(--space-1) 0;
 }
 
 .diffOk {
   color: var(--color-success);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .diffBad {
   color: var(--color-danger);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .vueltoLabel {
   color: var(--color-success);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .faltaLabel {
   color: var(--color-danger);
-  font-weight: 600;
+  font-weight: 700;
 }
 
-/* ---------- Documento select ---------- */
-
-.docToggle {
-  display: inline-flex;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.docToggleBtn {
-  border: none;
-  background: var(--color-surface);
-  color: var(--color-text);
-  padding: var(--space-2) var(--space-4);
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.docToggleBtn.active {
-  background: var(--color-brand);
-  color: var(--color-on-brand);
-}
-
-.docToggleBtn:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: -2px;
-}
-
-/* ---------- Botón confirmar ---------- */
+/* ---------- Barra "Confirmar venta" — sticky bottom (desktop + mobile) ---- */
 
 .confirmBar {
   position: sticky;
   bottom: 0;
+  z-index: var(--z-sticky);
   background: var(--color-surface);
-  padding: var(--space-3);
   border-top: 1px solid var(--color-border);
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+  padding: var(--space-3) var(--space-4);
   display: flex;
   gap: var(--space-3);
   align-items: center;
   justify-content: space-between;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+/* En mobile la barra sticky se pega al viewport bottom (fuera del grid column) */
+@media (max-width: 1023px) {
+  .confirmBar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 0;
+    padding: var(--space-3) var(--space-5);
+    border-top: 2px solid var(--color-border-strong);
+  }
+
+  /* Espaciado en el último posColumn para que el sticky no tape contenido */
+  .posGrid .posColumn:last-child {
+    padding-bottom: 80px;
+  }
 }
 
 .confirmBtn {
-  font-size: 1.05rem !important;
-  padding: 14px 24px !important;
+  font-size: var(--font-base) !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Texto de estado antes del botón */
+.confirmStatusText {
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-snug);
+  min-width: 0;
 }
 
 /* ---------- Modal de éxito ---------- */
@@ -547,17 +657,20 @@
   flex-wrap: wrap;
 }
 
+/* ---------- Atajos en subtitle del PageHeader ---------- */
+
 .atajos {
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
   flex-wrap: wrap;
-  font-size: 0.75rem;
+  font-size: var(--font-xs);
   color: var(--color-text-muted);
   margin-left: var(--space-3);
   padding-left: var(--space-3);
   border-left: 1px solid var(--color-border);
 }
+
 .atajos > kbd { margin-right: 2px; }
 
 /* Lista de atajos dentro del modal de ayuda (dl/dt/dd) */
@@ -565,11 +678,11 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 .shortcutRow {
   display: grid;
-  grid-template-columns: 110px 1fr;
+  grid-template-columns: 130px 1fr;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) 0;
@@ -585,68 +698,23 @@
 .shortcutRow dd {
   margin: 0;
   color: var(--color-text);
-  font-size: 0.9rem;
+  font-size: var(--font-sm);
 }
 
-/* ---------- VentaDetalle ---------- */
-
-.detailGrid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--space-4);
-  align-items: start;
-}
-
-@media (max-width: 960px) {
-  .detailGrid { grid-template-columns: 1fr; }
-}
-
-.detailHeaderRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.totalsCard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.kpi {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-2);
-}
-
-.kpiLabel {
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
-}
-
-.kpiValue {
-  font-weight: 700;
-  font-size: 1.3rem;
-  font-variant-numeric: tabular-nums;
-}
-
+/* ---------- Mensajes de estado en confirmBar ---------- */
 .warnText {
   color: var(--color-warning);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: var(--font-sm);
 }
 
-/* --- Reservas de stock (badges en celda de cantidad) --- */
+/* ─── Reservas de stock (badges en celda de cantidad) ─── */
 .reservaBadge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   margin-top: 2px;
-  font-size: 0.7rem;
+  font-size: var(--font-xs);
   font-weight: 500;
   color: var(--color-text-muted);
 }
@@ -662,17 +730,95 @@
 .reservaError {
   display: block;
   margin-top: 2px;
-  font-size: 0.7rem;
+  font-size: var(--font-xs);
   font-weight: 500;
   color: var(--color-danger);
 }
 
 @keyframes pos-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 .spinning {
   animation: pos-spin 1s linear infinite;
+}
+
+/* ==========================================================================
+   VentaDetallePage — layout dos columnas
+   ========================================================================== */
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .detailGrid { grid-template-columns: 1fr; }
+}
+
+/* Header con acciones sticky en mobile */
+.detailHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* En mobile (<768px), las acciones del header se mueven abajo y se
+   convierten en sticky bar. El headActions pasa de inline a fixed. */
+@media (max-width: 767px) {
+  .headActions {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-sticky);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border-strong);
+    padding: var(--space-3) var(--space-4);
+    justify-content: flex-end;
+    box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.08);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .detailPagePadBottom {
+    padding-bottom: 80px;
+  }
+}
+
+/* KPI principal de totales */
+.totalsCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-brand-soft);
+  border: 1px solid var(--color-brand);
+}
+
+.kpiLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.kpiValue {
+  font-weight: 800;
+  font-size: var(--font-3xl);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+  line-height: var(--line-tight);
 }

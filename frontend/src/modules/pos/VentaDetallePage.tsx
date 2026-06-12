@@ -294,8 +294,9 @@ export function VentaDetallePage() {
   const anulada = venta.estado === "ANULADA";
 
   return (
-    <div className={styles.page}>
-      <header className={styles.head}>
+    <div className={`${styles.page} ${styles.detailPagePadBottom}`}>
+      {/* Header con back-link y acciones */}
+      <div className={styles.detailHeaderRow}>
         <div>
           <Button
             size="sm"
@@ -305,14 +306,16 @@ export function VentaDetallePage() {
           >
             Historial
           </Button>
-          <h1 className={styles.title}>
-            {TIPO_DOCUMENTO_LABEL[documento.tipo]} N° {documento.folio}{" "}
+          <h1 className={styles.title} style={{ marginTop: "var(--space-2)" }}>
+            {TIPO_DOCUMENTO_LABEL[documento.tipo]}{" "}
+            <span style={{ fontFamily: "var(--font-mono)" }}>N° {documento.folio}</span>{" "}
             <Badge variant={anulada ? "danger" : "success"}>
               {ESTADO_VENTA_LABEL[venta.estado]}
             </Badge>
           </h1>
           <p className={styles.subtitle}>{formatFechaISO(venta.fecha)}</p>
         </div>
+        {/* Acciones: inline en desktop, wrap a full-width en mobile */}
         <div className={styles.headActions}>
           <Button
             variant="ghost"
@@ -323,6 +326,7 @@ export function VentaDetallePage() {
           </Button>
           {!anulada && canDevolver && hayPendiente && (
             <Button
+              variant="secondary"
               leftIcon={<RotateCcw size={16} aria-hidden />}
               onClick={() => setDevolucionModalOpen(true)}
             >
@@ -331,16 +335,15 @@ export function VentaDetallePage() {
           )}
           {!anulada && canAnular && (
             <Button
-              variant="ghost"
+              variant="danger"
               leftIcon={<Ban size={16} aria-hidden />}
               onClick={() => setAnularOpen(true)}
-              data-destructive=""
             >
               Anular venta
             </Button>
           )}
         </div>
-      </header>
+      </div>
 
       <div className={styles.detailGrid}>
         <div className={styles.posColumn}>

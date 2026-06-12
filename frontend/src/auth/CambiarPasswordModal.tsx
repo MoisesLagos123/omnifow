@@ -114,7 +114,7 @@ export function CambiarPasswordModal({ open, onClose }: Props) {
       onClose={handleClose}
       title="Cambiar contraseña"
       description="Por seguridad, al cambiar tu contraseña cerraremos tus sesiones en otros dispositivos."
-      size="sm"
+      size="md"
     >
       <form
         onSubmit={handleSubmit(onSubmit)}

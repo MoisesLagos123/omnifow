@@ -606,9 +606,9 @@ export function ProductoDetallePage() {
               <>
                 {producto.nombre}{" "}
                 {producto.activo ? (
-                  <Badge variant="success">Activo</Badge>
+                  <Badge variant="success" size="sm">Activo</Badge>
                 ) : (
-                  <Badge variant="neutral">Inactivo</Badge>
+                  <Badge variant="neutral" size="sm">Inactivo</Badge>
                 )}
               </>
             )}
@@ -617,6 +617,9 @@ export function ProductoDetallePage() {
             <p className={styles.subtitle}>
               SKU <span className={styles.mono}>{producto.sku}</span>
               {producto.categoria_nombre ? ` · ${producto.categoria_nombre}` : ""}
+              {producto.controla_vencimiento ? (
+                <> · <Badge variant="warning" size="sm">Controla vencimiento</Badge></>
+              ) : null}
             </p>
           )}
         </div>

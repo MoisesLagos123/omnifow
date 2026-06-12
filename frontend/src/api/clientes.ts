@@ -16,6 +16,8 @@ export interface Cliente {
   email: string | null;
   telefono: string | null;
   activo: boolean;
+  /** Saldo pendiente en CxC (CLP). Campo calculado, puede ausentarse si el backend no lo incluye. */
+  saldo_cxc_clp?: number;
 }
 
 export interface ListClientesQuery {

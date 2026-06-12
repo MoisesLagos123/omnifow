@@ -323,10 +323,11 @@ function KpiCard({
     .filter(Boolean)
     .join(" ");
   return (
-    <Card className={cardCls}>
+    // Card.variant=flat porque el .kpiCard ya tiene su propio estilo de borde/fondo.
+    <Card variant="flat" className={cardCls}>
       <span className={styles.kpiLabel}>{label}</span>
       {value === null ? (
-        <Skeleton width={120} height="1.6rem" />
+        <Skeleton width={120} height="1.75rem" />
       ) : (
         <span className={valueCls}>{value}</span>
       )}

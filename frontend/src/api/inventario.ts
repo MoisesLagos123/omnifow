@@ -178,6 +178,7 @@ export interface ListProductosQuery {
   q?: string;
   categoria_id?: string;
   activo?: boolean;
+  controla_vencimiento?: boolean;
   limit?: number;
   offset?: number;
 }
@@ -374,6 +375,7 @@ export const inventarioApi = {
         q: q.q,
         categoria_id: q.categoria_id,
         activo: q.activo,
+        controla_vencimiento: q.controla_vencimiento,
         limit: q.limit ?? 50,
         offset: q.offset ?? 0,
       },

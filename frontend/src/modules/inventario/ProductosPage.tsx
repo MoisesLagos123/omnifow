@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { ChevronDown, Plus, Search } from "lucide-react";
 
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
-import { Chip } from "../../components/ui/Chip";
-import { Table, type TableColumn } from "../../components/ui/Table";
+import { Table, type TableColumn, type SortDir } from "../../components/ui/Table";
 import { SearchInput } from "../../components/ui/SearchInput";
 import { Select } from "../../components/ui/Select";
 import { Pagination } from "../../components/ui/Pagination";
@@ -24,12 +23,17 @@ import styles from "./InventarioPages.module.css";
 
 const LIMIT = 50;
 type ActivoFiltro = "" | "true" | "false";
+type VencimientoFiltro = "" | "true";
+
+type SortableKey = "nombre" | "precio" | "sku";
 
 export function ProductosPage() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [categoriaId, setCategoriaId] = useState<string>("");
   const [activo, setActivo] = useState<ActivoFiltro>("true");
+  const [controlaVencimiento, setControlaVencimiento] =
+    useState<VencimientoFiltro>("");
   const [offset, setOffset] = useState(0);
   const [data, setData] = useState<{ items: Producto[]; total: number } | null>(
     null
@@ -38,6 +42,11 @@ export function ProductosPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [categorias, setCategorias] = useState<CategoriaConContadores[]>([]);
   const [reloadTick, setReloadTick] = useState(0);
+  const [filtersOpen, setFiltersOpen] = useState(true);
+
+  // Sortable state
+  const [sortKey, setSortKey] = useState<SortableKey | undefined>(undefined);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   // Cargar categorías para el filtro (una vez).
   useEffect(() => {
@@ -61,6 +70,8 @@ export function ProductosPage() {
           q: q || undefined,
           categoria_id: categoriaId || undefined,
           activo: activo === "" ? undefined : activo === "true",
+          controla_vencimiento:
+            controlaVencimiento === "true" ? true : undefined,
           limit: LIMIT,
           offset,
         },
@@ -73,31 +84,71 @@ export function ProductosPage() {
       })
       .finally(() => setLoading(false));
     return () => ctl.abort();
-  }, [q, categoriaId, activo, offset, reloadTick]);
+  }, [q, categoriaId, activo, controlaVencimiento, offset, reloadTick]);
+
+  function handleSort(key: string) {
+    const k = key as SortableKey;
+    if (sortKey === k) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(k);
+      setSortDir("asc");
+    }
+  }
+
+  // Client-side sort (the list is already paginated server-side; sorting within
+  // the current page gives immediate feedback without extra network round-trips).
+  const sortedItems = useMemo(() => {
+    if (!data?.items) return [];
+    if (!sortKey) return data.items;
+    return [...data.items].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "nombre") {
+        cmp = a.nombre.localeCompare(b.nombre, "es");
+      } else if (sortKey === "precio") {
+        cmp = a.precio_venta_clp - b.precio_venta_clp;
+      } else if (sortKey === "sku") {
+        cmp = a.sku.localeCompare(b.sku, "es");
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [data, sortKey, sortDir]);
 
   const columns = useMemo<TableColumn<Producto>[]>(
     () => [
       {
         key: "sku",
         header: "SKU",
-        width: "160px",
-        cell: (p) => <span className={styles.mono}>{p.sku}</span>,
+        width: "140px",
+        sortable: true,
+        cell: (p) => (
+          <span className={styles.mono} title={p.sku}>
+            {p.sku}
+          </span>
+        ),
       },
       {
         key: "nombre",
         header: "Nombre",
+        sortable: true,
         cell: (p) => <strong>{p.nombre}</strong>,
       },
       {
         key: "categoria",
         header: "Categoría",
-        width: "200px",
+        width: "180px",
         cell: (p) => {
           const cat =
             p.categoria_nombre ??
             categorias.find((c) => c.id === p.categoria_id)?.nombre ??
             null;
-          return cat ? <Chip>{cat}</Chip> : <span className={styles.muted}>—</span>;
+          return cat ? (
+            <Badge variant="info" size="sm">
+              {cat}
+            </Badge>
+          ) : (
+            <span className={styles.muted}>—</span>
+          );
         },
       },
       {
@@ -105,26 +156,46 @@ export function ProductosPage() {
         header: "Precio",
         width: "130px",
         align: "right",
+        sortable: true,
         cell: (p) => (
-          <span className={styles.numeric}>{formatCLP(p.precio_venta_clp)}</span>
+          <span className={styles.numeric}>
+            {formatCLP(p.precio_venta_clp)}
+          </span>
         ),
       },
       {
         key: "iva",
         header: "IVA",
-        width: "80px",
+        width: "72px",
         align: "right",
-        cell: (p) => `${p.iva_porcentaje}%`,
+        cell: (p) => (
+          <span className={styles.numeric}>{p.iva_porcentaje}%</span>
+        ),
+      },
+      {
+        key: "venc",
+        header: "Venc.",
+        width: "72px",
+        cell: (p) =>
+          p.controla_vencimiento ? (
+            <Badge variant="warning" size="sm">
+              Lotes
+            </Badge>
+          ) : null,
       },
       {
         key: "estado",
         header: "Estado",
-        width: "110px",
+        width: "100px",
         cell: (p) =>
           p.activo ? (
-            <Badge variant="success">Activo</Badge>
+            <Badge variant="success" size="sm">
+              Activo
+            </Badge>
           ) : (
-            <Badge variant="neutral">Inactivo</Badge>
+            <Badge variant="neutral" size="sm">
+              Inactivo
+            </Badge>
           ),
       },
     ],
@@ -132,7 +203,15 @@ export function ProductosPage() {
   );
 
   const isEmptyInitial =
-    !loading && data?.items.length === 0 && !q && !categoriaId && activo === "true";
+    !loading &&
+    data?.items.length === 0 &&
+    !q &&
+    !categoriaId &&
+    activo === "true" &&
+    !controlaVencimiento;
+
+  const hasActiveFilters =
+    !!q || !!categoriaId || activo !== "true" || !!controlaVencimiento;
 
   return (
     <div className={styles.page}>
@@ -152,41 +231,104 @@ export function ProductosPage() {
         }
       />
 
-      <div className={styles.filters}>
-        <div className={styles.searchSlot}>
-          <SearchInput
-            value={q}
-            onChange={(v) => {
-              setOffset(0);
-              setQ(v);
-            }}
-            placeholder="Buscar por SKU o nombre..."
-            label="Buscar productos"
+      {/* ── Card de filtros (colapsable en mobile) ──────────────── */}
+      <div className={styles.filtersCard}>
+        {/* Header del card — siempre visible, actúa como toggle en mobile */}
+        <button
+          type="button"
+          className={styles.filtersHeader}
+          onClick={() => setFiltersOpen((o) => !o)}
+          aria-expanded={filtersOpen}
+          aria-controls="inventario-filters-body"
+        >
+          <span className={styles.filtersTitle}>
+            <Search
+              size={13}
+              aria-hidden="true"
+              style={{ marginRight: "var(--space-1)", verticalAlign: "middle" }}
+            />
+            Filtros
+            {hasActiveFilters && (
+              <Badge
+                variant="brand"
+                size="sm"
+                style={{ marginLeft: "var(--space-2)" }}
+              >
+                activos
+              </Badge>
+            )}
+          </span>
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className={[
+              styles.filtersChevron,
+              filtersOpen ? styles.filtersChevronOpen : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
           />
-        </div>
-        <Select
-          aria-label="Filtrar por categoría"
-          value={categoriaId}
-          onChange={(e) => {
-            setOffset(0);
-            setCategoriaId(e.target.value);
-          }}
-          options={categorias.map((c) => ({ value: c.id, label: c.nombre }))}
-          emptyLabel="Todas las categorías"
-        />
-        <Select
-          aria-label="Filtrar por estado"
-          value={activo}
-          onChange={(e) => {
-            setOffset(0);
-            setActivo(e.target.value as ActivoFiltro);
-          }}
-          options={[
-            { value: "true", label: "Activos" },
-            { value: "false", label: "Inactivos" },
-          ]}
-          emptyLabel="Todos"
-        />
+        </button>
+
+        {filtersOpen && (
+          <div
+            id="inventario-filters-body"
+            className={styles.filtersBody}
+          >
+            <div className={styles.searchSlot}>
+              <SearchInput
+                value={q}
+                onChange={(v) => {
+                  setOffset(0);
+                  setQ(v);
+                }}
+                placeholder="Buscar por SKU o nombre..."
+                label="Buscar productos"
+              />
+            </div>
+
+            <Select
+              aria-label="Filtrar por categoría"
+              value={categoriaId}
+              onChange={(e) => {
+                setOffset(0);
+                setCategoriaId(e.target.value);
+              }}
+              options={categorias.map((c) => ({
+                value: c.id,
+                label: c.nombre,
+              }))}
+              emptyLabel="Todas las categorías"
+            />
+
+            <Select
+              aria-label="Filtrar por estado"
+              value={activo}
+              onChange={(e) => {
+                setOffset(0);
+                setActivo(e.target.value as ActivoFiltro);
+              }}
+              options={[
+                { value: "true", label: "Activos" },
+                { value: "false", label: "Inactivos" },
+              ]}
+              emptyLabel="Todos"
+            />
+
+            <Select
+              aria-label="Filtrar por control de vencimiento"
+              value={controlaVencimiento}
+              onChange={(e) => {
+                setOffset(0);
+                setControlaVencimiento(
+                  e.target.value as VencimientoFiltro
+                );
+              }}
+              options={[{ value: "true", label: "Con control de venc." }]}
+              emptyLabel="Todos (con/sin venc.)"
+            />
+          </div>
+        )}
       </div>
 
       {errorMsg && (
@@ -204,10 +346,15 @@ export function ProductosPage() {
 
       <Table<Producto>
         columns={columns}
-        rows={data?.items}
+        rows={sortedItems}
         loading={loading}
         rowKey={(p) => p.id}
-        onRowClick={(p) => navigate(ROUTES.INVENTARIO_PRODUCTO_DETALLE(p.id))}
+        onRowClick={(p) =>
+          navigate(ROUTES.INVENTARIO_PRODUCTO_DETALLE(p.id))
+        }
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={handleSort}
         emptyState={
           isEmptyInitial ? (
             <div className={styles.emptyState}>
@@ -216,14 +363,16 @@ export function ProductosPage() {
                 <Button
                   size="sm"
                   leftIcon={<Plus size={14} aria-hidden="true" />}
-                  onClick={() => navigate(ROUTES.INVENTARIO_PRODUCTO_NUEVO)}
+                  onClick={() =>
+                    navigate(ROUTES.INVENTARIO_PRODUCTO_NUEVO)
+                  }
                 >
                   Crear el primer producto
                 </Button>
               </RequirePermission>
             </div>
-          ) : q || categoriaId || activo !== "true" ? (
-            "Sin resultados para tu búsqueda."
+          ) : hasActiveFilters ? (
+            "Sin resultados para los filtros aplicados."
           ) : (
             "Sin resultados."
           )
@@ -240,3 +389,4 @@ export function ProductosPage() {
     </div>
   );
 }
+

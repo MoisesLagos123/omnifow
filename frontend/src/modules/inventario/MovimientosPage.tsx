@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { History } from "lucide-react";
+import { ChevronDown, History } from "lucide-react";
 
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -47,6 +47,7 @@ export function MovimientosPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(true);
 
   useEffect(() => {
     if (!sucursalId) {
@@ -172,76 +173,101 @@ export function MovimientosPage() {
         subtitle="Kárdex global de todos los movimientos. Filtra por producto, bodega, tipo o rango de fechas."
       />
 
-      <div className={styles.filters}>
-        <Select
-          label="Sucursal"
-          value={sucursalId}
-          onChange={(e) => {
-            setSucursalId(e.target.value);
-            setBodegaId("");
-            setOffset(0);
-          }}
-          options={sucursales.map((s) => ({ value: s.id, label: s.nombre }))}
-          emptyLabel={
-            sucursales.length === 0 ? "Todas" : "Selecciona una sucursal"
-          }
-          disabled={sucursales.length === 0}
-        />
-        <Select
-          label="Bodega"
-          value={bodegaId}
-          onChange={(e) => {
-            setBodegaId(e.target.value);
-            setOffset(0);
-          }}
-          options={bodegas.map((b) => ({
-            value: b.id,
-            label: `${b.codigo} · ${b.nombre}`,
-          }))}
-          emptyLabel="Todas las bodegas"
-          disabled={!sucursalId}
-        />
-        <Select
-          label="Tipo"
-          value={tipo}
-          onChange={(e) => {
-            setTipo(e.target.value as TipoMov | "");
-            setOffset(0);
-          }}
-          options={TIPOS_MOV.map((t) => ({ value: t, label: TIPO_MOV_LABEL[t] }))}
-          emptyLabel="Todos"
-        />
-        <Input
-          label="Desde"
-          type="date"
-          value={desde}
-          onChange={(e) => {
-            setDesde(e.target.value);
-            setOffset(0);
-          }}
-        />
-        <Input
-          label="Hasta"
-          type="date"
-          value={hasta}
-          onChange={(e) => {
-            setHasta(e.target.value);
-            setOffset(0);
-          }}
-        />
-      </div>
-
-      <div className={styles.filters}>
-        <div style={{ flex: 1, minWidth: 240 }}>
-          <ProductoAutocomplete
-            label="Producto (filtro)"
-            value={producto}
-            onChange={(p) => {
-              setProducto(p);
-              setOffset(0);
-            }}
+      {/* ── Card de filtros (colapsable) ────────────────────── */}
+      <div className={styles.filtersCard}>
+        <button
+          type="button"
+          className={styles.filtersHeader}
+          onClick={() => setFiltersOpen((o) => !o)}
+          aria-expanded={filtersOpen}
+          aria-controls="movimientos-filters-body"
+        >
+          <span className={styles.filtersTitle}>Filtros</span>
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className={[
+              styles.filtersChevron,
+              filtersOpen ? styles.filtersChevronOpen : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
           />
-        </div>
+        </button>
+
+        {filtersOpen && (
+          <div id="movimientos-filters-body" className={styles.filtersBody}>
+            <Select
+              label="Sucursal"
+              value={sucursalId}
+              onChange={(e) => {
+                setSucursalId(e.target.value);
+                setBodegaId("");
+                setOffset(0);
+              }}
+              options={sucursales.map((s) => ({ value: s.id, label: s.nombre }))}
+              emptyLabel={
+                sucursales.length === 0 ? "Todas" : "Selecciona una sucursal"
+              }
+              disabled={sucursales.length === 0}
+            />
+            <Select
+              label="Bodega"
+              value={bodegaId}
+              onChange={(e) => {
+                setBodegaId(e.target.value);
+                setOffset(0);
+              }}
+              options={bodegas.map((b) => ({
+                value: b.id,
+                label: `${b.codigo} · ${b.nombre}`,
+              }))}
+              emptyLabel="Todas las bodegas"
+              disabled={!sucursalId}
+            />
+            <Select
+              label="Tipo"
+              value={tipo}
+              onChange={(e) => {
+                setTipo(e.target.value as TipoMov | "");
+                setOffset(0);
+              }}
+              options={TIPOS_MOV.map((t) => ({
+                value: t,
+                label: TIPO_MOV_LABEL[t],
+              }))}
+              emptyLabel="Todos"
+            />
+            <Input
+              label="Desde"
+              type="date"
+              value={desde}
+              onChange={(e) => {
+                setDesde(e.target.value);
+                setOffset(0);
+              }}
+            />
+            <Input
+              label="Hasta"
+              type="date"
+              value={hasta}
+              onChange={(e) => {
+                setHasta(e.target.value);
+                setOffset(0);
+              }}
+            />
+            <div style={{ flex: 1, minWidth: 240 }}>
+              <ProductoAutocomplete
+                label="Producto"
+                value={producto}
+                onChange={(p) => {
+                  setProducto(p);
+                  setOffset(0);
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {errorMsg && (

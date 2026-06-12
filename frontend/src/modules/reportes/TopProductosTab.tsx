@@ -7,6 +7,7 @@ import { DateInput } from "../../components/ui/DateInput";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
+import { Skeleton } from "../../components/ui/Skeleton";
 import { useToast } from "../../components/ui/Toast";
 import { reportesApi, type TopProductosResponse } from "../../api/reportesApi";
 import { describeError } from "../../api/errorMessages";
@@ -133,9 +134,10 @@ export function TopProductosTab() {
       </Card>
 
       {loading && (
-        <div className={styles.loading} role="status" aria-live="polite">
-          Cargando datos…
-        </div>
+        <>
+          <Skeleton height="240px" aria-hidden="true" />
+          <span className={styles.loading} role="status" aria-live="polite" aria-label="Cargando productos" />
+        </>
       )}
 
       {!loading && isEmpty && (

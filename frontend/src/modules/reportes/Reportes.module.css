@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  position: relative;
 }
 
 /* ─── Tabs ─────────────────────────────────────────────────────────────── */
@@ -52,8 +53,16 @@
 /* ─── KPI Grid ──────────────────────────────────────────────────────────── */
 .kpiGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .kpiGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .kpiGrid { grid-template-columns: 1fr; }
 }
 
 .kpiCard {
@@ -74,8 +83,12 @@
 .kpiValue {
   font-size: 1.75rem;
   font-weight: 700;
+  font-family: var(--font-mono);
   color: var(--color-text);
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .kpiMeta {
@@ -90,8 +103,16 @@
 /* ─── Desglose Grid ─────────────────────────────────────────────────────── */
 .desgloseGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
+}
+
+@media (max-width: 1200px) {
+  .desgloseGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .desgloseGrid { grid-template-columns: 1fr; }
 }
 
 .desgloseCard {
@@ -127,6 +148,7 @@
 
 .desgloseRowValue {
   font-weight: 600;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -229,10 +251,13 @@
 
 /* ─── Misc ───────────────────────────────────────────────────────────────── */
 .loading {
-  text-align: center;
-  padding: 2.5rem 1rem;
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
+  /* Visually hidden — used only as aria live region while Skeleton shows */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .sectionTitle {

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
+import { PageHeader } from "../../components/ui/PageHeader";
 import { cajaApi, type SesionActiva } from "../../api/caja";
 import { describeError } from "../../api/errorMessages";
 import { formatCLP, formatFechaISO } from "../../lib/format";
@@ -51,29 +52,30 @@ export function SesionDetallePage() {
 
   return (
     <div className={styles.page}>
-      <button
-        type="button"
-        className={styles.backLink}
-        onClick={() => navigate(ROUTES.CAJA_SESIONES)}
-      >
-        <ChevronLeft size={16} aria-hidden="true" />
-        Volver al historial
-      </button>
-
-      <header className={styles.head}>
-        <div>
-          <h1 className={styles.title}>
+      <PageHeader
+        eyebrow="Caja"
+        title={
+          <>
             Sesión de caja{" "}
-            {s &&
-              (cerrada ? (
-                <Badge variant="neutral">Cerrada</Badge>
-              ) : (
-                <Badge variant="success">Abierta</Badge>
-              ))}
-          </h1>
-          <p className={styles.subtitle}>Reporte de la sesión (solo lectura).</p>
-        </div>
-      </header>
+            {s && (
+              cerrada
+                ? <Badge variant="neutral">Cerrada</Badge>
+                : <Badge variant="success">Abierta</Badge>
+            )}
+          </>
+        }
+        subtitle="Reporte de la sesión (solo lectura)."
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<ArrowLeft size={14} aria-hidden="true" />}
+            onClick={() => navigate(ROUTES.CAJA_SESIONES)}
+          >
+            Historial de sesiones
+          </Button>
+        }
+      />
 
       {errorMsg && (
         <div className={styles.errorWrap}>

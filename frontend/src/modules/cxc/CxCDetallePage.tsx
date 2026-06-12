@@ -29,7 +29,7 @@ import {
 } from "../../api/errorMessages";
 import { formatCLP, formatFechaSoloDia } from "../../lib/format";
 import { ROUTES } from "../../routePaths";
-import styles from "../compras/ComprasPages.module.css";
+import styles from "./CxC.module.css";
 
 function hoyISO(): string {
   const d = new Date();

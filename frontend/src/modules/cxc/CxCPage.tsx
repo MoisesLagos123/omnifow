@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Receipt } from "lucide-react";
+import { AlertCircle, Clock, Receipt, TrendingUp } from "lucide-react";
 
-import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
 import { Table, type TableColumn } from "../../components/ui/Table";
 import { Select } from "../../components/ui/Select";
 import { DateInput } from "../../components/ui/DateInput";
@@ -11,6 +12,7 @@ import { Pagination } from "../../components/ui/Pagination";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { Skeleton } from "../../components/ui/Skeleton";
 import {
   cxcApi,
   type CxCListItem,
@@ -20,7 +22,7 @@ import {
 import { describeError } from "../../api/errorMessages";
 import { formatCLP, formatFechaSoloDia } from "../../lib/format";
 import { ROUTES } from "../../routePaths";
-import styles from "../compras/ComprasPages.module.css";
+import styles from "./CxC.module.css";
 
 const LIMIT = 50;
 type EstadoFiltro = "" | EstadoCxC;
@@ -28,23 +30,66 @@ type EstadoFiltro = "" | EstadoCxC;
 function VencimientoBadge({ dias }: { dias: number }) {
   if (dias > 0) {
     return (
-      <span className={styles.vencido}>
-        Vencido {dias}d
-      </span>
+      <Badge variant="danger" size="sm" aria-label={`Vencido hace ${dias} días`}>
+        <AlertCircle size={10} aria-hidden="true" />
+        {" "}Vencido {dias}d
+      </Badge>
     );
   }
   if (dias >= -7) {
     return (
-      <span className={styles.porVencer}>
-        Por vencer {Math.abs(dias)}d
-      </span>
+      <Badge variant="warning" size="sm" aria-label={`Por vencer en ${Math.abs(dias)} días`}>
+        <Clock size={10} aria-hidden="true" />
+        {" "}{Math.abs(dias)}d
+      </Badge>
     );
   }
   return (
-    <span className={styles.vigente}>
+    <span
+      style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--color-text-muted)" }}
+      aria-label={`Vence en ${Math.abs(dias)} días`}
+    >
       {Math.abs(dias)}d
     </span>
   );
+}
+
+function estadoBadge(estado: EstadoCxC) {
+  const variant =
+    estado === "PAGADA"
+      ? "success"
+      : estado === "ANULADA"
+        ? "neutral"
+        : estado === "PARCIAL"
+          ? "warning"
+          : "info";
+  return <Badge variant={variant}>{ESTADO_CXC_LABELS[estado]}</Badge>;
+}
+
+interface KpiData {
+  pendiente: number;
+  vencido: number;
+  porVencer7: number;
+  alDia: number;
+}
+
+function calcKpis(items: CxCListItem[]): KpiData {
+  let pendiente = 0;
+  let vencido = 0;
+  let porVencer7 = 0;
+  let alDia = 0;
+  for (const c of items) {
+    if (c.estado === "PAGADA" || c.estado === "ANULADA") continue;
+    pendiente += c.monto_saldo_clp;
+    if (c.dias_vencido > 0) {
+      vencido += c.monto_saldo_clp;
+    } else if (c.dias_vencido >= -7) {
+      porVencer7 += c.monto_saldo_clp;
+    } else {
+      alDia += c.monto_saldo_clp;
+    }
+  }
+  return { pendiente, vencido, porVencer7, alDia };
 }
 
 export function CxCPage() {
@@ -86,6 +131,8 @@ export function CxCPage() {
     return () => ctl.abort();
   }, [estado, vencDesde, vencHasta, offset, reloadTick]);
 
+  const kpis = useMemo(() => calcKpis(data?.items ?? []), [data]);
+
   const totalSaldo = useMemo(
     () => (data?.items ?? []).reduce((acc, c) => acc + c.monto_saldo_clp, 0),
     [data]
@@ -104,32 +151,48 @@ export function CxCPage() {
         width: "160px",
         cell: (c) => (
           <span>
-            <span className={styles.mono}>{c.venta_numero_documento}</span>
-            <span className={styles.cellSub}> {c.venta_tipo_documento}</span>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.83rem" }}>
+              {c.venta_numero_documento}
+            </span>
+            <span style={{ color: "var(--color-text-muted)", fontSize: "0.78rem" }}>
+              {" "}{c.venta_tipo_documento}
+            </span>
           </span>
         ),
       },
       {
         key: "original",
-        header: "Monto original",
-        width: "130px",
+        header: "Total",
+        width: "120px",
         align: "right",
         cell: (c) => (
-          <span className={styles.numeric}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.88rem" }}>
             {formatCLP(c.monto_original_clp)}
+          </span>
+        ),
+      },
+      {
+        key: "abonado",
+        header: "Abonado",
+        width: "110px",
+        align: "right",
+        cell: (c) => (
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.88rem", color: "var(--color-success)" }}>
+            {formatCLP(c.monto_original_clp - c.monto_saldo_clp)}
           </span>
         ),
       },
       {
         key: "saldo",
         header: "Saldo",
-        width: "120px",
+        width: "110px",
         align: "right",
         cell: (c) => (
           <span
-            className={styles.numeric}
             style={{
-              fontWeight: c.monto_saldo_clp > 0 ? 600 : undefined,
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.88rem",
+              fontWeight: c.monto_saldo_clp > 0 ? 700 : undefined,
               color:
                 c.monto_saldo_clp > 0
                   ? "var(--color-danger)"
@@ -143,10 +206,12 @@ export function CxCPage() {
       {
         key: "vencimiento",
         header: "Vencimiento",
-        width: "160px",
+        width: "180px",
         cell: (c) => (
-          <span>
-            {formatFechaSoloDia(c.fecha_vencimiento)}{" "}
+          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.83rem" }}>
+              {formatFechaSoloDia(c.fecha_vencimiento)}
+            </span>
             <VencimientoBadge dias={c.dias_vencido} />
           </span>
         ),
@@ -155,21 +220,7 @@ export function CxCPage() {
         key: "estado",
         header: "Estado",
         width: "100px",
-        cell: (c) => (
-          <Badge
-            variant={
-              c.estado === "PAGADA"
-                ? "success"
-                : c.estado === "ANULADA"
-                  ? "neutral"
-                  : c.estado === "PARCIAL"
-                    ? "warning"
-                    : "info"
-            }
-          >
-            {ESTADO_CXC_LABELS[c.estado]}
-          </Badge>
-        ),
+        cell: (c) => estadoBadge(c.estado),
       },
     ],
     []
@@ -183,6 +234,56 @@ export function CxCPage() {
         subtitle="Saldos pendientes de clientes por ventas a crédito."
       />
 
+      {/* KPI Strip */}
+      <div className={styles.kpiStrip} role="region" aria-label="Resumen de cuentas por cobrar">
+        {loading ? (
+          <>
+            <Skeleton height="80px" />
+            <Skeleton height="80px" />
+            <Skeleton height="80px" />
+            <Skeleton height="80px" />
+          </>
+        ) : (
+          <>
+            <Card variant="elevated" className={styles.kpiCard}>
+              <div className={styles.kpiIcon} aria-hidden="true">
+                <TrendingUp size={18} />
+              </div>
+              <p className={styles.kpiLabel}>Pendiente total</p>
+              <p className={styles.kpiValue}>{formatCLP(kpis.pendiente)}</p>
+            </Card>
+            <Card className={`${styles.kpiCard} ${kpis.vencido > 0 ? styles.kpiDanger : ""}`}>
+              <div className={styles.kpiIcon} aria-hidden="true">
+                <AlertCircle size={18} />
+              </div>
+              <p className={styles.kpiLabel}>Vencido</p>
+              <p className={`${styles.kpiValue} ${kpis.vencido > 0 ? styles.valueDanger : ""}`}>
+                {formatCLP(kpis.vencido)}
+              </p>
+            </Card>
+            <Card className={`${styles.kpiCard} ${kpis.porVencer7 > 0 ? styles.kpiWarning : ""}`}>
+              <div className={styles.kpiIcon} aria-hidden="true">
+                <Clock size={18} />
+              </div>
+              <p className={styles.kpiLabel}>Por vencer ≤7d</p>
+              <p className={`${styles.kpiValue} ${kpis.porVencer7 > 0 ? styles.valueWarning : ""}`}>
+                {formatCLP(kpis.porVencer7)}
+              </p>
+            </Card>
+            <Card className={styles.kpiCard}>
+              <div className={styles.kpiIcon} aria-hidden="true">
+                <Receipt size={18} />
+              </div>
+              <p className={styles.kpiLabel}>Al día</p>
+              <p className={`${styles.kpiValue} ${kpis.alDia > 0 ? styles.valueSuccess : ""}`}>
+                {formatCLP(kpis.alDia)}
+              </p>
+            </Card>
+          </>
+        )}
+      </div>
+
+      {/* Filtros */}
       <div className={styles.filters}>
         <Select
           label="Estado"

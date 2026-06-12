@@ -264,13 +264,15 @@ export function CompraDetallePage() {
 
           <Card>
             <h2 className={styles.sectionTitle}>Ítems</h2>
-            <Table<CompraDetalleItem>
-              density="compact"
-              columns={itemColumns}
-              rows={compra.items}
-              rowKey={(d) => d.id}
-              caption="Ítems de la compra"
-            />
+            <div style={{ overflowX: "auto" }}>
+              <Table<CompraDetalleItem>
+                density="compact"
+                columns={itemColumns}
+                rows={compra.items}
+                rowKey={(d) => d.id}
+                caption="Ítems de la compra"
+              />
+            </div>
             <div className={styles.footerTotal}>
               <span>
                 Subtotal neto:{" "}

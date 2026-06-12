@@ -91,21 +91,35 @@ export function SucursalesPage() {
       {
         key: "nombre",
         header: "Nombre",
-        cell: (s) => <strong>{s.nombre}</strong>,
+        cell: (s) => (
+          <span className={styles.cellName}>
+            <strong>{s.nombre}</strong>
+            <span className={styles.mono} style={{ fontSize: "var(--font-xs)", color: "var(--color-text-muted)" }}>
+              {s.rut_emisor}
+            </span>
+          </span>
+        ),
       },
       {
         key: "cajas",
         header: "Cajas",
-        width: "100px",
-        align: "right",
-        cell: (s) => s.cantidad_cajas_activas,
+        width: "90px",
+        align: "center",
+        cell: (s) => (
+          <Badge variant="brand" size="sm">{s.cantidad_cajas_activas}</Badge>
+        ),
       },
       {
         key: "usuarios",
         header: "Usuarios",
-        width: "120px",
-        align: "right",
-        cell: (s) => s.cantidad_usuarios_asignados,
+        width: "100px",
+        align: "center",
+        cell: (s) =>
+          s.cantidad_usuarios_asignados > 0 ? (
+            <Badge variant="info" size="sm">{s.cantidad_usuarios_asignados}</Badge>
+          ) : (
+            <span style={{ color: "var(--color-text-muted)", fontSize: "var(--font-xs)" }}>0</span>
+          ),
       },
       {
         key: "activo",

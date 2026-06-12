@@ -121,13 +121,18 @@ export function FoliosTab({ sucursalId, initialRangos, onChange }: Props) {
       {
         key: "disp",
         header: "Disponibles",
-        width: "120px",
+        width: "140px",
         align: "right",
         cell: (r) => {
           const c = calcRango(r);
           return (
-            <span className={styles.mono}>
-              {c.disponibles} / {c.total}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)" }}>
+              <span className={styles.mono}>
+                {c.disponibles} / {c.total}
+              </span>
+              {c.pocosDisponibles && !c.agotado && (
+                <Badge variant="danger" size="sm">Crítico</Badge>
+              )}
             </span>
           );
         },

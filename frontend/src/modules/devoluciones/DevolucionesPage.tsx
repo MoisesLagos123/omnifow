@@ -4,6 +4,7 @@ import { RotateCcw } from "lucide-react";
 
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
 import { DateInput } from "../../components/ui/DateInput";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
@@ -173,26 +174,28 @@ export function DevolucionesPage() {
         subtitle="Historial de devoluciones y Notas de Crédito emitidas."
       />
 
-      <div className={styles.filters}>
-        <DateInput
-          label="Desde"
-          value={desde}
-          onChange={(v) => {
-            setOffset(0);
-            setDesde(v);
-          }}
-          max={hasta || undefined}
-        />
-        <DateInput
-          label="Hasta"
-          value={hasta}
-          onChange={(v) => {
-            setOffset(0);
-            setHasta(v);
-          }}
-          min={desde || undefined}
-        />
-      </div>
+      <Card>
+        <div className={styles.filters}>
+          <DateInput
+            label="Desde"
+            value={desde}
+            onChange={(v) => {
+              setOffset(0);
+              setDesde(v);
+            }}
+            max={hasta || undefined}
+          />
+          <DateInput
+            label="Hasta"
+            value={hasta}
+            onChange={(v) => {
+              setOffset(0);
+              setHasta(v);
+            }}
+            min={desde || undefined}
+          />
+        </div>
+      </Card>
 
       {errorMsg && (
         <div className={styles.errorWrap}>

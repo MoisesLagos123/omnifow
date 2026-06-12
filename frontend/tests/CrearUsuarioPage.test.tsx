@@ -16,6 +16,13 @@ vi.mock("../src/api/admin", async () => {
   };
 });
 
+vi.mock("../src/api/sucursales", () => ({
+  sucursalesApi: {
+    listSucursales: vi.fn().mockResolvedValue({ items: [], total: 0, limit: 200, offset: 0 }),
+    asignarSucursalesAUsuario: vi.fn(),
+  },
+}));
+
 import { adminApi } from "../src/api/admin";
 import { CrearUsuarioPage } from "../src/modules/administracion/CrearUsuarioPage";
 import { ToastProvider } from "../src/components/ui/Toast";
@@ -98,10 +105,9 @@ describe("CrearUsuarioPage", () => {
       "SuperSecreta1"
     );
 
-    // abrir multi-select y seleccionar el primer perfil
-    await userEvent.click(screen.getByText(/selecciona uno o más perfiles/i));
-    const opcion = await screen.findByRole("option", { name: /cajero/i });
-    await userEvent.click(opcion);
+    // seleccionar el perfil Cajero desde el panel de checkboxes
+    const cajeroCheckbox = await screen.findByRole("checkbox", { name: /cajero/i });
+    await userEvent.click(cajeroCheckbox);
 
     await userEvent.click(
       screen.getByRole("button", { name: /^crear usuario$/i })
