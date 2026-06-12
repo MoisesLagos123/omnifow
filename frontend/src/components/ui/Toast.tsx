@@ -7,10 +7,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, TriangleAlert, X } from "lucide-react";
 import styles from "./Toast.module.css";
 
-export type ToastVariant = "success" | "error" | "info";
+export type ToastVariant = "success" | "error" | "info" | "warning";
 
 interface ToastItem {
   id: number;
@@ -24,6 +24,7 @@ interface ToastContextValue {
   success: (title: string, description?: string) => void;
   error: (title: string, description?: string) => void;
   info: (title: string, description?: string) => void;
+  warning: (title: string, description?: string) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -57,6 +58,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         show({ variant: "error", title, description }),
       info: (title, description) =>
         show({ variant: "info", title, description }),
+      warning: (title, description) =>
+        show({ variant: "warning", title, description }),
     }),
     [show]
   );
@@ -90,7 +93,9 @@ function ToastView({
       ? CheckCircle2
       : item.variant === "error"
         ? AlertCircle
-        : Info;
+        : item.variant === "warning"
+          ? TriangleAlert
+          : Info;
   return (
     <div role="status" className={`${styles.toast} ${styles[`v-${item.variant}`]}`}>
       <Icon size={18} aria-hidden="true" className={styles.icon} />

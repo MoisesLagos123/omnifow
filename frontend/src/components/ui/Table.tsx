@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ChevronUp, ChevronDown as ChevronDownIcon, ChevronsUpDown } from "lucide-react";
 import styles from "./Table.module.css";
 import { Skeleton } from "./Skeleton";
 
@@ -11,9 +12,12 @@ export interface TableColumn<T> {
   width?: string;
   /** Alinear contenido. */
   align?: "left" | "right" | "center";
+  /** Si true, la columna es sortable (muestra icono de orden). */
+  sortable?: boolean;
 }
 
 export type TableDensity = "comfortable" | "compact";
+export type SortDir = "asc" | "desc";
 
 interface Props<T> {
   columns: TableColumn<T>[];
@@ -35,6 +39,12 @@ interface Props<T> {
    *   prioridad es maximizar filas visibles por viewport.
    */
   density?: TableDensity;
+  /** Clave de columna actualmente ordenada. */
+  sortKey?: string;
+  /** Dirección actual de orden. */
+  sortDir?: SortDir;
+  /** Callback cuando el usuario clickea un header sortable. */
+  onSort?: (key: string) => void;
 }
 
 export function Table<T>({
@@ -47,6 +57,9 @@ export function Table<T>({
   emptyState,
   caption,
   density = "comfortable",
+  sortKey,
+  sortDir,
+  onSort,
 }: Props<T>) {
   const isEmpty = !loading && rows && rows.length === 0;
 
@@ -60,15 +73,44 @@ export function Table<T>({
         {caption && <caption className={styles.caption}>{caption}</caption>}
         <thead>
           <tr>
-            {columns.map((c) => (
-              <th
-                key={c.key}
-                scope="col"
-                style={{ width: c.width, textAlign: c.align ?? "left" }}
-              >
-                {c.header}
-              </th>
-            ))}
+            {columns.map((c) => {
+              const isSorted = sortKey === c.key;
+              const canSort = c.sortable && onSort;
+              const SortIcon = isSorted
+                ? sortDir === "asc"
+                  ? ChevronUp
+                  : ChevronDownIcon
+                : ChevronsUpDown;
+              return (
+                <th
+                  key={c.key}
+                  scope="col"
+                  style={{ width: c.width, textAlign: c.align ?? "left" }}
+                  className={canSort ? styles.sortable : undefined}
+                  aria-sort={
+                    isSorted
+                      ? sortDir === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : undefined
+                  }
+                  onClick={canSort ? () => onSort(c.key) : undefined}
+                >
+                  {canSort ? (
+                    <span className={styles.thInner}>
+                      {c.header}
+                      <SortIcon
+                        size={13}
+                        aria-hidden="true"
+                        className={`${styles.sortIcon} ${isSorted ? styles.sortActive : ""}`}
+                      />
+                    </span>
+                  ) : (
+                    c.header
+                  )}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>

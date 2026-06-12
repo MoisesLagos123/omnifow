@@ -4,9 +4,10 @@
   gap: var(--space-2);
 }
 .label {
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
   font-weight: 500;
   color: var(--color-text-muted);
+  letter-spacing: 0.01em;
 }
 .wrapper {
   display: flex;
@@ -23,16 +24,18 @@
   box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 .wrapper.invalid { border-color: var(--color-danger); }
+.wrapper.invalid:focus-within { box-shadow: 0 0 0 3px var(--color-danger-soft); }
 
 .select {
   flex: 1;
-  height: 40px;
+  height: 44px;
   padding: 0 var(--space-4);
   background: transparent;
   border: none;
   outline: none;
   color: var(--color-text);
-  font-size: 0.9rem;
+  font-size: var(--font-base);
+  font-family: var(--font-sans);
   appearance: auto;
 }
 /* Fallback explícito para navegadores que no respetan color-scheme
@@ -41,5 +44,5 @@
   background-color: var(--color-surface);
   color: var(--color-text);
 }
-.error { margin: 0; font-size: 0.8rem; color: var(--color-danger); }
-.hint { margin: 0; font-size: 0.8rem; color: var(--color-text-subtle); }
+.error { margin: 0; font-size: var(--font-xs); color: var(--color-danger); }
+.hint { margin: 0; font-size: var(--font-xs); color: var(--color-text-subtle); }

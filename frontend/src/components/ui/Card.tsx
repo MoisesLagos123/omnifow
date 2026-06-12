@@ -12,14 +12,21 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
    * - `elevated`: sombra media — para hero/KPI principal de una página.
    */
   variant?: Variant;
+  /** Activa hover state: shadow elevación + border más fuerte. */
+  hoverable?: boolean;
 }
 
-export function Card({ children, className, variant = "default", ...rest }: Props) {
+export function Card({ children, className, variant = "default", hoverable, ...rest }: Props) {
   return (
     <div
-      className={`${styles.card} ${
-        variant === "flat" ? styles.flat : variant === "elevated" ? styles.elevated : ""
-      } ${className ?? ""}`}
+      className={[
+        styles.card,
+        variant === "flat" ? styles.flat : variant === "elevated" ? styles.elevated : "",
+        hoverable ? styles.hoverable : "",
+        className ?? "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       {...rest}
     >
       {children}

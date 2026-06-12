@@ -11,7 +11,7 @@ interface Props {
   children: ReactNode;
   footer?: ReactNode;
   /** Ancho aproximado del modal. */
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   /** Si false, no se cierra al hacer click fuera. */
   closeOnOverlay?: boolean;
 }
@@ -30,7 +30,7 @@ export function Modal({
   description,
   children,
   footer,
-  size = "md",
+  size = "md" as "sm" | "md" | "lg" | "xl",
   closeOnOverlay = true,
 }: Props) {
   const titleId = useId();

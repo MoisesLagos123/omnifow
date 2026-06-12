@@ -16,7 +16,7 @@
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: var(--z-sticky);
   height: 60px;
   /* hairline shadow para separarlo del contenido al scrollear */
   box-shadow: var(--shadow-xs);
@@ -173,8 +173,11 @@
   top: 60px;
   left: 0;
   bottom: 0;
-  z-index: 10;
+  z-index: var(--z-sidebar);
   overflow-y: auto;
+  /* Smooth scrollbar for long nav menus */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
 }
 
 .nav {
@@ -289,7 +292,7 @@
   position: fixed;
   inset: 60px 0 0 0;
   background: var(--color-overlay);
-  z-index: 8;
+  z-index: calc(var(--z-sidebar) - 1);
 }
 
 .main {

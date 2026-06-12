@@ -27,7 +27,7 @@
   padding: 0;
   transition: background-color var(--transition-fast);
 }
-.removeBtn:hover { background: rgba(0, 0, 0, 0.08); }
+.removeBtn:hover { background: var(--color-surface-sunken); }
 .removeBtn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--color-focus-ring);

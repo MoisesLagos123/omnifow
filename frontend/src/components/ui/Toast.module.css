@@ -32,6 +32,8 @@
 .v-error   .icon { color: var(--color-danger); }
 .v-info    { border-left: 4px solid var(--color-info); }
 .v-info    .icon { color: var(--color-info); }
+.v-warning { border-left: 4px solid var(--color-warning); }
+.v-warning .icon { color: var(--color-warning); }
 
 .icon { flex-shrink: 0; margin-top: 2px; }
 
@@ -55,8 +57,8 @@
 .close:hover { background: var(--color-surface-2); color: var(--color-text); }
 
 @keyframes slideIn {
-  from { transform: translateY(-8px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

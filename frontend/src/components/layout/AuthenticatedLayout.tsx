@@ -107,6 +107,16 @@ export function AuthenticatedLayout() {
     setSidebarOpen(false);
   }, [location.pathname]);
 
+  // ESC closes the mobile sidebar drawer
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setSidebarOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [sidebarOpen]);
+
   useEffect(() => {
     if (!userMenuOpen) return;
     function onClick(e: MouseEvent) {

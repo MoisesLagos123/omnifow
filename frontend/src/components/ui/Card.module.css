@@ -17,3 +17,20 @@
 .elevated {
   box-shadow: var(--shadow-md);
 }
+
+/* Hoverable — responde al puntero con elevación y borde más fuerte. */
+.hoverable {
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+.hoverable:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+}
+.hoverable:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}

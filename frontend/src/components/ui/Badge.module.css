@@ -20,3 +20,13 @@
   color: var(--color-text-muted);
   border-color: var(--color-border);
 }
+.v-brand {
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+
+/* Size variants */
+.size-sm {
+  font-size: 0.68rem;
+  padding: 1px 7px;
+}

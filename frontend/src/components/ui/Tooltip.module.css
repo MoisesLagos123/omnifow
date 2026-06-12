@@ -9,10 +9,11 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 50;
+  z-index: var(--z-dropdown);
   /* Estilo */
-  background: var(--color-text);
-  color: var(--color-text-inverse);
+  background: var(--color-surface-strong);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   padding: 6px 10px;
   border-radius: var(--radius-sm);
   font-size: 0.78rem;
@@ -43,11 +44,11 @@
 }
 .sideTop::after {
   top: 100%;
-  border-top-color: var(--color-text);
+  border-top-color: var(--color-border);
 }
 .sideBottom::after {
   bottom: 100%;
-  border-bottom-color: var(--color-text);
+  border-bottom-color: var(--color-border);
 }
 
 @keyframes tooltipIn {

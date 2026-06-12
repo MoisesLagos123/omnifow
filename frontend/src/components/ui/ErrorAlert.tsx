@@ -4,13 +4,18 @@ import styles from "./ErrorAlert.module.css";
 
 interface Props {
   children: ReactNode;
+  /** Acción opcional — p.ej. botón "Reintentar". */
+  action?: ReactNode;
 }
 
-export function ErrorAlert({ children }: Props) {
+export function ErrorAlert({ children, action }: Props) {
   return (
     <div role="alert" aria-live="polite" className={styles.alert}>
       <AlertCircle size={18} aria-hidden="true" className={styles.icon} />
-      <p className={styles.message}>{children}</p>
+      <div className={styles.content}>
+        <p className={styles.message}>{children}</p>
+        {action && <div className={styles.action}>{action}</div>}
+      </div>
     </div>
   );
 }

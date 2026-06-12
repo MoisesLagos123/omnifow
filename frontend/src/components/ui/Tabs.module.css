@@ -4,7 +4,11 @@
   display: flex;
   gap: var(--space-1);
   border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  /* Hide scrollbar on mobile — still swipeable */
+  scrollbar-width: none;
 }
+.list::-webkit-scrollbar { display: none; }
 
 .tab {
   appearance: none;
@@ -15,20 +19,28 @@
   font-weight: 500;
   color: var(--color-text-muted);
   cursor: pointer;
+  /* Bottom indicator — animated via transition on border-bottom-color */
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
+  white-space: nowrap;
   transition: color var(--transition-fast),
-    border-color var(--transition-fast);
+    border-color var(--transition-base),
+    background-color var(--transition-fast);
 }
-.tab:hover:not(.active) { color: var(--color-text); }
+.tab:hover:not(.active) {
+  color: var(--color-text);
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
 .tab:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--color-focus-ring);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
 .active {
   color: var(--color-brand);
+  font-weight: 600;
   border-bottom-color: var(--color-brand);
 }
 
