@@ -1,65 +1,27 @@
-/* Card — efecto Aero Glass / Glassmorphism por default.
-   Superficie translúcida con backdrop-filter blur + saturate; el fondo
-   del body (degradado bitono) "se ve a través" sutilmente.
-   Fallback: si el browser no soporta backdrop-filter (Firefox <103),
-   queda con background sólido más opaco (vía media query). */
+/* Card — superficies SÓLIDAS Material You Bento.
+   Sin glass/backdrop-filter. Cards limpias con borde sutil y
+   radio grande (28px) consistente con el lenguaje Material You. */
+
 .card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-filter);
-  -webkit-backdrop-filter: var(--glass-filter);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  /* shadow más profunda para "levantar" el cristal del bg con degradado */
-  box-shadow: var(--glass-shadow);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);  /* 28px */
+  box-shadow: var(--shadow-sm);
   padding: var(--space-6);
   transition: box-shadow var(--transition-fast),
     border-color var(--transition-fast),
     transform var(--transition-fast);
-  /* Highlight interior arriba — imita el reflejo del cristal Aero */
-  position: relative;
-  isolation: isolate;
-}
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    135deg,
-    var(--glass-border-inner),
-    transparent 40%,
-    transparent 60%,
-    var(--glass-border-inner)
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  z-index: -1;
 }
 
-/* Fallback para browsers sin backdrop-filter (Firefox ESR viejo, etc.):
-   superficie sólida del theme. */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .card {
-    background: var(--color-surface);
-    box-shadow: var(--shadow-sm);
-  }
-}
-
-/* Variante "flat" — sin shadow, glass más sutil para listas/tabs internas. */
+/* Variante "flat" — sin shadow, fondo hundido para listas/tabs internas. */
 .flat {
   box-shadow: none;
-  background: var(--glass-bg-strong);
+  background: var(--color-surface-sunken);
 }
 
-/* Variante "elevated" — más presencia, blur más fuerte. */
+/* Variante "elevated" — más presencia visual. */
 .elevated {
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: var(--glass-filter-strong);
-  -webkit-backdrop-filter: var(--glass-filter-strong);
+  box-shadow: var(--shadow-md);
 }
 
 /* Hoverable — responde al puntero con elevación. */
@@ -73,5 +35,5 @@
 }
 .hoverable:active {
   transform: translateY(0);
-  box-shadow: var(--glass-shadow);
+  box-shadow: var(--shadow-sm);
 }

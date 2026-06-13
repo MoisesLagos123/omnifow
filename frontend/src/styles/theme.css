@@ -1,76 +1,95 @@
 /*
  * Sistema de temas — OMNIFLOW
- * Paleta SaaS Data-Dense Dashboard (Blue 800 + Amber 600).
+ * Paleta Material You Bento (Purple / Indigo).
  * Light en :root, Dark en [data-theme="dark"].
  * NUNCA hardcodear colores en componentes; usar siempre estas variables.
  *
  * Fuentes:
- * - Fira Sans (UI / body / headings) — sin serif técnico-friendly.
- * - Fira Code (datos tabulares, RUTs, folios, precios) — monoespaciado con ligaduras.
+ * - Outfit (UI / body / headings) — geométrica moderna, estilo Material You.
+ * - DM Mono (datos tabulares, RUTs, folios, precios) — monoespaciado limpio.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
 
 :root {
+  /* ─── Brand — Purple Material ──────────────────────────────────── */
+  --color-brand: #7C5CFA;
+  --color-brand-hover: #6344E8;
+  --color-brand-active: #4F2EC2;
+  --color-brand-soft: #EBE0FE;
+  --color-brand-glow: rgba(124, 92, 250, 0.35);
+  --color-on-brand: #FFFFFF;
+
+  /* ─── Accent — mismo purple (sin amber) ────────────────────────── */
+  --color-accent: #7C5CFA;
+  --color-accent-hover: #6344E8;
+  --color-accent-soft: #EBE0FE;
+  --color-on-accent: #FFFFFF;
+
   /* ─── Superficies ───────────────────────────────────────────────
-     `bg` lienzo, `surface` cards/modales, `surface-2` áreas anidadas,
-     `surface-strong` hero/dashboards, `surface-sunken` chips/slots,
-     `overlay` velo de modales/sheets. */
-  --color-bg: #f8fafc;
-  --color-surface: #ffffff;
-  --color-surface-2: #f1f5f9;
-  --color-surface-strong: #ffffff;
-  --color-surface-sunken: #eef2f7;
+     `bg` lienzo lavanda muy claro, `surface` cards blancas,
+     `surface-2` áreas anidadas, `surface-strong` hero/dashboards,
+     `surface-sunken` chips/slots, `overlay` velo de modales/sheets. */
+  --color-bg: #F5F3FF;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #F5F3FF;
+  --color-surface-strong: #FFFFFF;
+  --color-surface-sunken: #EEEBF8;
   --color-overlay: rgba(15, 23, 42, 0.5);
 
   /* ─── Texto ───────────────────────────────────────────────────── */
-  --color-text: #0f172a;         /* slate-900 */
-  --color-text-muted: #475569;   /* slate-600 — 7.46:1 sobre blanco */
-  --color-text-subtle: #64748b;  /* slate-500 — 4.78:1 sobre blanco (AA) */
-  --color-text-inverse: #ffffff;
+  --color-text: #1E1B4B;          /* indigo profundo, no negro puro */
+  --color-text-muted: #6B7280;
+  --color-text-subtle: #9CA3AF;
+  --color-text-inverse: #FFFFFF;
 
   /* ─── Borde ───────────────────────────────────────────────────── */
-  --color-border: #e2e8f0;
-  --color-border-strong: #cbd5e1;
+  --color-border: #E5E7EB;
+  --color-border-strong: #D1D5DB;
 
-  /* ─── Marca principal (Blue 800) ────────────────────────────────
-     Usado en CTAs primarios, links, sidebar activo, focus ring. */
-  --color-brand: #1e40af;          /* Blue 800 — 8.59:1 sobre blanco */
-  --color-brand-hover: #1e3a8a;    /* Blue 900 */
-  --color-brand-active: #172554;   /* Blue 950 */
-  --color-brand-soft: #dbeafe;     /* Blue 100 */
-  --color-on-brand: #ffffff;
-
-  /* ─── Accent / CTA secundario (Amber 700) ───────────────────────
-     Para highlights, badges importantes, acciones secundarias. */
-  --color-accent: #b45309;         /* Amber 700 — 4.93:1 sobre blanco */
-  --color-accent-hover: #92400e;   /* Amber 800 */
-  --color-accent-soft: #fef3c7;    /* Amber 100 */
-  --color-on-accent: #ffffff;
-
-  /* ─── Estado ──────────────────────────────────────────────────
-     Todos calibrados para AA (4.5:1+) sobre blanco y sobre `*-soft`. */
-  --color-success: #15803d;         /* Green 700 — 5.02:1 */
-  --color-success-soft: #dcfce7;
-  --color-warning: #b45309;         /* Amber 700 — 5.02:1 */
-  --color-warning-soft: #fef3c7;
-  --color-danger: #b91c1c;          /* Red 700 — 5.94:1 */
-  --color-danger-soft: #fee2e2;
-  --color-info: #0369a1;            /* Sky 700 — 5.93:1 */
-  --color-info-soft: #e0f2fe;
+  /* ─── Estado ──────────────────────────────────────────────────── */
+  --color-success: #16A34A;
+  --color-success-soft: #DCFCE7;
+  --color-warning: #D97706;
+  --color-warning-soft: #FEF3C7;
+  --color-danger: #DC2626;
+  --color-danger-soft: #FEE2E2;
+  --color-info: #4338CA;          /* indigo */
+  --color-info-soft: #E0E7FF;
 
   /* ─── Focus ─────────────────────────────────────────────────── */
-  --color-focus-ring: rgba(30, 64, 175, 0.4);
+  --color-focus-ring: rgba(124, 92, 250, 0.4);
 
   /* ─── Tablas ────────────────────────────────────────────────── */
-  --color-table-row-hover: #f1f5f9;
-  --color-table-header-bg: #f8fafc;
+  --color-table-row-hover: #F5F3FF;
+  --color-table-header-bg: #F5F3FF;
 
   /* ─── Sidebar ───────────────────────────────────────────────── */
-  --color-sidebar-bg: #ffffff;
-  --color-sidebar-active-bg: #dbeafe;
-  --color-sidebar-active-fg: #1e3a8a;
-  --color-sidebar-hover-bg: #f1f5f9;
+  --color-sidebar-bg: #FFFFFF;
+  --color-sidebar-active-bg: #7C5CFA;   /* purple sólido */
+  --color-sidebar-active-fg: #FFFFFF;
+  --color-sidebar-hover-bg: #F5F3FF;
+
+  /* ─── KPI tonal palettes — para Home / Dashboard ──────────────── */
+  --kpi-ventas-bg: #D7F5E6;
+  --kpi-ventas-icon-bg: #16A34A;
+  --kpi-ventas-text: #0F5132;
+  --kpi-ventas-pill: #BBF7D0;
+
+  --kpi-tickets-bg: #E0E7FF;
+  --kpi-tickets-icon-bg: #4338CA;
+  --kpi-tickets-text: #312E81;
+  --kpi-tickets-pill: #C7D2FE;
+
+  --kpi-stock-bg: #FEF3C7;
+  --kpi-stock-icon-bg: #D97706;
+  --kpi-stock-text: #78350F;
+  --kpi-stock-pill: #FDE68A;
+
+  --kpi-cxc-bg: #EBE0FE;
+  --kpi-cxc-icon-bg: #7C5CFA;
+  --kpi-cxc-text: #4C1D95;
+  --kpi-cxc-pill: #DDD6FE;
 
   /* ─── Breakpoints (referencia para media queries) ──────────────
      Mobile-first: 375 (small phone), 640 (large phone), 768 (tablet),
@@ -86,11 +105,9 @@
   --bp-tablet: 1024px;
 
   /* ─── Tipografía ──────────────────────────────────────────────
-     Fira Sans para UI, Fira Code para datos/columnas numéricas. */
-  --font-sans: "Fira Sans", "Inter", "Segoe UI", system-ui, -apple-system,
-    "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular,
-    Menlo, monospace;
+     Outfit para UI, DM Mono para datos/columnas numéricas. */
+  --font-sans: "Outfit", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "DM Mono", "JetBrains Mono", ui-monospace, monospace;
 
   /* Escala tipográfica — base 16px, ratio 1.25 (Major Third) */
   --font-xs: 0.75rem;     /* 12px — micro: badges, captions */
@@ -108,12 +125,12 @@
   --line-normal: 1.5;     /* body */
   --line-relaxed: 1.625;  /* texto largo */
 
-  /* ─── Radios ─────────────────────────────────────────────────── */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
-  --radius-full: 9999px;
+  /* ─── Radios (BORDES GRANDES — Material You) ─────────────────── */
+  --radius-sm: 12px;     /* era 6px */
+  --radius-md: 20px;     /* era 10px */
+  --radius-lg: 28px;     /* era 14px */
+  --radius-xl: 36px;     /* era 20px */
+  --radius-full: 999px;
 
   /* ─── Spacing (escala 4pt) ──────────────────────────────────── */
   --space-1: 4px;
@@ -128,32 +145,18 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* ─── Sombras (escala depth) ────────────────────────────────────
-     xs: hairline lift (chips, kbds)
-     sm: cards básicas
-     md: cards elevadas, popovers
-     lg: modales, dropdowns
-     xl: hero / landing CTA */
-  --shadow-xs: 0 1px 1px rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05),
-    0 1px 2px rgba(15, 23, 42, 0.03);
-  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06),
-    0 1px 3px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 12px 36px rgba(15, 23, 42, 0.10),
-    0 2px 6px rgba(15, 23, 42, 0.05);
-  --shadow-xl: 0 28px 70px rgba(15, 23, 42, 0.16),
-    0 4px 12px rgba(15, 23, 42, 0.06);
+  /* ─── Sombras (más suaves — Material You) ──────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.10);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.12);
 
-  /* Inset/inner glow para inputs activos */
-  --shadow-inset-focus: inset 0 0 0 1px var(--color-brand);
-
-  /* ─── Transiciones ──────────────────────────────────────────────
-     fast: state hover/focus instant feel.
-     base: drawer toggle, modal open.
-     slow: page transitions. */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* ─── Motion ─────────────────────────────────────────────────── */
+  --transition-fast: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 240ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* Z-index scale — definir capas explícitas */
   --z-dropdown: 100;
@@ -163,111 +166,95 @@
   --z-modal: 900;
   --z-toast: 1000;
 
-  /* ─── Aero Glass / Glassmorphism ────────────────────────────────
-     Tokens semánticos para superficies translúcidas con backdrop blur.
-     Usar en cards, headers, sidebars, bottom bars. El fondo del body
-     debe tener color/gradient para que el blur tenga "algo que difuminar".
-
-     - glass-bg: rgba blanco para light, oscuro para dark. Opacidad ~0.7
-       balancea legibilidad y efecto.
-     - glass-border: borde sutil con leve translucidez para definición.
-     - glass-blur: cantidad de difuminado del fondo (20px nice sweet spot).
-     - glass-saturate: realza colores detrás del cristal (efecto Aero).
-     - glass-shadow: sombra profunda para "elevar" sobre el degradado.
-
-     IMPORTANTE: cualquier superficie con glass debe tener
-     `background: var(--glass-bg)` + `backdrop-filter: var(--glass-filter)`
-     + fallback de bg sólido para browsers sin soporte (Firefox <103). */
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-bg-strong: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.7);
-  --glass-border-inner: rgba(255, 255, 255, 0.55);
-  --glass-filter: blur(18px) saturate(180%);
-  --glass-filter-strong: blur(24px) saturate(180%);
-  --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08),
-    0 2px 6px rgba(15, 23, 42, 0.04);
-
-  /* Indica al navegador qué esquema usar para controles nativos
-     (dropdown de <select>, scrollbars, autofill, etc.). */
+  /* Indica al navegador qué esquema usar para controles nativos */
   color-scheme: light;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
 
+  /* ─── Brand ─────────────────────────────────────────────────── */
+  --color-brand: #9B7BFB;
+  --color-brand-hover: #B99AFC;
+  --color-brand-active: #C4B5FD;
+  --color-brand-soft: #2A1B47;
+  --color-brand-glow: rgba(155, 123, 251, 0.4);
+  --color-on-brand: #FFFFFF;
+
+  /* ─── Accent ─────────────────────────────────────────────────── */
+  --color-accent: #9B7BFB;
+  --color-accent-hover: #B99AFC;
+  --color-accent-soft: #2A1B47;
+  --color-on-accent: #FFFFFF;
+
   /* ─── Superficies ─────────────────────────────────────────────── */
-  --color-bg: #0b1424;
-  --color-surface: #131c30;
-  --color-surface-2: #1a2440;
-  --color-surface-strong: #182042;
-  --color-surface-sunken: #0e1530;
+  --color-bg: #0D0B1A;
+  --color-surface: #161228;
+  --color-surface-2: #1F1836;
+  --color-surface-strong: #1F1836;
+  --color-surface-sunken: #100D1F;
   --color-overlay: rgba(0, 0, 0, 0.7);
 
   /* ─── Texto ───────────────────────────────────────────────────── */
-  --color-text: #f1f5f9;
-  --color-text-muted: #a8b2c7;
-  --color-text-subtle: #7a8499;
-  --color-text-inverse: #0b1424;
+  --color-text: #EDE9FF;
+  --color-text-muted: #9CA3AF;
+  --color-text-subtle: #6B7280;
+  --color-text-inverse: #0D0B1A;
 
   /* ─── Borde ───────────────────────────────────────────────────── */
-  --color-border: #25314f;
-  --color-border-strong: #38456b;
-
-  /* ─── Marca (Blue 500 más brillante para contraste en oscuro) ── */
-  --color-brand: #3b82f6;
-  --color-brand-hover: #60a5fa;
-  --color-brand-active: #93c5fd;
-  --color-brand-soft: #1e293b;
-  --color-on-brand: #ffffff;
-
-  /* ─── Accent (Amber 500) ───────────────────────────────────────── */
-  --color-accent: #f59e0b;
-  --color-accent-hover: #fbbf24;
-  --color-accent-soft: #2d1f0a;
-  --color-on-accent: #0b1424;
+  --color-border: #2A2040;
+  --color-border-strong: #3D3060;
 
   /* ─── Estado ──────────────────────────────────────────────────── */
-  --color-success: #4ade80;
-  --color-success-soft: #0f2a1c;
-  --color-warning: #fbbf24;
-  --color-warning-soft: #2d1f0a;
-  --color-danger: #f87171;
-  --color-danger-soft: #2a1010;
-  --color-info: #38bdf8;
-  --color-info-soft: #0a2030;
+  --color-success: #4ADE80;
+  --color-success-soft: #1A3A28;
+  --color-warning: #FBBF24;
+  --color-warning-soft: #3F2E0F;
+  --color-danger: #F87171;
+  --color-danger-soft: #3F1A1A;
+  --color-info: #818CF8;
+  --color-info-soft: #1E2447;
 
   /* ─── Focus ───────────────────────────────────────────────────── */
-  --color-focus-ring: rgba(59, 130, 246, 0.5);
+  --color-focus-ring: rgba(155, 123, 251, 0.5);
 
   /* ─── Tablas ──────────────────────────────────────────────────── */
-  --color-table-row-hover: #1a2440;
-  --color-table-header-bg: #131c30;
+  --color-table-row-hover: #1F1836;
+  --color-table-header-bg: #161228;
 
   /* ─── Sidebar ─────────────────────────────────────────────────── */
-  --color-sidebar-bg: #131c30;
-  --color-sidebar-active-bg: #1c2a4d;
-  --color-sidebar-active-fg: #93c5fd;
-  --color-sidebar-hover-bg: #1a2440;
+  --color-sidebar-bg: #120F22;
+  --color-sidebar-active-bg: #9B7BFB;
+  --color-sidebar-active-fg: #FFFFFF;
+  --color-sidebar-hover-bg: #1F1836;
 
-  /* ─── Sombras (más oscuras y nítidas) ────────────────────────── */
+  /* ─── KPI tonal palettes dark ─────────────────────────────────── */
+  --kpi-ventas-bg: #1A3A28;
+  --kpi-ventas-icon-bg: #15803D;
+  --kpi-ventas-text: #86EFAC;
+  --kpi-ventas-pill: #166534;
+
+  --kpi-tickets-bg: #1E2447;
+  --kpi-tickets-icon-bg: #4338CA;
+  --kpi-tickets-text: #A5B4FC;
+  --kpi-tickets-pill: #3730A3;
+
+  --kpi-stock-bg: #3F2E0F;
+  --kpi-stock-icon-bg: #B45309;
+  --kpi-stock-text: #FCD34D;
+  --kpi-stock-pill: #92400E;
+
+  --kpi-cxc-bg: #2A1B47;
+  --kpi-cxc-icon-bg: #9B7BFB;
+  --kpi-cxc-text: #C4B5FD;
+  --kpi-cxc-pill: #5B21B6;
+
+  /* ─── Sombras dark ─────────────────────────────────────────────── */
   --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.45),
-    0 1px 3px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55),
-    0 2px 6px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 32px 80px rgba(0, 0, 0, 0.65),
-    0 4px 14px rgba(0, 0, 0, 0.45);
-
-  /* ─── Aero Glass dark ──────────────────────────────────────────
-     Versión oscura con rgba del color de superficie base + opacidad.
-     Border con leve highlight blanco arriba para imitar reflejo. */
-  --glass-bg: rgba(19, 28, 48, 0.62);
-  --glass-bg-strong: rgba(19, 28, 48, 0.82);
-  --glass-border: rgba(120, 140, 180, 0.18);
-  --glass-border-inner: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.6);
 }
 
 /* ─── Reduced motion ────────────────────────────────────────────── */
@@ -304,11 +291,8 @@ body {
   font-size: var(--font-base);
   line-height: var(--line-normal);
   color: var(--color-text);
-  /* Fondo bitono degradado — diagonal sutil 135° desde el bg principal
-     hacia un tono ligeramente más profundo (surface-sunken). Evita el
-     color plano y añade depth perceptual sin distraer del contenido.
-     `background-attachment: fixed` mantiene el gradient anclado al
-     viewport durante el scroll (no se repite ni se mueve). */
+  /* Fondo bitono degradado — diagonal sutil 135° desde el bg lavanda
+     hacia un tono ligeramente más profundo (surface-sunken). */
   background: linear-gradient(
     135deg,
     var(--color-bg) 0%,

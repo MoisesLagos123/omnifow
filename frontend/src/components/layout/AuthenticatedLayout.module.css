@@ -16,18 +16,13 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-5);
-  /* Aero Glass: superficie translúcida con backdrop blur. El degradado
-     del body se ve "a través" sutilmente, dando profundidad. */
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-filter);
-  -webkit-backdrop-filter: var(--glass-filter);
-  border-bottom: 1px solid var(--glass-border);
+  /* Material Bento: superficie sólida sin glass. Backdrop filter eliminado. */
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
   height: 60px;
-  /* Shadow sutil para diferenciarlo del contenido cuando scrollea por debajo */
-  box-shadow: var(--shadow-xs);
   /* IMPORTANTE: sin overflow específico en el header.
      - `overflow: hidden` recortaba el dropdown del usuario.
      - `overflow-x: hidden; overflow-y: visible` también lo recortaba
@@ -36,9 +31,6 @@
      El anti-scroll-x global ya está en html/body. El header confía
      en `max-width: 100%` + `min-width: 0` en hijos para no desbordar. */
   max-width: 100%;
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .header { background: var(--color-surface); }
 }
 
 .headerLeft, .headerRight {
@@ -126,7 +118,8 @@
   box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 /* Estado "menu abierto" — el pill mantiene su look "presionado" para
-   que el usuario sepa que el dropdown viene DE ese botón. */
+   que el usuario sepa que el dropdown viene DE ese botón.
+   Material Bento: lavanda claro (brand-soft) tanto en light como dark. */
 .userBtn[aria-expanded="true"] {
   background: var(--color-brand-soft);
   border-color: var(--color-brand);
@@ -164,18 +157,16 @@
 }
 
 /* ─── Dropdown del usuario ─────────────────────────────────────────
-   Glass card flotante a la derecha del avatar. Animación de entrada
-   scale+fade desde el botón (origen top-right). */
+   Sólido (sin glass). Material Bento: border-radius grande, surface sólido.
+   Animación scale+fade desde el botón (origen top-right). */
 .dropdown {
   position: absolute;
   right: 0;
   top: calc(100% + 8px);
   min-width: 260px;
-  background: var(--glass-bg-strong);
-  backdrop-filter: var(--glass-filter);
-  -webkit-backdrop-filter: var(--glass-filter);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   padding: var(--space-2);
@@ -184,9 +175,6 @@
      menú "sale" del botón. */
   transform-origin: top right;
   animation: dropdownEnter 160ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .dropdown { background: var(--color-surface); }
 }
 @keyframes dropdownEnter {
   from { opacity: 0; transform: scale(0.96) translateY(-4px); }
@@ -295,11 +283,10 @@
 
 .sidebar {
   width: 240px;
-  /* Aero Glass: misma técnica que el header, ahora vertical. */
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-filter);
-  -webkit-backdrop-filter: var(--glass-filter);
-  border-right: 1px solid var(--glass-border);
+  /* Material Bento: superficie sólida, sin glass ni backdrop-filter.
+     Siempre usa --color-sidebar-bg (light en ambos temas según tokens). */
+  background: var(--color-sidebar-bg);
+  border-right: 1px solid var(--color-border);
   padding: var(--space-4) var(--space-3);
   position: fixed;
   top: 60px;
@@ -310,9 +297,6 @@
   /* Smooth scrollbar for long nav menus */
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .sidebar { background: var(--color-sidebar-bg); }
 }
 
 .nav {
@@ -327,17 +311,19 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
+  /* Material Bento: items con border-radius generoso (≈20px via --radius-xl) */
+  border-radius: var(--radius-xl);
   color: var(--color-text-muted);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: background-color var(--transition-fast),
-    color var(--transition-fast);
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 .navItem:hover:not(.disabled) {
-  background: var(--color-surface-2);
+  background: var(--color-sidebar-hover-bg);
   color: var(--color-text);
 }
 .navItem:focus-visible {
@@ -350,18 +336,13 @@
   background: var(--color-sidebar-active-bg);
   color: var(--color-sidebar-active-fg);
   font-weight: 600;
+  /* Material Bento: purple glow sutil para el ítem activo.
+     Usa --color-brand-glow si está disponible, de lo contrario
+     recae en el focus-ring token como fallback. */
+  box-shadow: 0 4px 12px var(--color-brand-glow, var(--color-focus-ring));
 }
-/* Barra accent vertical en el ítem activo — sutil indicador de "estás aquí". */
-.navItemActive::before {
-  content: "";
-  position: absolute;
-  left: -2px;
-  top: 6px;
-  bottom: 6px;
-  width: 3px;
-  background: var(--color-brand);
-  border-radius: 0 2px 2px 0;
-}
+/* Material Bento: SIN barra vertical lateral. Solo el background change.
+   (La pseudo-clase ::before fue removida por diseño.) */
 
 .subItem { padding-left: var(--space-8); }
 
@@ -375,14 +356,15 @@
   background: transparent;
   border: none;
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
+  /* Material Bento: mismo radio grande que navItem */
+  border-radius: var(--radius-xl);
   color: var(--color-text-muted);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
 }
-.groupHeader:hover { background: var(--color-surface-2); color: var(--color-text); }
+.groupHeader:hover { background: var(--color-sidebar-hover-bg); color: var(--color-text); }
 .groupHeader:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--color-focus-ring);
@@ -442,7 +424,8 @@
   .menuBtn { display: inline-flex; }
   .sidebar {
     /* En mobile el sidebar se vuelve drawer (fuera de pantalla por
-       defecto). Hereda position:fixed/top/left/bottom del estilo base. */
+       defecto). Hereda position:fixed/top/left/bottom del estilo base.
+       Material Bento: misma animación via transition-base token. */
     transform: translateX(-100%);
     transition: transform var(--transition-base);
     box-shadow: var(--shadow-md);

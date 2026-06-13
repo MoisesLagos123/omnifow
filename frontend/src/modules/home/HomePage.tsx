@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Boxes,
+  Clock,
   CreditCard,
   DollarSign,
   FileText,
@@ -56,68 +57,73 @@ function todayLabel(): string {
   }).format(new Date());
 }
 
-/* ─── KPI Card ──────────────────────────────────────────────────── */
+/* ─── Bento KPI Card ────────────────────────────────────────────── */
 
-interface KpiCardProps {
+type KpiVariant = "ventas" | "tickets" | "stock" | "cxc";
+
+interface BentoKpiCardProps {
+  variant: KpiVariant;
   title: string;
   value: string | number | null;
   icon: React.ReactNode;
-  /** Color accent del icono */
-  accent?: "brand" | "success" | "warning" | "danger";
-  /** Subtexto opcional debajo del valor */
-  sub?: string;
-  /** Si true, muestra skeleton en lugar del valor */
+  delta: string;
+  sub: string;
   loading?: boolean;
-  /** Formato especial para el valor — "currency" usa font-mono */
-  mono?: boolean;
+  /** spans 2 columns in desktop bento */
+  wide?: boolean;
 }
 
-function KpiCard({ title, value, icon, accent = "brand", sub, loading, mono }: KpiCardProps) {
-  const accentMap: Record<string, string> = {
-    brand: "var(--color-brand)",
-    success: "var(--color-success)",
-    warning: "var(--color-warning)",
-    danger: "var(--color-danger)",
-  };
-  const softMap: Record<string, string> = {
-    brand: "var(--color-brand-soft)",
-    success: "var(--color-success-soft)",
-    warning: "var(--color-warning-soft)",
-    danger: "var(--color-danger-soft)",
-  };
+const variantStyles: Record<KpiVariant, string> = {
+  ventas: styles.kpiVentas,
+  tickets: styles.kpiTickets,
+  stock: styles.kpiStock,
+  cxc: styles.kpiCxc,
+};
+
+const bentoSizeStyles: Record<string, string> = {
+  hero: styles.kpiHero,
+  wide: styles.kpiWide,
+  normal: styles.kpiNormal,
+};
+
+function BentoKpiCard({
+  variant,
+  title,
+  value,
+  icon,
+  delta,
+  sub,
+  loading,
+  wide,
+}: BentoKpiCardProps) {
+  const sizeClass = wide ? bentoSizeStyles.hero : bentoSizeStyles.normal;
 
   return (
-    <Card variant="elevated" className={styles.kpiCard}>
+    <article
+      className={`${styles.kpiCard} ${variantStyles[variant]} ${sizeClass}`}
+      aria-label={title}
+    >
       <div className={styles.kpiHeader}>
-        <span className={styles.kpiTitle}>{title}</span>
-        <span
-          className={styles.kpiIcon}
-          aria-hidden="true"
-          style={{
-            color: accentMap[accent],
-            background: softMap[accent],
-          }}
-        >
+        <div className={styles.kpiLabel}>{title}</div>
+        <div className={styles.kpiIconWrap} aria-hidden="true">
           {icon}
-        </span>
+        </div>
       </div>
       {loading ? (
         <Skeleton height={36} width="60%" style={{ borderRadius: "var(--radius-sm)" }} />
       ) : (
-        <p
-          className={styles.kpiValue}
-          style={mono ? { fontFamily: "var(--font-mono)" } : undefined}
-        >
-          {value ?? "0"}
-        </p>
+        <div className={styles.kpiValue}>{value ?? "0"}</div>
       )}
-      {sub && !loading && (
-        <p className={styles.kpiSub}>{sub}</p>
-      )}
-      {loading && (
+      {loading ? (
         <Skeleton height={14} width="40%" style={{ marginTop: "var(--space-1)", borderRadius: "var(--radius-sm)" }} />
+      ) : (
+        <div className={styles.kpiDelta}>
+          <TrendingUp size={11} aria-hidden="true" />
+          {delta}
+          {sub && <span className={styles.kpiSub}>{sub}</span>}
+        </div>
       )}
-    </Card>
+    </article>
   );
 }
 
@@ -253,7 +259,6 @@ export function HomePage() {
   const hasPosAccess = useAnyPermission(POS_PERMS);
 
   // KPI data: placeholders con 0 hasta que se conecten endpoints reales.
-  // Loading = false porque no hay fetch todavía — se muestra "0".
   const kpiLoading = false;
 
   return (
@@ -272,46 +277,51 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* ── KPI grid ── */}
+      {/* ── KPI bento grid ── */}
       {hasPosAccess && (
         <section aria-labelledby="kpi-title">
           <h2 id="kpi-title" className={styles.sectionTitle}>
             Resumen del día
           </h2>
-          <div className={styles.kpiGrid}>
-            <KpiCard
+          <div className={styles.kpiBento}>
+            {/* Row 1: Ventas (hero/span-2) + Tickets + Stock */}
+            <BentoKpiCard
+              variant="ventas"
               title="Ventas hoy"
               value={formatCLP(0)}
-              icon={<DollarSign size={18} />}
-              accent="brand"
-              sub="Sin datos de ventas aún"
+              icon={<DollarSign size={24} />}
+              delta="Sin datos aún"
+              sub=""
               loading={kpiLoading}
-              mono
+              wide
             />
-            <KpiCard
+            <BentoKpiCard
+              variant="tickets"
               title="Tickets emitidos"
               value={0}
-              icon={<Receipt size={18} />}
-              accent="success"
-              sub="Boletas y facturas"
+              icon={<Receipt size={24} />}
+              delta="Boletas y facturas"
+              sub=""
               loading={kpiLoading}
             />
-            <KpiCard
+            <BentoKpiCard
+              variant="stock"
               title="Stock crítico"
               value={0}
-              icon={<AlertTriangle size={18} />}
-              accent="warning"
-              sub="Productos en bajo stock"
+              icon={<AlertTriangle size={24} />}
+              delta="Bajo mínimo"
+              sub=""
               loading={kpiLoading}
             />
-            <KpiCard
+            {/* Row 2: CxC span 4 (todo el ancho) */}
+            <BentoKpiCard
+              variant="cxc"
               title="CxC pendiente"
               value={formatCLP(0)}
-              icon={<CreditCard size={18} />}
-              accent="danger"
-              sub="Ventas a crédito sin cobrar"
+              icon={<Clock size={24} />}
+              delta="Sin vencimientos"
+              sub=""
               loading={kpiLoading}
-              mono
             />
           </div>
         </section>
@@ -353,7 +363,7 @@ export function HomePage() {
       {hasPosAccess && (
         <section aria-labelledby="activity-title">
           <h2 id="activity-title" className={styles.sectionTitle}>
-            Últimas ventas
+            Ultimas ventas
           </h2>
           <Card>
             <EmptyState

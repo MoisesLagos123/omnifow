@@ -32,15 +32,17 @@
 
 .greetingTitle {
   margin: 0;
-  font-size: var(--font-2xl);
+  font-family: var(--font-sans);
+  font-size: var(--font-3xl);
   font-weight: 700;
   color: var(--color-text);
   line-height: var(--line-tight);
+  letter-spacing: -0.02em;
 }
 
 .greetingDate {
   margin: 0;
-  font-size: var(--font-sm);
+  font-size: var(--font-base);
   color: var(--color-text-muted);
   text-transform: capitalize;
   line-height: var(--line-normal);
@@ -64,58 +66,160 @@
   color: var(--color-text-muted);
 }
 
-/* ─── KPI grid ───────────────────────────────────────────────────── */
-.kpiGrid {
+/* ─── KPI Bento grid ─────────────────────────────────────────────── */
+/*
+  Desktop layout (≥1024px):
+  Row 1: [Ventas hoy — span 2 hero] [Tickets — span 1] [Stock — span 1]
+  Row 2: [CxC pendiente — span 4 (full width)]
+*/
+.kpiBento {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-4);
 }
 
+/* Ventas: hero spanning 2 cols */
+.kpiHero {
+  grid-column: span 2;
+}
+
+/* CxC: full width spanning all 4 cols */
+.kpiWide {
+  grid-column: span 4;
+}
+
+/* Tickets, Stock: normal single col */
+.kpiNormal {
+  grid-column: span 1;
+}
+
+/* ─── KPI Card base ──────────────────────────────────────────────── */
 .kpiCard {
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-5);
+  min-height: 160px;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  animation: fadeUp 0.6s var(--spring) backwards;
 }
 
+.kpiCard:nth-child(1) { animation-delay: 0ms; }
+.kpiCard:nth-child(2) { animation-delay: 50ms; }
+.kpiCard:nth-child(3) { animation-delay: 100ms; }
+.kpiCard:nth-child(4) { animation-delay: 150ms; }
+
+.kpiCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kpiCard {
+    animation: none;
+  }
+}
+
+/* ─── KPI tonal palettes ─────────────────────────────────────────── */
+.kpiVentas {
+  background: var(--kpi-ventas-bg);
+  color: var(--kpi-ventas-text);
+}
+
+.kpiTickets {
+  background: var(--kpi-tickets-bg);
+  color: var(--kpi-tickets-text);
+}
+
+.kpiStock {
+  background: var(--kpi-stock-bg);
+  color: var(--kpi-stock-text);
+}
+
+.kpiCxc {
+  background: var(--kpi-cxc-bg);
+  color: var(--kpi-cxc-text);
+}
+
+/* ─── KPI inner layout ───────────────────────────────────────────── */
 .kpiHeader {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-3);
+  align-items: flex-start;
 }
 
-.kpiTitle {
+.kpiLabel {
   font-size: var(--font-sm);
   font-weight: 500;
-  color: var(--color-text-muted);
-  line-height: var(--line-normal);
+  opacity: 0.85;
 }
 
-.kpiIcon {
-  display: inline-flex;
+/* 56px circular icon container — Material You signature */
+.kpiIconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
+  color: white;
   flex-shrink: 0;
 }
 
+.kpiVentas .kpiIconWrap  { background: var(--kpi-ventas-icon-bg); }
+.kpiTickets .kpiIconWrap { background: var(--kpi-tickets-icon-bg); }
+.kpiStock .kpiIconWrap   { background: var(--kpi-stock-icon-bg); }
+.kpiCxc .kpiIconWrap     { background: var(--kpi-cxc-icon-bg); }
+
 .kpiValue {
-  margin: 0;
-  font-size: var(--font-2xl);
+  font-family: var(--font-mono);
+  font-size: var(--font-3xl);
   font-weight: 700;
-  color: var(--color-text);
-  line-height: var(--line-tight);
   letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
-.kpiSub {
-  margin: 0;
+/* Hero card gets slightly bigger value */
+.kpiHero .kpiValue {
+  font-size: 2.25rem;
+}
+
+/* ─── KPI delta pill ─────────────────────────────────────────────── */
+.kpiDelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
   font-size: var(--font-xs);
-  color: var(--color-text-subtle);
-  line-height: var(--line-normal);
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+.kpiVentas .kpiDelta  { background: var(--kpi-ventas-pill); }
+.kpiTickets .kpiDelta { background: var(--kpi-tickets-pill); }
+.kpiStock .kpiDelta   { background: var(--kpi-stock-pill); }
+.kpiCxc .kpiDelta     { background: var(--kpi-cxc-pill); }
+
+.kpiSub {
+  font-size: var(--font-xs);
+  font-weight: 500;
+  opacity: 0.8;
+  margin-left: var(--space-1);
 }
 
 /* ─── Quick links ────────────────────────────────────────────────── */
@@ -214,6 +318,7 @@
   border-radius: var(--radius-md);
   background: var(--color-surface-sunken);
 }
+
 .profileDesc {
   margin: 0;
   font-size: var(--font-sm);
@@ -232,14 +337,29 @@
 
 /* ─── Responsive ─────────────────────────────────────────────────── */
 
-/* Tablet (768px) — KPI 2 cols */
-@media (max-width: 768px) {
-  .kpiGrid {
+/* Tablet (1023px) — KPI 2+2 layout */
+@media (max-width: 1023px) {
+  .kpiBento {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .kpiHero {
+    grid-column: span 2;
+  }
+
+  .kpiWide {
+    grid-column: span 2;
+  }
+
+  .kpiNormal {
+    grid-column: span 1;
+  }
+}
+
+/* Small tablet (768px) */
+@media (max-width: 768px) {
   .greetingTitle {
-    font-size: var(--font-xl);
+    font-size: var(--font-2xl);
   }
 
   .dashHeader {
@@ -253,10 +373,16 @@
   }
 }
 
-/* Mobile (480px) — KPI single col */
-@media (max-width: 480px) {
-  .kpiGrid {
+/* Mobile (640px) — single column */
+@media (max-width: 640px) {
+  .kpiBento {
     grid-template-columns: 1fr;
+  }
+
+  .kpiHero,
+  .kpiWide,
+  .kpiNormal {
+    grid-column: span 1;
   }
 
   .quickGrid {

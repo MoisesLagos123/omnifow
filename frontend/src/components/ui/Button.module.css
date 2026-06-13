@@ -3,9 +3,9 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: 0 var(--space-5);
+  padding: 12px 24px;
   height: 44px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);   /* pill — todos los botones */
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
@@ -29,9 +29,9 @@
 
 .fullWidth { width: 100%; }
 
-.size-sm { height: 36px; padding: 0 var(--space-4); font-size: 0.875rem; }
-.size-md { height: 44px; }
-.size-lg { height: 52px; padding: 0 var(--space-6); font-size: 1.05rem; }
+.size-sm { height: 36px; padding: 10px 20px; font-size: 0.875rem; }
+.size-md { height: 44px; padding: 12px 24px; }
+.size-lg { height: 52px; padding: 14px 32px; font-size: 1.05rem; }
 
 .variant-primary {
   background-color: var(--color-brand);
@@ -41,13 +41,13 @@
 .variant-primary:hover:not(:disabled) {
   background-color: var(--color-brand-hover);
   border-color: var(--color-brand-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: scale(1.04);
+  box-shadow: 0 8px 20px var(--color-brand-glow);
 }
 .variant-primary:active:not(:disabled) {
   background-color: var(--color-brand-active);
   border-color: var(--color-brand-active);
-  transform: translateY(0);
+  transform: scale(1);
   box-shadow: none;
 }
 
@@ -59,11 +59,11 @@
 .variant-secondary:hover:not(:disabled) {
   background-color: var(--color-border);
   border-color: var(--color-border-strong);
-  transform: translateY(-1px);
+  transform: scale(1.04);
   box-shadow: var(--shadow-sm);
 }
 .variant-secondary:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(1);
   box-shadow: none;
 }
 
@@ -75,11 +75,11 @@
 .variant-accent:hover:not(:disabled) {
   background-color: var(--color-accent-hover);
   border-color: var(--color-accent-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: scale(1.04);
+  box-shadow: 0 8px 20px var(--color-brand-glow);
 }
 .variant-accent:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(1);
   box-shadow: none;
 }
 .variant-accent:focus-visible {
@@ -94,6 +94,10 @@
 .variant-ghost:hover:not(:disabled) {
   background-color: var(--color-surface-2);
   border-color: var(--color-border-strong);
+  transform: scale(1.04);
+}
+.variant-ghost:active:not(:disabled) {
+  transform: scale(1);
 }
 
 /* Acciones destructivas con CTA fuerte (eliminar / desactivar / anular). */
@@ -104,6 +108,10 @@
 }
 .variant-danger:hover:not(:disabled) {
   filter: brightness(0.92);
+  transform: scale(1.04);
+}
+.variant-danger:active:not(:disabled) {
+  transform: scale(1);
 }
 .variant-danger:focus-visible {
   box-shadow: 0 0 0 3px var(--color-danger-soft);
@@ -118,6 +126,10 @@
 }
 .variant-danger-ghost:hover:not(:disabled) {
   background-color: var(--color-danger-soft);
+  transform: scale(1.04);
+}
+.variant-danger-ghost:active:not(:disabled) {
+  transform: scale(1);
 }
 .variant-danger-ghost:focus-visible {
   box-shadow: 0 0 0 3px var(--color-danger-soft);
