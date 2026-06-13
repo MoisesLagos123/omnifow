@@ -178,18 +178,28 @@ export function AuthenticatedLayout() {
               onClick={() => setUserMenuOpen((o) => !o)}
               aria-haspopup="menu"
               aria-expanded={userMenuOpen}
+              aria-label={`Menú de ${user?.nombre ?? "usuario"}`}
             >
               <span className={styles.avatar} aria-hidden="true">
                 {(user?.nombre ?? "?").charAt(0).toUpperCase()}
               </span>
               <span className={styles.userName}>{user?.nombre ?? "Usuario"}</span>
-              <ChevronDown size={16} aria-hidden="true" />
+              <ChevronDown
+                size={16}
+                aria-hidden="true"
+                className={styles.userBtnChevron}
+              />
             </button>
             {userMenuOpen && (
               <div className={styles.dropdown} role="menu">
                 <div className={styles.dropdownHeader}>
-                  <p className={styles.dropdownName}>{user?.nombre}</p>
-                  <p className={styles.dropdownEmail}>{user?.email}</p>
+                  <span className={styles.dropdownAvatar} aria-hidden="true">
+                    {(user?.nombre ?? "?").charAt(0).toUpperCase()}
+                  </span>
+                  <div className={styles.dropdownInfo}>
+                    <p className={styles.dropdownName}>{user?.nombre}</p>
+                    <p className={styles.dropdownEmail}>{user?.email}</p>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -206,7 +216,7 @@ export function AuthenticatedLayout() {
                 <button
                   type="button"
                   role="menuitem"
-                  className={styles.dropdownItem}
+                  className={`${styles.dropdownItem} ${styles.dropdownDanger}`}
                   onClick={handleLogout}
                 >
                   <LogOut size={16} aria-hidden="true" />

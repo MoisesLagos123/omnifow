@@ -99,86 +99,187 @@
 
 .userMenu { position: relative; }
 
+/* ─── Pill del usuario (avatar + nombre + chevron) ───────────────
+   En mobile (<640px) solo se ve avatar + chevron; el nombre queda
+   oculto. En desktop el nombre se trunca con ellipsis si es largo. */
 .userBtn {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 4px 10px 4px 4px;
+  padding: 4px 12px 4px 4px;
   background: transparent;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   color: var(--color-text);
   cursor: pointer;
+  height: 40px;
   transition: background-color var(--transition-fast),
-    border-color var(--transition-fast);
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
-.userBtn:hover { background: var(--color-surface-2); }
+.userBtn:hover {
+  background: var(--color-surface-2);
+  border-color: var(--color-border-strong);
+}
 .userBtn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+/* Estado "menu abierto" — el pill mantiene su look "presionado" para
+   que el usuario sepa que el dropdown viene DE ese botón. */
+.userBtn[aria-expanded="true"] {
+  background: var(--color-brand-soft);
+  border-color: var(--color-brand);
+  color: var(--color-brand-active);
+}
+.userBtnChevron {
+  transition: transform var(--transition-fast);
+}
+.userBtn[aria-expanded="true"] .userBtnChevron {
+  transform: rotate(180deg);
 }
 
 .avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px; height: 28px;
+  width: 30px; height: 30px;
   border-radius: 999px;
-  background: var(--color-brand-soft);
-  color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-on-brand);
   font-weight: 700;
   font-size: 0.85rem;
+  /* Sutil ring de marca + shadow leve para "depth" */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 2px rgba(15, 23, 42, 0.1);
+  flex-shrink: 0;
 }
 .userName {
   font-size: 0.9rem;
   font-weight: 500;
-  max-width: 160px;
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* ─── Dropdown del usuario ─────────────────────────────────────────
+   Glass card flotante a la derecha del avatar. Animación de entrada
+   scale+fade desde el botón (origen top-right). */
 .dropdown {
   position: absolute;
   right: 0;
-  top: calc(100% + 6px);
-  min-width: 220px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  top: calc(100% + 8px);
+  min-width: 260px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
-  /* z-index explícito sobre la capa de dropdown global para que el menú
-     del usuario quede SIEMPRE arriba de las cards aero glass del main
-     (que crean su propio stacking context al usar backdrop-filter). */
+  padding: var(--space-2);
   z-index: var(--z-dropdown);
+  /* Origen en top-right (esquina del avatar) — sensación de que el
+     menú "sale" del botón. */
+  transform-origin: top right;
+  animation: dropdownEnter 160ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .dropdown { background: var(--color-surface); }
+}
+@keyframes dropdownEnter {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Header del dropdown — avatar grande + nombre + email */
 .dropdownHeader {
-  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3);
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  margin-bottom: var(--space-1);
 }
-.dropdownName { margin: 0; font-size: 0.9rem; font-weight: 600; }
-.dropdownEmail { margin: 2px 0 0; font-size: 0.78rem; color: var(--color-text-muted); }
+.dropdownAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px; height: 44px;
+  border-radius: 999px;
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 2px 4px rgba(15, 23, 42, 0.12);
+  flex-shrink: 0;
+}
+.dropdownInfo { min-width: 0; flex: 1; }
+.dropdownName {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dropdownEmail {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .dropdownItem {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   width: 100%;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  margin: 1px 0;
   background: transparent;
   border: none;
+  border-radius: var(--radius-sm);
   color: var(--color-text);
   text-align: left;
   font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color var(--transition-fast),
+    color var(--transition-fast);
 }
-.dropdownItem:hover { background: var(--color-surface-2); }
+.dropdownItem svg {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+.dropdownItem:hover {
+  background: var(--color-surface-2);
+}
+.dropdownItem:hover svg { color: var(--color-brand); }
 .dropdownItem:focus-visible {
   outline: none;
   background: var(--color-surface-2);
+  box-shadow: inset 0 0 0 2px var(--color-focus-ring);
 }
+
+/* Item destructivo (Cerrar sesión) — semánticamente separado del
+   resto: divider visual arriba + color danger en hover. */
+.dropdownDanger {
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+}
+.dropdownDanger:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.dropdownDanger:hover svg { color: var(--color-danger); }
 
 /* ---------- Body / Sidebar / Main ---------- */
 /* Sidebar fijo a la viewport (no sticky). El sticky tenía bugs cuando el
@@ -379,9 +480,18 @@
   .brandName {
     display: none;
   }
-  /* userBtn: que el chevron se vea pero el nombre ya estaba escondido */
+  /* userBtn compacto en mobile: solo avatar + chevron, sin nombre */
   .userBtn {
-    padding: 4px 6px 4px 4px;
+    padding: 4px 8px 4px 4px;
+  }
+  .userName {
+    /* Oculto pero accesible para screen readers via aria-label del botón */
+    display: none;
+  }
+  /* Dropdown más ancho en mobile (pero limitado al viewport) */
+  .dropdown {
+    min-width: 240px;
+    max-width: calc(100vw - var(--space-6));
   }
 }
 
