@@ -1,3 +1,4 @@
+/* ─── Desktop table wrapper ─────────────────────────────────────── */
 .scroll {
   width: 100%;
   overflow-x: auto;
@@ -94,4 +95,240 @@
   text-align: center;
   padding: var(--space-8) var(--space-4);
   color: var(--color-text-muted);
+}
+
+/* ─── Mobile card list ──────────────────────────────────────────
+   Patrón "Disclosure" (Material 3) / "List with detail" (Apple HIG).
+   En desktop esta lista queda oculta — sólo se muestra en <768px en
+   reemplazo de la tabla. */
+.mobileList {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mobileCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  /* Sombra base sutil — sube cuando se expande para dar profundidad. */
+  transition:
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast);
+}
+.mobileCard:focus-within {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
+}
+.mobileCardOpen {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-border-strong);
+}
+
+/* Header / summary — siempre visible, contiene primary columns +
+   chevron. Touch target 56px (>=44pt requeridos). */
+.mobileSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-3);
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  /* Quitar el delay de 300ms en tap móvil */
+  touch-action: manipulation;
+}
+.mobileSummary:disabled {
+  cursor: default;
+}
+.mobileSummary:focus-visible {
+  outline: none;
+}
+.mobileSummary:hover:not(:disabled) {
+  background: var(--color-table-row-hover);
+}
+
+.mobileSummaryContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  /* min-width:0 deja que los hijos con text-overflow:ellipsis se trunquen
+     en lugar de empujar el chevron fuera. */
+  min-width: 0;
+}
+
+/* Primer campo primary — el MÁS importante de la fila. Peso y tamaño
+   destacados para que se lea de un vistazo en una lista larga. */
+.mobileMain {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+/* Segundo (y siguientes) primary — secundario al main pero todavía
+   visible siempre. Formato label · valor. */
+.mobileSecondary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  min-width: 0;
+}
+
+.mobileChevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform 240ms cubic-bezier(0.2, 0, 0, 1),
+    color var(--transition-fast);
+}
+.mobileCardOpen .mobileChevron {
+  transform: rotate(180deg);
+  color: var(--color-brand);
+}
+
+/* ─── Body expand/collapse ───────────────────────────────────────
+   Truco grid-template-rows: 0fr → 1fr para animar altura sin medir
+   el contenido. El hijo necesita min-height:0 + overflow:hidden para
+   que el browser sí colapse a altura cero. Mucho más smooth que
+   animar height: auto con JS. */
+.mobileBodyWrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms cubic-bezier(0.2, 0, 0, 1);
+}
+.mobileCardOpen .mobileBodyWrap {
+  grid-template-rows: 1fr;
+}
+.mobileBodyInner {
+  min-height: 0;
+  overflow: hidden;
+  /* Padding en el inner (no en el wrap) para que el grid pueda
+     colapsar realmente a 0. */
+}
+.mobileCardOpen .mobileBodyInner {
+  padding: 0 var(--space-3) var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.mobileFields {
+  margin: 0;
+  padding: var(--space-3) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mobileField {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  /* Borde sutil entre fields para escaneo vertical. */
+  padding-bottom: var(--space-2);
+  border-bottom: 1px dashed var(--color-border);
+}
+.mobileField:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.mobileLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  /* dt en <dl> hereda margin del browser — reset. */
+  margin: 0;
+}
+
+.mobileValue {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  text-align: right;
+  /* min-width:0 + word-break para que valores largos hagan wrap en
+     lugar de overflow horizontal. */
+  min-width: 0;
+  word-break: break-word;
+  /* dd en <dl> hereda margin-left del browser — reset. */
+  margin: 0;
+}
+
+/* Botón "Ver detalle" — pill brand-soft con flecha ↗.
+   Aparece sólo si onRowClick está definido. */
+.mobileAction {
+  margin-top: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  border: none;
+  padding: 10px 14px;
+  border-radius: var(--radius-full, 999px);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  align-self: flex-start;
+  min-height: 40px;
+  /* Quitar delay de tap */
+  touch-action: manipulation;
+  transition:
+    background-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+.mobileAction:hover {
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+}
+.mobileAction:active {
+  transform: scale(0.97);
+}
+.mobileAction:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.mobileEmpty {
+  text-align: center;
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+/* ─── Breakpoint switch ─────────────────────────────────────────
+   En <768px ocultamos la tabla horizontal y mostramos la lista de
+   cards. La densidad horizontal de una tabla con 5-7 columnas no
+   cabe en mobile sin scroll lateral, así que reemplazamos por
+   verticalidad nativa (cards apiladas) que el dedo recorre mejor. */
+@media (max-width: 767px) {
+  .scroll {
+    display: none;
+  }
+  .mobileList {
+    display: flex;
+  }
+}
+
+/* Reduced motion — desactiva la animación de expansión y rotación. */
+@media (prefers-reduced-motion: reduce) {
+  .mobileBodyWrap,
+  .mobileChevron,
+  .mobileCard,
+  .mobileAction {
+    transition: none !important;
+  }
 }
