@@ -1,36 +1,77 @@
+/* Card — efecto Aero Glass / Glassmorphism por default.
+   Superficie translúcida con backdrop-filter blur + saturate; el fondo
+   del body (degradado bitono) "se ve a través" sutilmente.
+   Fallback: si el browser no soporta backdrop-filter (Firefox <103),
+   queda con background sólido más opaco (vía media query). */
 .card {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  /* shadow más profunda para "levantar" el cristal del bg con degradado */
+  box-shadow: var(--glass-shadow);
   padding: var(--space-6);
-  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
-}
-
-/* Variante "flat" — sin sombra, solo borde. Para listas/tabs internas
-   donde no queremos cards apiladas visualmente compitiendo. */
-.flat {
-  box-shadow: none;
-}
-
-/* Variante "elevated" — más presencia, para hero/dashboard tops. */
-.elevated {
-  box-shadow: var(--shadow-md);
-}
-
-/* Hoverable — responde al puntero con elevación y borde más fuerte. */
-.hoverable {
-  cursor: pointer;
   transition: box-shadow var(--transition-fast),
     border-color var(--transition-fast),
     transform var(--transition-fast);
+  /* Highlight interior arriba — imita el reflejo del cristal Aero */
+  position: relative;
+  isolation: isolate;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    var(--glass-border-inner),
+    transparent 40%,
+    transparent 60%,
+    var(--glass-border-inner)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Fallback para browsers sin backdrop-filter (Firefox ESR viejo, etc.):
+   superficie sólida del theme. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .card {
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+/* Variante "flat" — sin shadow, glass más sutil para listas/tabs internas. */
+.flat {
+  box-shadow: none;
+  background: var(--glass-bg-strong);
+}
+
+/* Variante "elevated" — más presencia, blur más fuerte. */
+.elevated {
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: var(--glass-filter-strong);
+  -webkit-backdrop-filter: var(--glass-filter-strong);
+}
+
+/* Hoverable — responde al puntero con elevación. */
+.hoverable {
+  cursor: pointer;
 }
 .hoverable:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   border-color: var(--color-border-strong);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 .hoverable:active {
   transform: translateY(0);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--glass-shadow);
 }

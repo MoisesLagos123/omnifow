@@ -16,17 +16,24 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-5);
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  /* Aero Glass: superficie translúcida con backdrop blur. El degradado
+     del body se ve "a través" sutilmente, dando profundidad. */
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border-bottom: 1px solid var(--glass-border);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
   height: 60px;
-  /* hairline shadow para separarlo del contenido al scrollear */
+  /* Shadow sutil para diferenciarlo del contenido cuando scrollea por debajo */
   box-shadow: var(--shadow-xs);
   /* Anti-overflow: si algún hijo se pasa, el header lo recorta. */
   max-width: 100%;
   overflow: hidden;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .header { background: var(--color-surface); }
 }
 
 .headerLeft, .headerRight {
@@ -178,8 +185,11 @@
 
 .sidebar {
   width: 240px;
-  background: var(--color-sidebar-bg);
-  border-right: 1px solid var(--color-border);
+  /* Aero Glass: misma técnica que el header, ahora vertical. */
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border-right: 1px solid var(--glass-border);
   padding: var(--space-4) var(--space-3);
   position: fixed;
   top: 60px;
@@ -190,6 +200,9 @@
   /* Smooth scrollbar for long nav menus */
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sidebar { background: var(--color-sidebar-bg); }
 }
 
 .nav {

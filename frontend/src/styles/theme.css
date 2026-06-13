@@ -163,6 +163,30 @@
   --z-modal: 900;
   --z-toast: 1000;
 
+  /* ─── Aero Glass / Glassmorphism ────────────────────────────────
+     Tokens semánticos para superficies translúcidas con backdrop blur.
+     Usar en cards, headers, sidebars, bottom bars. El fondo del body
+     debe tener color/gradient para que el blur tenga "algo que difuminar".
+
+     - glass-bg: rgba blanco para light, oscuro para dark. Opacidad ~0.7
+       balancea legibilidad y efecto.
+     - glass-border: borde sutil con leve translucidez para definición.
+     - glass-blur: cantidad de difuminado del fondo (20px nice sweet spot).
+     - glass-saturate: realza colores detrás del cristal (efecto Aero).
+     - glass-shadow: sombra profunda para "elevar" sobre el degradado.
+
+     IMPORTANTE: cualquier superficie con glass debe tener
+     `background: var(--glass-bg)` + `backdrop-filter: var(--glass-filter)`
+     + fallback de bg sólido para browsers sin soporte (Firefox <103). */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --glass-border-inner: rgba(255, 255, 255, 0.55);
+  --glass-filter: blur(18px) saturate(180%);
+  --glass-filter-strong: blur(24px) saturate(180%);
+  --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08),
+    0 2px 6px rgba(15, 23, 42, 0.04);
+
   /* Indica al navegador qué esquema usar para controles nativos
      (dropdown de <select>, scrollbars, autofill, etc.). */
   color-scheme: light;
@@ -234,6 +258,16 @@
     0 2px 6px rgba(0, 0, 0, 0.4);
   --shadow-xl: 0 32px 80px rgba(0, 0, 0, 0.65),
     0 4px 14px rgba(0, 0, 0, 0.45);
+
+  /* ─── Aero Glass dark ──────────────────────────────────────────
+     Versión oscura con rgba del color de superficie base + opacidad.
+     Border con leve highlight blanco arriba para imitar reflejo. */
+  --glass-bg: rgba(19, 28, 48, 0.62);
+  --glass-bg-strong: rgba(19, 28, 48, 0.82);
+  --glass-border: rgba(120, 140, 180, 0.18);
+  --glass-border-inner: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* ─── Reduced motion ────────────────────────────────────────────── */
