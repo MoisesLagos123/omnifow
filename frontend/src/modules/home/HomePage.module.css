@@ -373,16 +373,56 @@
   }
 }
 
-/* Mobile (640px) — single column */
+/* Mobile (640px) — single column + KPIs compactos
+   En móviles estrechos (375–640px) los KPIs originales (160px alto,
+   padding 24, font-3xl, icono 56) hacían que el grid 1fr empujara más
+   allá del viewport por culpa del valor monoespaciado (ej. "$ 1.250.000")
+   más el icono lateral. Resultado: scroll horizontal del body.
+   Solución: padding y tipografía más chicos + min-width:0 + overflow
+   hidden para que el value se trunque antes que desbordar. */
 @media (max-width: 640px) {
   .kpiBento {
     grid-template-columns: 1fr;
+    gap: var(--space-3);
   }
 
   .kpiHero,
   .kpiWide,
   .kpiNormal {
     grid-column: span 1;
+  }
+
+  .kpiCard {
+    padding: var(--space-4);
+    min-height: auto;
+    gap: var(--space-2);
+    /* Estos dos evitan el horizontal scroll en grids 1fr: si el value
+       es muy largo, se trunca o reduce dentro del card, no empuja al
+       padre. */
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .kpiHeader {
+    gap: var(--space-2);
+  }
+
+  .kpiIconWrap {
+    width: 40px;
+    height: 40px;
+  }
+  .kpiIconWrap svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .kpiValue,
+  .kpiHero .kpiValue {
+    font-size: var(--font-2xl);
+  }
+
+  .kpiLabel {
+    font-size: var(--font-xs);
   }
 
   .quickGrid {

@@ -8,14 +8,12 @@ import {
   KeyRound,
   LayoutDashboard,
   LogOut,
-  Menu,
   Package,
   Receipt,
   ShieldCheck,
   ShoppingCart,
   Users,
   Wallet,
-  X,
 } from "lucide-react";
 
 import { BrandLogo } from "../ui/BrandLogo";
@@ -149,23 +147,31 @@ export function AuthenticatedLayout() {
       </a>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
+          {/* Brand SVG (BrandLogo) — comportamiento dual:
+              - Desktop (≥1024px): link a Home (estilo clásico de sidebar apps).
+              - Mobile (<1024px): toggle del drawer del sidebar — más natural
+                en mobile porque ya está visible el logo y el botón hamburguesa
+                separado solo cargaba el header. Un único elemento "logo
+                hamburguesa" es más limpio.
+              CSS resuelve la visibilidad: `.brandLink` se muestra solo en
+              desktop, `.brandToggle` solo en mobile. */}
+          <Link
+            to={ROUTES.HOME}
+            className={`${styles.brand} ${styles.brandLink}`}
+            aria-label="OMNIFLOW — Inicio"
+          >
+            <BrandLogo size={32} framed title="OMNIFLOW" />
+            <span className={styles.brandName}>OMNIFLOW</span>
+          </Link>
           <button
             type="button"
-            className={styles.menuBtn}
+            className={`${styles.brand} ${styles.brandToggle}`}
             onClick={() => setSidebarOpen((s) => !s)}
             aria-label={sidebarOpen ? "Cerrar menú" : "Abrir menú"}
             aria-expanded={sidebarOpen}
           >
-            {sidebarOpen ? (
-              <X size={20} aria-hidden="true" />
-            ) : (
-              <Menu size={20} aria-hidden="true" />
-            )}
-          </button>
-          <Link to={ROUTES.HOME} className={styles.brand} aria-label="OMNIFLOW — Inicio">
             <BrandLogo size={32} framed title="OMNIFLOW" />
-            <span className={styles.brandName}>OMNIFLOW</span>
-          </Link>
+          </button>
         </div>
 
         <div className={styles.headerRight}>

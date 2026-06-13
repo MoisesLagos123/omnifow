@@ -72,6 +72,28 @@
   text-decoration: none;
   color: var(--color-text);
 }
+
+/* Brand dual: en desktop el logo es un <Link> a Home; en mobile es un
+   <button> que abre/cierra el drawer del sidebar. Mostramos UNO solo
+   según el breakpoint — elimina la necesidad de un hamburger separado
+   (menos clutter en el header móvil). */
+.brandLink {
+  display: inline-flex;
+}
+.brandToggle {
+  display: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.brandToggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+  border-radius: var(--radius-md);
+}
 .brandMark {
   display: block;
   width: 32px;
@@ -421,7 +443,12 @@
 }
 
 @media (max-width: 1024px) {
-  .menuBtn { display: inline-flex; }
+  /* Swap brand: el Link a Home se oculta, el button-toggle se muestra.
+     `.menuBtn` (hamburguesa separada) ya no se usa en el JSX — lo
+     mantenemos display:none por si algún render legacy lo monta. */
+  .brandLink { display: none; }
+  .brandToggle { display: inline-flex; }
+  .menuBtn { display: none !important; }
   .sidebar {
     /* En mobile el sidebar se vuelve drawer (fuera de pantalla por
        defecto). Hereda position:fixed/top/left/bottom del estilo base.
