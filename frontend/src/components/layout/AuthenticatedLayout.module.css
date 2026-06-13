@@ -3,6 +3,10 @@
   flex-direction: column;
   min-height: 100vh;
   background: var(--color-bg);
+  /* Anti-scroll-horizontal: nunca el layout debe permitir swipe-x.
+     Si algún hijo desborda, queda contenido. Lo arreglamos en el
+     componente que desborda, no creamos un scroll-x global. */
+  overflow-x: hidden;
 }
 
 /* ---------- Header ---------- */
@@ -20,13 +24,21 @@
   height: 60px;
   /* hairline shadow para separarlo del contenido al scrollear */
   box-shadow: var(--shadow-xs);
+  /* Anti-overflow: si algún hijo se pasa, el header lo recorta. */
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .headerLeft, .headerRight {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  /* min-width:0 permite que los hijos con white-space:nowrap se trunquen
+     en lugar de empujar al padre y romper el layout en mobile. */
+  min-width: 0;
 }
+.headerLeft { flex: 1; min-width: 0; }
+.headerRight { flex-shrink: 0; }
 
 .menuBtn {
   display: none;
@@ -318,6 +330,41 @@
     /* Drawer mobile no ocupa ancho del flujo — devolvemos el margen. */
     margin-left: 0;
     padding: var(--space-4);
+    /* Anti-overflow del contenido: si una tabla/card es más ancha que el
+       viewport, debe scrollear DENTRO de su contenedor (cada componente
+       maneja su scroll-x localmente), nunca arrastrar el body. */
+    min-width: 0;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   .userName { display: none; }
+}
+
+/* ─── Mobile compacto (<768px) ─────────────────────────────────────
+   Hardenizar el header para que NUNCA desborde 375px:
+   - Ocultar el nombre de la marca (queda solo el logo cuadrado).
+   - Reducir gap entre items.
+   - El selector de sucursal y demás controles deben tener flex-shrink
+     o text truncate. */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--space-3) var(--space-3);
+    gap: var(--space-2);
+  }
+  .headerLeft, .headerRight {
+    gap: var(--space-2);
+  }
+  .brandName {
+    display: none;
+  }
+  /* userBtn: que el chevron se vea pero el nombre ya estaba escondido */
+  .userBtn {
+    padding: 4px 6px 4px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: var(--space-2) var(--space-3);
+  }
 }

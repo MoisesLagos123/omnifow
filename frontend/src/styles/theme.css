@@ -257,6 +257,12 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  /* Anti-scroll-horizontal global: ningún elemento debe poder hacer scroll
+     lateral en el body. Si un componente tiene tabla/cards más anchas que
+     el viewport, debe manejarlo internamente con overflow-x:auto en su
+     propio contenedor — no permitimos que arrastre toda la página. */
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
@@ -277,6 +283,9 @@ body {
   background-attachment: fixed;
   background-repeat: no-repeat;
   min-height: 100vh;
+  /* Anti-scroll-x: refuerzo del overflow-x:hidden del html. */
+  overflow-x: hidden;
+  max-width: 100vw;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
