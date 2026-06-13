@@ -40,6 +40,32 @@ export interface SucursalDetalle extends Sucursal {
   rangos_folios: RangoFolios[];
 }
 
+/**
+ * Estructura REAL del backend para SucursalDetalle: `{sucursal, cajas,
+ * rangos_folios}` (ver `SucursalDetalleResponse` en backend/schemas.py).
+ * El frontend prefiere trabajar con la estructura plana, así que
+ * `flattenSucursalDetalle()` aplasta el wrapper antes de exponer al UI.
+ *
+ * Sin este flatten, `sucursal.id` quedaba undefined en SucursalDetallePage
+ * y al crear una caja la URL se construía como `/admin/sucursales/undefined/cajas`
+ * → backend rechazaba con "Input should be a valid UUID".
+ */
+interface SucursalDetalleAnidada {
+  sucursal: Sucursal;
+  cajas: Caja[];
+  rangos_folios: RangoFolios[];
+}
+
+function flattenSucursalDetalle(
+  data: SucursalDetalleAnidada
+): SucursalDetalle {
+  return {
+    ...data.sucursal,
+    cajas: data.cajas,
+    rangos_folios: data.rangos_folios,
+  };
+}
+
 export interface Caja {
   id: string;
   sucursal_id: string;
@@ -130,24 +156,26 @@ export const sucursalesApi = {
     });
   },
   obtenerSucursal(id: string, signal?: AbortSignal): Promise<SucursalDetalle> {
-    return request<SucursalDetalle>(`/admin/sucursales/${id}`, { signal });
+    return request<SucursalDetalleAnidada>(`/admin/sucursales/${id}`, {
+      signal,
+    }).then(flattenSucursalDetalle);
   },
   crearSucursal(payload: CrearSucursalPayload): Promise<SucursalDetalle> {
-    return request<SucursalDetalle>("/admin/sucursales", {
+    return request<SucursalDetalleAnidada>("/admin/sucursales", {
       method: "POST",
       body: payload,
       idempotencyKey: newIdempotencyKey(),
-    });
+    }).then(flattenSucursalDetalle);
   },
   actualizarSucursal(
     id: string,
     payload: ActualizarSucursalPayload
   ): Promise<SucursalDetalle> {
-    return request<SucursalDetalle>(`/admin/sucursales/${id}`, {
+    return request<SucursalDetalleAnidada>(`/admin/sucursales/${id}`, {
       method: "PATCH",
       body: payload,
       idempotencyKey: newIdempotencyKey(),
-    });
+    }).then(flattenSucursalDetalle);
   },
   desactivarSucursal(id: string): Promise<void> {
     return request<void>(`/admin/sucursales/${id}`, {
@@ -156,10 +184,10 @@ export const sucursalesApi = {
     });
   },
   reactivarSucursal(id: string): Promise<SucursalDetalle> {
-    return request<SucursalDetalle>(`/admin/sucursales/${id}/reactivar`, {
+    return request<SucursalDetalleAnidada>(`/admin/sucursales/${id}/reactivar`, {
       method: "POST",
       idempotencyKey: newIdempotencyKey(),
-    });
+    }).then(flattenSucursalDetalle);
   },
 
   // --- Cajas ---
