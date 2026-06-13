@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
@@ -24,6 +24,9 @@ import { EmptyState } from "../../components/ui/EmptyState";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { useAuth } from "../../auth/useAuth";
 import { useAnyPermission } from "../../auth/usePermission";
+import { reportesApi } from "../../api/reportesApi";
+import { cxcApi } from "../../api/cxc";
+import { inventarioApi } from "../../api/inventario";
 import {
   ADMIN_PERMS,
   CAJA_PERMS,
@@ -55,6 +58,26 @@ function todayLabel(): string {
     month: "long",
     year: "numeric",
   }).format(new Date());
+}
+
+/** Fecha de hoy en formato ISO `YYYY-MM-DD` (zona local). Usada para filtrar
+ * el resumen financiero del día en el endpoint del backend. */
+function todayISO(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Estado de los 4 KPIs del Home. Cada uno con su propio loading/error
+ * para que si UNO falla (ej. el user no tiene permiso de reportes.ver) los
+ * demás sigan funcionando. */
+interface KpiData {
+  ventasHoy: number | null;
+  ticketsHoy: number | null;
+  stockCritico: number | null;
+  cxcPendiente: number | null;
 }
 
 /* ─── Bento KPI Card ────────────────────────────────────────────── */
@@ -258,8 +281,80 @@ export function HomePage() {
 
   const hasPosAccess = useAnyPermission(POS_PERMS);
 
-  // KPI data: placeholders con 0 hasta que se conecten endpoints reales.
-  const kpiLoading = false;
+  // ─── Carga real de KPIs ────────────────────────────────────────────
+  // Cada call es independiente con try/catch — si el user no tiene un
+  // permiso (ej. reportes.ver) o un endpoint falla, los demás KPIs igual
+  // se muestran. Sin permiso queda en `null` y mostramos "Sin acceso"
+  // como sub-texto.
+  const [kpi, setKpi] = useState<KpiData>({
+    ventasHoy: null,
+    ticketsHoy: null,
+    stockCritico: null,
+    cxcPendiente: null,
+  });
+  const [kpiLoading, setKpiLoading] = useState(true);
+
+  useEffect(() => {
+    if (!hasPosAccess) {
+      setKpiLoading(false);
+      return;
+    }
+    const ctl = new AbortController();
+    const today = todayISO();
+
+    // Lanzamos las 3 calls en paralelo. Promise.allSettled para que el
+    // primer rechazo no interrumpa las demás.
+    Promise.allSettled([
+      reportesApi.resumenFinanciero(
+        { fecha_desde: today, fecha_hasta: today },
+        ctl.signal
+      ),
+      cxcApi.listar(
+        { estado: "PENDIENTE", limit: 100, offset: 0 },
+        ctl.signal
+      ),
+      inventarioApi.reportePorVencer({ dias: 7 }, ctl.signal),
+    ]).then(([resumenRes, cxcRes, vencerRes]) => {
+      if (ctl.signal.aborted) return;
+      const next: KpiData = {
+        ventasHoy: null,
+        ticketsHoy: null,
+        stockCritico: null,
+        cxcPendiente: null,
+      };
+      if (resumenRes.status === "fulfilled") {
+        next.ventasHoy = resumenRes.value.ingresos.ventas_bruto_clp;
+        next.ticketsHoy = resumenRes.value.volumen.ventas_count;
+      }
+      if (cxcRes.status === "fulfilled") {
+        // Sumamos saldos pendientes de la primera página (limit 100).
+        // Para totales reales hay que pedir más páginas o un endpoint
+        // específico de "total saldo CxC". Por ahora con 100 alcanza
+        // para el dashboard típico — el detalle se ve en /cxc.
+        next.cxcPendiente = cxcRes.value.items.reduce(
+          (acc, it) => acc + it.monto_saldo_clp,
+          0
+        );
+      }
+      if (vencerRes.status === "fulfilled") {
+        // "Stock crítico" = lotes ya vencidos + críticos (≤7d).
+        next.stockCritico =
+          vencerRes.value.total_lotes_vencidos +
+          vencerRes.value.total_lotes_criticos;
+      }
+      setKpi(next);
+      setKpiLoading(false);
+    });
+
+    return () => ctl.abort();
+  }, [hasPosAccess]);
+
+  // Sub-texto para KPI según valor (datos / sin acceso / vacío)
+  function deltaText(value: number | null, vacio: string): string {
+    if (value === null) return "Sin acceso";
+    if (value === 0) return vacio;
+    return "";
+  }
 
   return (
     <div className={styles.page}>
@@ -288,9 +383,13 @@ export function HomePage() {
             <BentoKpiCard
               variant="ventas"
               title="Ventas hoy"
-              value={formatCLP(0)}
+              value={kpi.ventasHoy === null ? "—" : formatCLP(kpi.ventasHoy)}
               icon={<DollarSign size={24} />}
-              delta="Sin datos aún"
+              delta={
+                kpi.ventasHoy && kpi.ventasHoy > 0
+                  ? "Confirmadas en el día"
+                  : deltaText(kpi.ventasHoy, "Sin ventas aún")
+              }
               sub=""
               loading={kpiLoading}
               wide
@@ -298,18 +397,26 @@ export function HomePage() {
             <BentoKpiCard
               variant="tickets"
               title="Tickets emitidos"
-              value={0}
+              value={kpi.ticketsHoy === null ? "—" : kpi.ticketsHoy}
               icon={<Receipt size={24} />}
-              delta="Boletas y facturas"
+              delta={
+                kpi.ticketsHoy && kpi.ticketsHoy > 0
+                  ? "Boletas y facturas"
+                  : deltaText(kpi.ticketsHoy, "Sin tickets aún")
+              }
               sub=""
               loading={kpiLoading}
             />
             <BentoKpiCard
               variant="stock"
               title="Stock crítico"
-              value={0}
+              value={kpi.stockCritico === null ? "—" : kpi.stockCritico}
               icon={<AlertTriangle size={24} />}
-              delta="Bajo mínimo"
+              delta={
+                kpi.stockCritico && kpi.stockCritico > 0
+                  ? "Por vencer ≤7 días"
+                  : deltaText(kpi.stockCritico, "Sin alertas")
+              }
               sub=""
               loading={kpiLoading}
             />
@@ -317,9 +424,15 @@ export function HomePage() {
             <BentoKpiCard
               variant="cxc"
               title="CxC pendiente"
-              value={formatCLP(0)}
+              value={
+                kpi.cxcPendiente === null ? "—" : formatCLP(kpi.cxcPendiente)
+              }
               icon={<Clock size={24} />}
-              delta="Sin vencimientos"
+              delta={
+                kpi.cxcPendiente && kpi.cxcPendiente > 0
+                  ? "Saldo de clientes a crédito"
+                  : deltaText(kpi.cxcPendiente, "Sin saldos pendientes")
+              }
               sub=""
               loading={kpiLoading}
             />
