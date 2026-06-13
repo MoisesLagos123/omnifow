@@ -34,7 +34,10 @@ export interface SucursalConContadores extends Sucursal {
 
 export interface SucursalDetalle extends Sucursal {
   cajas: Caja[];
-  rangos: RangoFolios[];
+  /** Backend devuelve este campo como `rangos_folios`. NO renombrar a
+   * `rangos` o se rompe el parse del response y la pantalla de detalle
+   * queda en blanco al hacer `.filter()` sobre undefined. */
+  rangos_folios: RangoFolios[];
 }
 
 export interface Caja {

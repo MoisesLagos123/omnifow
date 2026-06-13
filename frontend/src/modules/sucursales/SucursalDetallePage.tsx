@@ -117,11 +117,11 @@ export function SucursalDetallePage() {
       },
       {
         value: "folios",
-        label: `Folios SII (${sucursal.rangos.filter((r) => r.activo).length})`,
+        label: `Folios SII (${sucursal.rangos_folios.filter((r) => r.activo).length})`,
         content: (
           <FoliosTab
             sucursalId={sucursal.id}
-            initialRangos={sucursal.rangos}
+            initialRangos={sucursal.rangos_folios}
             onChange={reload}
           />
         ),

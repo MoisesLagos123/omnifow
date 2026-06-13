@@ -41,7 +41,7 @@ function detalle(over: Partial<Awaited<ReturnType<typeof sucursalesApi.obtenerSu
     region: "Metropolitana",
     activo: true,
     cajas: [],
-    rangos: [],
+    rangos_folios: [],
     ...over,
   } as Awaited<ReturnType<typeof sucursalesApi.obtenerSucursal>>;
 }

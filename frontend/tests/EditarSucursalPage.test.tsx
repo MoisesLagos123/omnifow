@@ -90,7 +90,7 @@ describe("EditarSucursalPage (crear)", () => {
       region: null,
       activo: true,
       cajas: [],
-      rangos: [],
+      rangos_folios: [],
     });
     renderPage();
     await userEvent.type(screen.getByLabelText(/código/i), "STG-CENTRO");
