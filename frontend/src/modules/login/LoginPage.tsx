@@ -9,6 +9,7 @@ import { Input } from "../../components/ui/Input";
 import { Card } from "../../components/ui/Card";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
+import { BrandLogo } from "../../components/ui/BrandLogo";
 import { ApiError, NetworkError, authApi } from "../../api/client";
 import { useAuth } from "../../auth/useAuth";
 import { ROUTES } from "../../routePaths";
@@ -96,8 +97,8 @@ export function LoginPage() {
             className={`${styles.card} ${shake ? styles.shake : ""}`}
           >
             <header className={styles.header}>
-              <div className={styles.logoMark} aria-hidden="true">
-                <span className={styles.logoIcon}>O</span>
+              <div className={styles.logoMark}>
+                <BrandLogo size={48} framed title="OMNIFLOW" />
                 <span className={styles.logoText}>OMNIFLOW</span>
               </div>
               <h1 id="login-title" className={styles.title}>

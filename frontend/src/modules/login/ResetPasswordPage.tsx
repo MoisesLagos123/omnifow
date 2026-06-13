@@ -10,6 +10,7 @@ import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
 import { PasswordStrengthMeter } from "../../components/ui/PasswordStrengthMeter";
+import { BrandLogo } from "../../components/ui/BrandLogo";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
 import { authApi } from "../../api/client";
 import { describeError } from "../../api/errorMessages";
@@ -91,8 +92,8 @@ export function ResetPasswordPage() {
           <div className={styles.cardWrap}>
             <Card variant="elevated" className={styles.card}>
               <header className={styles.header}>
-                <div className={styles.logoMark} aria-hidden="true">
-                  <span className={styles.logoIcon}>O</span>
+                <div className={styles.logoMark}>
+                  <BrandLogo size={48} framed title="OMNIFLOW" />
                   <span className={styles.logoText}>OMNIFLOW</span>
                 </div>
                 <h1 className={styles.title}>Enlace inválido</h1>
@@ -140,8 +141,8 @@ export function ResetPasswordPage() {
         <div className={styles.cardWrap}>
           <Card variant="elevated" className={styles.card}>
             <header className={styles.header}>
-              <div className={styles.logoMark} aria-hidden="true">
-                <span className={styles.logoIcon}>O</span>
+              <div className={styles.logoMark}>
+                <BrandLogo size={48} framed title="OMNIFLOW" />
                 <span className={styles.logoText}>OMNIFLOW</span>
               </div>
               <h1 className={styles.title}>Nueva contraseña</h1>

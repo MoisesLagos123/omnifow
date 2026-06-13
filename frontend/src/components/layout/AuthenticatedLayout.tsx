@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 
+import { BrandLogo } from "../ui/BrandLogo";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { SucursalSwitcher } from "./SucursalSwitcher";
 import { useAuth } from "../../auth/useAuth";
@@ -162,12 +163,7 @@ export function AuthenticatedLayout() {
             )}
           </button>
           <Link to={ROUTES.HOME} className={styles.brand} aria-label="OMNIFLOW — Inicio">
-            <img
-              src="/logo.png"
-              alt=""
-              className={styles.brandMark}
-              aria-hidden="true"
-            />
+            <BrandLogo size={32} framed title="OMNIFLOW" />
             <span className={styles.brandName}>OMNIFLOW</span>
           </Link>
         </div>

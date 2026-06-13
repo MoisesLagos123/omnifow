@@ -9,6 +9,7 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
+import { BrandLogo } from "../../components/ui/BrandLogo";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
 import { authApi } from "../../api/client";
 import { describeError } from "../../api/errorMessages";
@@ -63,8 +64,8 @@ export function ForgotPasswordPage() {
         <div className={styles.cardWrap}>
           <Card variant="elevated" className={styles.card}>
             <header className={styles.header}>
-              <div className={styles.logoMark} aria-hidden="true">
-                <span className={styles.logoIcon}>O</span>
+              <div className={styles.logoMark}>
+                <BrandLogo size={48} framed title="OMNIFLOW" />
                 <span className={styles.logoText}>OMNIFLOW</span>
               </div>
               <h1 className={styles.title}>Recuperar contraseña</h1>
