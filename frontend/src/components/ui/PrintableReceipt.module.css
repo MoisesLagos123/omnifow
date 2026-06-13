@@ -60,6 +60,19 @@
   color: var(--color-text-muted);
 }
 
+/* Etiqueta de sección dentro de la boleta — "Detalle de la compra".
+   Se usa también si quisiéramos otras secciones nominales (impuestos,
+   pagos, etc). */
+.sectionLabel {
+  margin: var(--space-2) 0 4px;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
 .itemsHead,
 .itemsRow {
   display: grid;
@@ -72,32 +85,81 @@
   border-bottom: 1px dashed var(--color-border-strong);
   padding: 2px 0;
   font-weight: 700;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .itemDesc {
   display: flex;
   flex-direction: column;
+  gap: 1px;
+  /* min-width:0 deja que el nombre largo trunque/wrap sin empujar la
+     columna del monto a la derecha. Crítico en 80mm. */
+  min-width: 0;
 }
 
 .itemNombre {
   font-family: var(--font-sans);
+  font-weight: 600;
+  /* Permite wrap natural para nombres largos en el ancho 80mm. */
+  word-break: break-word;
 }
 
 .itemDetalle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 6px;
   color: var(--color-text-muted);
   font-size: 0.72rem;
+}
+
+/* SKU en mono — facilita leer códigos alfanuméricos. */
+.itemSku {
+  font-family: var(--font-mono);
+  /* Pill sutil que separa visualmente el código del producto. */
+  background: var(--color-surface-2);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+/* "2 × $1.200" — tabular-nums alinea los dígitos para que la
+   multiplicación sea legible incluso con cantidades variables. */
+.itemMath {
+  font-variant-numeric: tabular-nums;
 }
 
 .itemSubtotal {
   text-align: right;
   font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  /* align-self:start mantiene el monto pegado arriba aunque el nombre
+     se haga multi-línea. */
+  align-self: start;
 }
 
 .itemsList {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   padding: var(--space-2) 0;
+}
+
+/* Pie del detalle: "3 productos · 7 unidades". Permite al cliente
+   confirmar de un vistazo cuántas cosas compró sin contar líneas. */
+.itemsSummary {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 4px 0;
+  margin-bottom: var(--space-1);
+  border-bottom: 1px dashed var(--color-border-strong);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .totales {
@@ -196,15 +258,26 @@
   .metaLabel,
   .totalLabel,
   .itemDetalle,
+  .sectionLabel,
+  .itemsHead,
+  .itemsSummary,
   .footer {
     color: #333;
   }
 
   .header,
   .itemsHead,
+  .itemsSummary,
   .totales,
   .pagos,
   .footer {
     border-color: #999;
+  }
+
+  /* En impresora térmica monocroma el pill del SKU no aporta — quitamos
+     fondo para que no se imprima como un rectángulo gris. */
+  .itemSku {
+    background: transparent;
+    padding: 0;
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   TIPO_DOCUMENTO_LABEL,
@@ -11,7 +11,7 @@ import {
   type Pago,
   type Venta,
 } from "../../api/ventas";
-import { formatCLP, formatCantidad, formatFechaISO } from "../../lib/format";
+import { formatCLP, formatCantidad, formatFechaISO, formatInt } from "../../lib/format";
 import styles from "./PrintableReceipt.module.css";
 
 interface Props {
@@ -44,6 +44,19 @@ export function PrintableReceipt({
   sucursal,
   clienteNombre,
 }: Props) {
+  // Resumen de items para el pie del detalle.
+  // - items: cuántas líneas distintas hay en la venta.
+  // - unidades: suma de las cantidades (soporta decimales: peso, longitud).
+  const resumen = useMemo(() => {
+    const items = detalles.length;
+    let unidades = 0;
+    for (const d of detalles) {
+      const n = Number.parseFloat(String(d.cantidad));
+      if (Number.isFinite(n)) unidades += n;
+    }
+    return { items, unidades };
+  }, [detalles]);
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
@@ -83,9 +96,20 @@ export function PrintableReceipt({
         )}
       </div>
 
+      {/* DETALLE DE LO COMPRADO
+          Estructura por línea (formato comprobante térmico estándar):
+          ─────────────────────────────────────
+          Producto                       [Total]
+          SKU              cant × $precio
+          ─────────────────────────────────────
+          Esto separa nombre del producto (lectura rápida) de la
+          mecánica del cálculo (SKU + cant × precio), y deja el total
+          de la línea pegado al borde derecho para que el ojo pueda
+          recorrer la columna de montos verticalmente sin esfuerzo. */}
+      <p className={styles.sectionLabel}>Detalle de la compra</p>
       <div className={styles.itemsHead}>
-        <span>Detalle</span>
-        <span style={{ textAlign: "right" }}>Subtotal</span>
+        <span>Producto / Cant × P.Unit</span>
+        <span style={{ textAlign: "right" }}>Total</span>
       </div>
       <div className={styles.itemsList}>
         {detalles.map((d) => (
@@ -93,8 +117,11 @@ export function PrintableReceipt({
             <div className={styles.itemDesc}>
               <span className={styles.itemNombre}>{d.producto_nombre}</span>
               <span className={styles.itemDetalle}>
-                {d.producto_sku} · {formatCantidad(d.cantidad)} ×{" "}
-                {formatCLP(d.precio_unitario_clp)}
+                <span className={styles.itemSku}>{d.producto_sku}</span>
+                <span aria-hidden="true">·</span>
+                <span className={styles.itemMath}>
+                  {formatCantidad(d.cantidad)} × {formatCLP(d.precio_unitario_clp)}
+                </span>
               </span>
             </div>
             <span className={styles.itemSubtotal}>
@@ -102,6 +129,18 @@ export function PrintableReceipt({
             </span>
           </div>
         ))}
+      </div>
+      {/* Resumen del detalle — refuerza "cuántos productos lleva" al pie
+          de la lista. Útil en compras grandes donde el cliente no quiere
+          contar líneas. Soporta unidades decimales (peso, longitud). */}
+      <div className={styles.itemsSummary}>
+        <span>
+          {resumen.items} {resumen.items === 1 ? "producto" : "productos"}
+        </span>
+        <span>
+          {formatInt(Math.round(resumen.unidades))}{" "}
+          {Math.round(resumen.unidades) === 1 ? "unidad" : "unidades"}
+        </span>
       </div>
 
       <div className={styles.totales}>
