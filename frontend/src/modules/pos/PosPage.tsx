@@ -1814,15 +1814,31 @@ function ClienteRutPanel({
             }
           }}
           autoComplete="off"
+          // Lupa integrada en lugar de botón "Buscar" separado.
+          // Patrón Material 3 / iOS HIG: la acción de búsqueda vive
+          // DENTRO del campo. Reduce ruido visual y deja claro que
+          // la lupa actúa sobre el contenido del input.
+          rightSlot={
+            <button
+              type="button"
+              onClick={onBuscar}
+              disabled={!rutInput.trim() || rutBuscando}
+              className={styles.searchIconBtn}
+              aria-label={rutBuscando ? "Buscando…" : "Buscar cliente"}
+              title="Buscar cliente"
+            >
+              {rutBuscando ? (
+                <Loader2
+                  size={16}
+                  aria-hidden="true"
+                  className={styles.searchIconSpin}
+                />
+              ) : (
+                <Search size={16} aria-hidden="true" />
+              )}
+            </button>
+          }
         />
-        <Button
-          variant="ghost"
-          onClick={onBuscar}
-          loading={rutBuscando}
-          disabled={!rutInput.trim()}
-        >
-          Buscar
-        </Button>
       </div>
 
       {cliente && (
