@@ -264,7 +264,19 @@ body {
   font-size: var(--font-base);
   line-height: var(--line-normal);
   color: var(--color-text);
-  background: var(--color-bg);
+  /* Fondo bitono degradado — diagonal sutil 135° desde el bg principal
+     hacia un tono ligeramente más profundo (surface-sunken). Evita el
+     color plano y añade depth perceptual sin distraer del contenido.
+     `background-attachment: fixed` mantiene el gradient anclado al
+     viewport durante el scroll (no se repite ni se mueve). */
+  background: linear-gradient(
+    135deg,
+    var(--color-bg) 0%,
+    var(--color-surface-sunken) 100%
+  );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
