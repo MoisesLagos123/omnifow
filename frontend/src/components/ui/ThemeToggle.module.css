@@ -9,16 +9,66 @@
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
   transition: background-color var(--transition-fast),
-    color var(--transition-fast), border-color var(--transition-fast);
+    color var(--transition-fast), border-color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .toggle:hover {
   background-color: var(--color-surface-2);
   color: var(--color-text);
   border-color: var(--color-border-strong);
+  transform: rotate(15deg);
+}
+.toggle:active {
+  transform: rotate(15deg) scale(0.95);
 }
 
 .toggle:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+/* ─── Iconos Sun/Moon con crossfade + rotación ────────────────────
+   Los dos íconos están montados siempre. CSS los cruza al cambiar
+   data-theme del html. Esto evita un "pop" cuando React desmonta /
+   monta el ícono, y se siente más smooth en sync con la transición
+   global del tema. */
+.iconWrap {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconSun,
+.iconMoon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: opacity 280ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Light: muestra Moon (lo que vas a obtener al click). Sun oculto. */
+:root .iconMoon,
+[data-theme="light"] .iconMoon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+:root .iconSun,
+[data-theme="light"] .iconSun {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.6);
+}
+
+/* Dark: muestra Sun. Moon oculto. */
+[data-theme="dark"] .iconMoon {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.6);
+}
+[data-theme="dark"] .iconSun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
 }

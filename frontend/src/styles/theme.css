@@ -327,3 +327,91 @@ body {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* ────────────────────────────────────────────────────────────────────
+ * Animación moderna de cambio de tema (light ↔ dark)
+ * ────────────────────────────────────────────────────────────────────
+ * Usa la View Transitions API (Chrome 111+, Safari 18+, Firefox 129+):
+ * cuando el usuario hace click en el toggle, un círculo se EXPANDE
+ * desde la posición del botón cubriendo toda la pantalla con el tema
+ * nuevo. Inspirado en Material You Android y vercel.com/blog.
+ *
+ * El componente ThemeToggle setea --theme-cx, --theme-cy y --theme-radius
+ * justo antes de llamar a startViewTransition().
+ *
+ * Browsers sin soporte → no afecta nada (la transición view-transition-*
+ * pseudo-class se ignora). El cambio es instantáneo pero los colores
+ * tienen `transition: background-color 220ms` (ver más abajo) para que
+ * no salte abruptamente. */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* El "old" screenshot (estado anterior) queda quieto debajo.
+   El "new" (estado nuevo) hace el clip-path circular expandiéndose. */
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+  animation: themeCircularReveal 520ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes themeCircularReveal {
+  from {
+    clip-path: circle(0 at var(--theme-cx, 50%) var(--theme-cy, 50%));
+  }
+  to {
+    clip-path: circle(
+      var(--theme-radius, 150%) at var(--theme-cx, 50%) var(--theme-cy, 50%)
+    );
+  }
+}
+
+/* Fallback / refuerzo: transiciones suaves de colores y bordes en TODOS
+   los elementos. Esto cubre dos casos:
+   1. Browsers sin View Transitions (Edge antiguo, Safari < 18 viejo)
+      — los colores se interpolan smooth aunque sin efecto circular.
+   2. Mejora la sensación incluso CON view transitions, porque hay
+      elementos que se renderizan después del transition (modals que
+      abren tarde, etc.) y sus colores quedan animados.
+
+   Limitado a propiedades de color/borde (NO width/height/transform)
+   para no afectar performance. */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke,
+    box-shadow;
+  transition-duration: 220ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Excepciones: elementos que NO deben heredar la transición global
+   porque ya tienen su propia transición específica (hover de botones,
+   apertura de modales, etc.) — sino se rompe el feedback inmediato. */
+button:hover,
+button:active,
+button:focus-visible,
+a:hover,
+a:focus-visible,
+input:focus,
+input:focus-visible {
+  transition-duration: var(--transition-fast);
+}
+
+/* Reduced motion: sin animación de tema. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+  }
+}
