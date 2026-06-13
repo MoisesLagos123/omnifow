@@ -116,6 +116,23 @@ export function AuthenticatedLayout() {
     return () => document.removeEventListener("keydown", onKey);
   }, [sidebarOpen]);
 
+  // Scroll-lock del body mientras el drawer mobile está abierto.
+  // UX estándar para drawers: el contenido detrás no debe scrollear
+  // (sentimiento "modal"). Solo aplica en mobile — en desktop el
+  // sidebar es estructural y este lock molestaría. Se ata a 1024px
+  // que es nuestro breakpoint de drawer ↔ sidebar.
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    if (typeof window === "undefined") return;
+    const mql = window.matchMedia?.("(max-width: 1024px)");
+    if (!mql?.matches) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [sidebarOpen]);
+
   useEffect(() => {
     if (!userMenuOpen) return;
     function onClick(e: MouseEvent) {
@@ -508,13 +525,17 @@ export function AuthenticatedLayout() {
           </nav>
         </aside>
 
-        {sidebarOpen && (
-          <div
-            className={styles.scrim}
-            onClick={() => setSidebarOpen(false)}
-            aria-hidden="true"
-          />
-        )}
+        {/* Scrim siempre montado — el control va por data-open para que
+            la salida (fade-out + blur-out) también pueda animarse. Si
+            sólo se renderiza condicionalmente, el unmount es inmediato
+            y la transición de salida nunca se ve. */}
+        <div
+          className={styles.scrim}
+          data-open={sidebarOpen ? "true" : "false"}
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+
 
         {/* tabIndex=-1 permite al skip-link enfocar el main programáticamente
             sin convertirlo en parada normal del orden de tabulación. */}

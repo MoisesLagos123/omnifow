@@ -426,12 +426,41 @@
   font-weight: 600;
 }
 
+/* ─── Scrim (overlay del drawer mobile) ──────────────────────────────
+   Material 3: el scrim hace fade-in con un sutil backdrop blur para
+   reforzar la jerarquía visual (el sidebar pasa al primer plano y el
+   contenido detrás se "des-enfoca" sin desaparecer). El scrim siempre
+   está montado en el DOM; el control de visibilidad va por atributo
+   `data-open` para que la salida también pueda animarse. */
 .scrim {
-  display: none;
   position: fixed;
   inset: 60px 0 0 0;
   background: var(--color-overlay);
   z-index: calc(var(--z-sidebar) - 1);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  /* Blur sutil — sin matar la GPU. 6px es suficiente para dar
+     profundidad sin sentir que se "rompe" el contenido. */
+  backdrop-filter: blur(6px) saturate(1.05);
+  -webkit-backdrop-filter: blur(6px) saturate(1.05);
+  /* Easing Material 3 "emphasized": apertura más expresiva que el
+     standard. */
+  transition:
+    opacity 280ms cubic-bezier(0.2, 0, 0, 1),
+    visibility 0ms linear 280ms,
+    backdrop-filter 280ms cubic-bezier(0.2, 0, 0, 1);
+}
+.scrim[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  /* Cuando abre, visibility cambia DE INMEDIATO (delay 0) para que
+     el blur arranque al tiempo que el opacity. */
+  transition:
+    opacity 280ms cubic-bezier(0.2, 0, 0, 1),
+    visibility 0ms linear 0ms,
+    backdrop-filter 280ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .main {
@@ -450,15 +479,32 @@
   .brandToggle { display: inline-flex; }
   .menuBtn { display: none !important; }
   .sidebar {
-    /* En mobile el sidebar se vuelve drawer (fuera de pantalla por
-       defecto). Hereda position:fixed/top/left/bottom del estilo base.
-       Material Bento: misma animación via transition-base token. */
+    /* Material 3 Emphasized — apertura "decelerada" (curva 0.2,0,0,1)
+       y cierre "acelerado" (0.3,0,0.8,0.15). Las exits MD se sienten
+       más rápidas que las entradas: el usuario percibe respuesta sin
+       perder elegancia. Duraciones: 320ms in / 260ms out. La sombra
+       y el blur sólo aparecen cuando el drawer está abierto, lo que
+       evita un "halo" pegado al borde izquierdo en desktop. */
     transform: translateX(-100%);
-    transition: transform var(--transition-base);
-    box-shadow: var(--shadow-md);
+    transition:
+      transform 260ms cubic-bezier(0.3, 0, 0.8, 0.15),
+      box-shadow 200ms ease-out;
+    /* will-change: indica al browser que la propiedad va a animar,
+       le permite promover el sidebar a su propia capa de composición.
+       Sólo en mobile (la propiedad es cara — usar sólo donde necesita). */
+    will-change: transform;
   }
-  .sidebarOpen { transform: translateX(0); }
-  .sidebarOpen + .scrim, .scrim { display: block; }
+  .sidebarOpen {
+    transform: translateX(0);
+    transition:
+      transform 320ms cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 200ms ease-out;
+    /* Sombra "elevation 3" estilo Material — más profunda cuando el
+       drawer está sobre el contenido. */
+    box-shadow:
+      0 8px 24px -4px rgba(15, 23, 42, 0.18),
+      0 4px 8px -2px rgba(15, 23, 42, 0.08);
+  }
   .main {
     /* Drawer mobile no ocupa ancho del flujo — devolvemos el margen. */
     margin-left: 0;
@@ -508,5 +554,23 @@
 @media (max-width: 480px) {
   .header {
     padding: var(--space-2) var(--space-3);
+  }
+}
+
+/* Reduced motion — respetar preferencias del usuario.
+   Las transiciones del drawer y scrim están hardcoded (no usan los
+   tokens --transition-*), así que un override explícito es necesario
+   para que se desactiven cuando el usuario lo solicita. */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebarOpen,
+  .scrim,
+  .scrim[data-open="true"] {
+    transition: none !important;
+  }
+  .scrim,
+  .scrim[data-open="true"] {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
