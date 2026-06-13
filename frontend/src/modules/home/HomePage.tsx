@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
-  ArrowRight,
+  ArrowUpRight,
   Boxes,
   Clock,
   CreditCard,
@@ -254,7 +254,12 @@ function QuickLinkCard({ link }: { link: QuickLink }) {
         <span className={styles.quickLabel}>{link.label}</span>
         <span className={styles.quickDescription}>{link.description}</span>
       </span>
-      <ArrowRight
+      {/* ArrowUpRight (diagonal ↗) — convención moderna para "abrir/ir a"
+          una sección. Las flechas horizontales (ArrowRight) alineadas en
+          grid producen sensación de flujo secuencial; la diagonal rompe
+          esa lectura y se interpreta como "salida" (estilo Stripe,
+          Linear, Vercel, Notion). */}
+      <ArrowUpRight
         size={16}
         aria-hidden="true"
         className={styles.quickArrow}

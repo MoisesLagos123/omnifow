@@ -294,9 +294,12 @@
   transition: transform var(--transition-fast), color var(--transition-fast);
   flex-shrink: 0;
 }
+/* Hover en diagonal — refuerza el gesto "salir/abrir" del ArrowUpRight.
+   Antes era translateX(2px) lateral, que pegaba con la lectura de flujo
+   secuencial; ahora va arriba-derecha como la flecha misma. */
 .quickCard:hover .quickArrow {
   color: var(--color-brand);
-  transform: translateX(2px);
+  transform: translate(2px, -2px);
 }
 
 /* ─── Perfiles ───────────────────────────────────────────────────── */
