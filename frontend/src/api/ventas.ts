@@ -101,6 +101,18 @@ export interface VentaConfirmadaResponse {
   cxc_monto_clp?: number | null;
 }
 
+/**
+ * Respuesta de POST /ventas/{id}/anular — distinta de VentaConfirmadaResponse:
+ * NO trae `detalles` ni `pagos`. La página debe recargar la venta completa
+ * con `obtener()` si necesita esos campos después de anular.
+ */
+export interface AnularVentaResponse {
+  venta: Venta;
+  nota_credito: DocumentoTributario;
+  movimientos_inventario_ids: string[];
+  movimientos_caja_ids: string[];
+}
+
 // ---------- Payloads ----------
 
 export interface CrearVentaDetallePayload {
@@ -195,8 +207,8 @@ export const ventasApi = {
   anular(
     id: string,
     payload: AnularVentaPayload = {}
-  ): Promise<VentaConfirmadaResponse> {
-    return request<VentaConfirmadaResponse>(`/ventas/${id}/anular`, {
+  ): Promise<AnularVentaResponse> {
+    return request<AnularVentaResponse>(`/ventas/${id}/anular`, {
       method: "POST",
       body: payload,
       idempotencyKey: newIdempotencyKey(),

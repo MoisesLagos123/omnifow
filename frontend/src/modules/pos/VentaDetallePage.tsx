@@ -133,13 +133,19 @@ export function VentaDetallePage() {
   async function handleAnular() {
     if (!data) return;
     try {
-      const res = await ventasApi.anular(data.venta.id, {
+      // El endpoint devuelve AnularVentaResponse (venta + nota_credito +
+      // movimientos_*) — NO tiene `detalles` ni `pagos` como
+      // VentaConfirmadaResponse, así que NO podemos hacer setData(res)
+      // sin romper la UI. Disparamos la anulación y luego recargamos la
+      // venta completa con todos sus campos para refrescar la pantalla.
+      await ventasApi.anular(data.venta.id, {
         motivo: motivo.trim() || null,
       });
-      setData(res);
       setAnularOpen(false);
       setMotivo("");
       toast.success("Venta anulada", "Se emitió la Nota de Crédito.");
+      // Recargar venta (cambió estado a ANULADA) + devoluciones (se creó la NC).
+      void reload();
       void reloadDevoluciones();
     } catch (err) {
       toast.error("No se pudo anular", describeError(err));
