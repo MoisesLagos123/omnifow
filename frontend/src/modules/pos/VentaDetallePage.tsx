@@ -13,6 +13,7 @@ import {
   PrintableReceipt,
   PrintArea,
 } from "../../components/ui/PrintableReceipt";
+import { PrintableNcReceipt } from "../../components/ui/PrintableNcReceipt";
 import { useToast } from "../../components/ui/Toast";
 import { usePermission } from "../../auth/usePermission";
 import { Input } from "../../components/ui/Input";
@@ -53,6 +54,11 @@ export function VentaDetallePage() {
   const [printOpen, setPrintOpen] = useState(false);
   const [anularOpen, setAnularOpen] = useState(false);
   const [motivo, setMotivo] = useState("");
+  // Cuando se confirma una devolución (parcial o total), guardamos la
+  // Devolucion completa aquí para abrir el modal de impresión de su NC
+  // automáticamente — sin que el usuario tenga que ir al historial.
+  const [printNcDevolucion, setPrintNcDevolucion] =
+    useState<Devolucion | null>(null);
 
   // Devoluciones
   const [devolucionModalOpen, setDevolucionModalOpen] = useState(false);
@@ -133,31 +139,44 @@ export function VentaDetallePage() {
   async function handleAnular() {
     if (!data) return;
     try {
-      // El endpoint devuelve AnularVentaResponse (venta + nota_credito +
-      // movimientos_*) — NO tiene `detalles` ni `pagos` como
-      // VentaConfirmadaResponse, así que NO podemos hacer setData(res)
-      // sin romper la UI. Disparamos la anulación y luego recargamos la
-      // venta completa con todos sus campos para refrescar la pantalla.
-      await ventasApi.anular(data.venta.id, {
+      // El endpoint devuelve AnularVentaResponse — sólo trae { venta,
+      // nota_credito, movimientos_* }, sin items. Para imprimir la NC
+      // necesitamos la Devolucion completa con sus DetalleDevolucion,
+      // así que después de anular pedimos las devoluciones de la venta
+      // y elegimos la que corresponde a la nc_documento_id recién creada.
+      const res = await ventasApi.anular(data.venta.id, {
         motivo: motivo.trim() || null,
       });
       setAnularOpen(false);
       setMotivo("");
       toast.success("Venta anulada", "Se emitió la Nota de Crédito.");
-      // Recargar venta (cambió estado a ANULADA) + devoluciones (se creó la NC).
+      // Recargar venta (cambió estado a ANULADA) y devoluciones.
       void reload();
-      void reloadDevoluciones();
+      // Buscar la devolución asociada a la NC para mostrarla a imprimir.
+      try {
+        const lista = await devolucionesApi.listarPorVenta(data.venta.id);
+        setDevolucionesPrevias(lista);
+        const ncId = res.nota_credito.id;
+        const recien = lista.find((d) => d.nc_documento_id === ncId);
+        if (recien) setPrintNcDevolucion(recien);
+      } catch {
+        /* no crítico — la NC sigue creada, solo no abrimos el print */
+      }
     } catch (err) {
       toast.error("No se pudo anular", describeError(err));
     }
   }
 
-  function handleDevolucionCreada(_devolucion: Devolucion) {
-    // Recargar la venta (puede haber cambiado a ANULADA) y las devoluciones.
-    // El toast de éxito ya lo muestra el DevolucionModal.
+  function handleDevolucionCreada(devolucion: Devolucion) {
+    // Recargar la venta (puede haber cambiado a ANULADA si fue devolución
+    // total) y la lista de devoluciones previas. El toast de éxito ya lo
+    // muestra el DevolucionModal.
     void reload();
     void reloadDevoluciones();
     setDevolucionModalOpen(false);
+    // Mostrar inmediatamente el comprobante de NC para imprimir — flujo
+    // natural del cajero: confirma devolución → imprime NC para el cliente.
+    setPrintNcDevolucion(devolucion);
   }
 
   const sucursalParaImpresion = useMemo(() => {
@@ -595,6 +614,54 @@ export function VentaDetallePage() {
           devolucionesPrevias={devolucionesPrevias}
           onCreada={handleDevolucionCreada}
         />
+      )}
+
+      {/* Modal de impresión de NC — se abre automáticamente tras anular
+          venta o crear una devolución parcial. Misma UX que el modal de
+          reimprimir BOLETA/FACTURA: preview en pantalla + PrintArea
+          portal que se vuelve visible al disparar window.print(). */}
+      {printNcDevolucion && (
+        <Modal
+          open
+          onClose={() => setPrintNcDevolucion(null)}
+          title="Comprobante Nota de Crédito"
+          size="md"
+          footer={
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => setPrintNcDevolucion(null)}
+              >
+                Cerrar
+              </Button>
+              <Button
+                leftIcon={<Printer size={16} aria-hidden />}
+                onClick={() => window.print()}
+              >
+                Imprimir
+              </Button>
+            </>
+          }
+        >
+          <div style={{ maxHeight: "70vh", overflowY: "auto" }}>
+            <PrintableNcReceipt
+              devolucion={printNcDevolucion}
+              sucursal={sucursalParaImpresion}
+              clienteNombre={cliente?.razon_social ?? null}
+              clienteRut={cliente?.rut ?? null}
+              ventaFolio={data.documento.folio}
+            />
+          </div>
+          <PrintArea>
+            <PrintableNcReceipt
+              devolucion={printNcDevolucion}
+              sucursal={sucursalParaImpresion}
+              clienteNombre={cliente?.razon_social ?? null}
+              clienteRut={cliente?.rut ?? null}
+              ventaFolio={data.documento.folio}
+            />
+          </PrintArea>
+        </Modal>
       )}
     </div>
   );
