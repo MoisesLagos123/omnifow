@@ -318,6 +318,29 @@ export function VentaDetallePage() {
   const { venta, detalles, pagos, documento } = data;
   const anulada = venta.estado === "ANULADA";
 
+  // Estado visual derivado. El dominio sólo tiene PENDIENTE/CONFIRMADA/ANULADA,
+  // pero el usuario necesita saber si una venta CONFIRMADA tiene devoluciones
+  // parciales (NO está anulada, pero ya no es "intacta"). Calculamos:
+  //   - "Anulación total"   → venta.estado = ANULADA
+  //   - "Anulación parcial" → CONFIRMADA + ≥1 devolución previa
+  //   - estado normal       → resto (PENDIENTE / CONFIRMADA sin devoluciones)
+  // Variant del badge: danger para anulada total, warning para parcial,
+  // success para confirmada intacta, neutral para pendiente.
+  const tieneDevolucionParcial =
+    !anulada && devolucionesPrevias.length > 0;
+  const estadoLabel = anulada
+    ? "Anulación total"
+    : tieneDevolucionParcial
+      ? "Anulación parcial"
+      : ESTADO_VENTA_LABEL[venta.estado];
+  const estadoVariant: "danger" | "warning" | "success" | "neutral" = anulada
+    ? "danger"
+    : tieneDevolucionParcial
+      ? "warning"
+      : venta.estado === "CONFIRMADA"
+        ? "success"
+        : "neutral";
+
   return (
     <div className={`${styles.page} ${styles.detailPagePadBottom}`}>
       {/* Header con back-link y acciones */}
@@ -334,9 +357,7 @@ export function VentaDetallePage() {
           <h1 className={styles.title} style={{ marginTop: "var(--space-2)" }}>
             {TIPO_DOCUMENTO_LABEL[documento.tipo]}{" "}
             <span style={{ fontFamily: "var(--font-mono)" }}>N° {documento.folio}</span>{" "}
-            <Badge variant={anulada ? "danger" : "success"}>
-              {ESTADO_VENTA_LABEL[venta.estado]}
-            </Badge>
+            <Badge variant={estadoVariant}>{estadoLabel}</Badge>
           </h1>
           <p className={styles.subtitle}>{formatFechaISO(venta.fecha)}</p>
         </div>
@@ -528,9 +549,20 @@ export function VentaDetallePage() {
 
           {anulada && (
             <Card>
-              <Badge variant="danger">Anulada</Badge>
+              <Badge variant="danger">Anulación total</Badge>
               <p className={styles.muted} style={{ marginTop: "var(--space-2)" }}>
-                Se emitió una Nota de Crédito que reversa esta venta.
+                Todos los items fueron devueltos. Se emitió una Nota de
+                Crédito que reversa la venta completa.
+              </p>
+            </Card>
+          )}
+          {tieneDevolucionParcial && (
+            <Card>
+              <Badge variant="warning">Anulación parcial</Badge>
+              <p className={styles.muted} style={{ marginTop: "var(--space-2)" }}>
+                Algunos items fueron devueltos ({devolucionesPrevias.length}{" "}
+                {devolucionesPrevias.length === 1 ? "devolución" : "devoluciones"}).
+                La venta sigue activa por la parte no devuelta.
               </p>
             </Card>
           )}
