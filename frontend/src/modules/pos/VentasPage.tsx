@@ -22,7 +22,7 @@ import {
   ESTADO_VENTA_LABEL,
   TIPO_PAGO_LABEL,
   type EstadoVenta,
-  type Venta,
+  type VentaListItem,
 } from "../../api/ventas";
 import { describeError } from "../../api/errorMessages";
 import { formatCLP, formatFechaISO } from "../../lib/format";
@@ -45,7 +45,7 @@ export function VentasPage() {
   const [hasta, setHasta] = useState("");
   const [q, setQ] = useState("");
   const [offset, setOffset] = useState(0);
-  const [data, setData] = useState<{ items: Venta[]; total: number } | null>(null);
+  const [data, setData] = useState<{ items: VentaListItem[]; total: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -101,7 +101,7 @@ export function VentasPage() {
     return () => ctl.abort();
   }, [sucursalId, cajaId, estado, desde, hasta, q, offset]);
 
-  const columns = useMemo<TableColumn<Venta>[]>(
+  const columns = useMemo<TableColumn<VentaListItem>[]>(
     () => [
       {
         key: "fecha",
@@ -111,12 +111,38 @@ export function VentasPage() {
       {
         key: "doc",
         header: "Documento",
+        // Muestra el tipo (Boleta/Factura) + folio mono. Folio null cuando
+        // la venta está pendiente (sin documento emitido).
         cell: (v) => (
-          <span>
-            <span className={styles.muted}>{TIPO_DOCUMENTO_LABEL[v.tipo_documento]}</span>
-            {v.documento_tributario_id && " "}
+          <span style={{ display: "inline-flex", alignItems: "baseline", gap: "var(--space-2)" }}>
+            <span>{TIPO_DOCUMENTO_LABEL[v.tipo_documento]}</span>
+            <span className={styles.mono} style={{ color: "var(--color-text-muted)" }}>
+              {v.folio !== null ? `N° ${v.folio}` : "—"}
+            </span>
           </span>
         ),
+      },
+      {
+        key: "nc",
+        header: "NC",
+        // Una venta puede tener 0..N Notas de Crédito (devoluciones
+        // múltiples parciales). Mostramos las primeras 3 separadas por
+        // coma; si hay más, agregamos "+N" para evitar saturar la celda.
+        cell: (v) => {
+          if (v.nc_folios.length === 0) {
+            return <span className={styles.muted}>—</span>;
+          }
+          const visibles = v.nc_folios.slice(0, 3);
+          const restantes = v.nc_folios.length - visibles.length;
+          return (
+            <span className={styles.mono}>
+              {visibles.map((f) => `#${f}`).join(", ")}
+              {restantes > 0 && (
+                <span className={styles.muted}> +{restantes}</span>
+              )}
+            </span>
+          );
+        },
       },
       {
         key: "total",
@@ -129,19 +155,23 @@ export function VentasPage() {
       {
         key: "estado",
         header: "Estado",
-        cell: (v) => (
-          <Badge
-            variant={
-              v.estado === "CONFIRMADA"
-                ? "success"
-                : v.estado === "ANULADA"
-                  ? "danger"
-                  : "neutral"
-            }
-          >
-            {ESTADO_VENTA_LABEL[v.estado]}
-          </Badge>
-        ),
+        // Cuando una venta CONFIRMADA tiene 1+ NCs hay devolución parcial.
+        // Mostramos badge ámbar para distinguirla de las intactas.
+        cell: (v) => {
+          if (v.estado === "ANULADA") {
+            return <Badge variant="danger">Anulación total</Badge>;
+          }
+          if (v.estado === "CONFIRMADA" && v.nc_folios.length > 0) {
+            return <Badge variant="warning">Anulación parcial</Badge>;
+          }
+          return (
+            <Badge
+              variant={v.estado === "CONFIRMADA" ? "success" : "neutral"}
+            >
+              {ESTADO_VENTA_LABEL[v.estado]}
+            </Badge>
+          );
+        },
       },
     ],
     []
@@ -236,7 +266,7 @@ export function VentasPage() {
 
       {errorMsg && <ErrorAlert>{errorMsg}</ErrorAlert>}
 
-      <Table<Venta>
+      <Table<VentaListItem>
         density="compact"
         columns={columns}
         rows={data?.items}

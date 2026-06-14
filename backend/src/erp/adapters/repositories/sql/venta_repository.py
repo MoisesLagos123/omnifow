@@ -11,6 +11,7 @@ from erp.application.ports.repositories import VentaListado, VentasPagina
 from erp.domain.entities.venta import EstadoVenta, Venta
 from erp.infrastructure.db.mappers.venta import to_domain, to_orm
 from erp.infrastructure.db.models.cliente import ClienteORM
+from erp.infrastructure.db.models.devolucion import DevolucionORM
 from erp.infrastructure.db.models.documento_tributario import DocumentoTributarioORM
 from erp.infrastructure.db.models.venta import VentaORM
 
@@ -110,6 +111,27 @@ class SqlVentaRepository:
         rows = self._uow.session.execute(
             base_stmt.order_by(VentaORM.fecha.desc()).limit(limit).offset(offset)
         ).all()
+
+        # NC folios — UNA query extra que trae todas las NCs de las
+        # ventas listadas en esta página. Evitamos N+1 a costa de un
+        # JOIN adicional por página (~1 query independiente del N).
+        # Una venta puede tener múltiples devoluciones (parciales), cada
+        # una emite una NC distinta. Devolvemos ordenadas asc por folio.
+        venta_ids: list[UUID] = [row[0].id for row in rows]
+        nc_folios_por_venta: dict[UUID, list[int]] = {}
+        if venta_ids:
+            nc_stmt = (
+                select(DevolucionORM.venta_id, DocumentoTributarioORM.folio)
+                .join(
+                    DocumentoTributarioORM,
+                    DocumentoTributarioORM.id == DevolucionORM.nc_documento_id,
+                )
+                .where(DevolucionORM.venta_id.in_(venta_ids))
+                .order_by(DevolucionORM.venta_id, DocumentoTributarioORM.folio)
+            )
+            for venta_id, nc_folio in self._uow.session.execute(nc_stmt).all():
+                nc_folios_por_venta.setdefault(venta_id, []).append(nc_folio)
+
         items: list[VentaListado] = []
         for venta_orm, cliente_nombre, folio in rows:
             items.append(
@@ -125,6 +147,7 @@ class SqlVentaRepository:
                     tipo_documento=venta_orm.tipo_documento,
                     total_clp=venta_orm.total_clp,
                     folio=folio,
+                    nc_folios=tuple(nc_folios_por_venta.get(venta_orm.id, ())),
                 )
             )
         return VentasPagina(

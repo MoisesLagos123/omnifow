@@ -48,20 +48,20 @@ import { sucursalesApi } from "../src/api/sucursales";
 import { VentasPage } from "../src/modules/pos/VentasPage";
 import { useAuthStore } from "../src/auth/store";
 import { ToastProvider } from "../src/components/ui/Toast";
-import type { Venta } from "../src/api/ventas";
+import type { VentaListItem } from "../src/api/ventas";
 
-const VENTA_MOCK: Venta = {
+const VENTA_MOCK: VentaListItem = {
   id: "ven-1",
   sucursal_id: "suc-1",
   caja_id: "caj-1",
   usuario_id: "u1",
   cliente_id: null,
+  cliente_nombre: null,
   tipo_documento: "BOLETA",
-  subtotal_clp: 10000,
-  iva_clp: 1900,
   total_clp: 11900,
   estado: "CONFIRMADA",
-  documento_tributario_id: "doc-1",
+  folio: 1234,
+  nc_folios: [],
   fecha: "2026-06-01T10:00:00Z",
 };
 

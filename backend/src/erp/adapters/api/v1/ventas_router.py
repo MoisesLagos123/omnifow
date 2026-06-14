@@ -269,6 +269,7 @@ def listar_ventas(
                 tipo_documento=i.tipo_documento,
                 total_clp=i.total_clp,
                 folio=i.folio,
+                nc_folios=list(i.nc_folios),
             )
             for i in pagina.items
         ],

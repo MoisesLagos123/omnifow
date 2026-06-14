@@ -833,6 +833,9 @@ class VentaListItem(BaseModel):
     tipo_documento: str
     total_clp: int
     folio: int | None
+    # Folios de NCs emitidas por devoluciones de esta venta (0..N).
+    # Ordenadas ascendente.
+    nc_folios: list[int] = Field(default_factory=list)
 
 
 class VentasPaginaResponse(BaseModel):

@@ -48,6 +48,28 @@ export interface Venta {
   fecha: string;
 }
 
+/**
+ * Ítem del listado de ventas (GET /ventas) — schema distinto al GET /ventas/{id}.
+ * No incluye detalles/pagos/subtotal/iva, pero sí trae folio del documento
+ * y los folios de NCs emitidas por devoluciones contra la venta.
+ */
+export interface VentaListItem {
+  id: string;
+  fecha: string;
+  sucursal_id: string;
+  caja_id: string;
+  usuario_id: string;
+  cliente_id: string | null;
+  cliente_nombre: string | null;
+  estado: EstadoVenta;
+  tipo_documento: TipoDocumento;
+  total_clp: number;
+  /** Folio del documento tributario de la venta (BOLETA/FACTURA). null si pendiente. */
+  folio: number | null;
+  /** Folios de Notas de Crédito emitidas por devoluciones (0..N). Asc. */
+  nc_folios: number[];
+}
+
 export interface DetalleVenta {
   id: string;
   venta_id: string;
@@ -188,8 +210,8 @@ export const ventasApi = {
   listar(
     q: ListVentasQuery = {},
     signal?: AbortSignal
-  ): Promise<Paginated<Venta>> {
-    return request<Paginated<Venta>>("/ventas", {
+  ): Promise<Paginated<VentaListItem>> {
+    return request<Paginated<VentaListItem>>("/ventas", {
       query: {
         sucursal_id: q.sucursal_id,
         caja_id: q.caja_id,

@@ -587,6 +587,10 @@ class VentaListado:
     tipo_documento: str
     total_clp: int
     folio: int | None
+    # Folios de las Notas de Crédito emitidas por devoluciones contra
+    # esta venta. Una venta puede tener 0..N NCs (devoluciones parciales
+    # múltiples). Ordenadas ascendente por folio.
+    nc_folios: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
