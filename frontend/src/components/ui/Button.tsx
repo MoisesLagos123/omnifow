@@ -1,7 +1,14 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import styles from "./Button.module.css";
 
-type Variant = "primary" | "secondary" | "ghost" | "accent" | "danger" | "danger-ghost";
+type Variant =
+  | "primary"
+  | "secondary"
+  | "ghost"
+  | "accent"
+  | "danger"
+  | "danger-ghost"
+  | "warning";
 type Size = "sm" | "md" | "lg";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {

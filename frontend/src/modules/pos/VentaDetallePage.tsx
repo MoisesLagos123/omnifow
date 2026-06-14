@@ -372,7 +372,7 @@ export function VentaDetallePage() {
           </Button>
           {!anulada && canDevolver && hayPendiente && (
             <Button
-              variant="secondary"
+              variant="warning"
               leftIcon={<RotateCcw size={16} aria-hidden />}
               onClick={() => setDevolucionModalOpen(true)}
             >

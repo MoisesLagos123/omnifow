@@ -117,6 +117,26 @@
   box-shadow: 0 0 0 3px var(--color-danger-soft);
 }
 
+/* Acciones de "advertencia controlada" — no son destructivas totales pero
+   tampoco son neutras (ej. anulación parcial: emite NC y reversa stock,
+   pero la venta sigue viva). Color ámbar coincide con el badge warning
+   del estado, dando consistencia visual entre acción y resultado. */
+.variant-warning {
+  background-color: var(--color-warning);
+  color: var(--color-text-inverse);
+  border-color: var(--color-warning);
+}
+.variant-warning:hover:not(:disabled) {
+  filter: brightness(0.92);
+  transform: scale(1.04);
+}
+.variant-warning:active:not(:disabled) {
+  transform: scale(1);
+}
+.variant-warning:focus-visible {
+  box-shadow: 0 0 0 3px var(--color-warning-soft, rgba(217, 119, 6, 0.25));
+}
+
 /* Acciones destructivas con peso secundario (en zonas de peligro, listas,
    etc. donde el botón no debe dominar). */
 .variant-danger-ghost {
