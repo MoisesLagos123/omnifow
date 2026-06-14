@@ -321,7 +321,7 @@ export function VentaDetallePage() {
   // Estado visual derivado. El dominio sólo tiene PENDIENTE/CONFIRMADA/ANULADA,
   // pero el usuario necesita saber si una venta CONFIRMADA tiene devoluciones
   // parciales (NO está anulada, pero ya no es "intacta"). Calculamos:
-  //   - "Anulación total"   → venta.estado = ANULADA
+  //   - "Anulación completa"   → venta.estado = ANULADA
   //   - "Anulación parcial" → CONFIRMADA + ≥1 devolución previa
   //   - estado normal       → resto (PENDIENTE / CONFIRMADA sin devoluciones)
   // Variant del badge: danger para anulada total, warning para parcial,
@@ -329,7 +329,7 @@ export function VentaDetallePage() {
   const tieneDevolucionParcial =
     !anulada && devolucionesPrevias.length > 0;
   const estadoLabel = anulada
-    ? "Anulación total"
+    ? "Anulación completa"
     : tieneDevolucionParcial
       ? "Anulación parcial"
       : ESTADO_VENTA_LABEL[venta.estado];
@@ -376,7 +376,7 @@ export function VentaDetallePage() {
               leftIcon={<RotateCcw size={16} aria-hidden />}
               onClick={() => setDevolucionModalOpen(true)}
             >
-              Devolver items
+              Anulación parcial
             </Button>
           )}
           {!anulada && canAnular && (
@@ -385,7 +385,7 @@ export function VentaDetallePage() {
               leftIcon={<Ban size={16} aria-hidden />}
               onClick={() => setAnularOpen(true)}
             >
-              Anular venta
+              Anulación completa
             </Button>
           )}
         </div>
@@ -549,7 +549,7 @@ export function VentaDetallePage() {
 
           {anulada && (
             <Card>
-              <Badge variant="danger">Anulación total</Badge>
+              <Badge variant="danger">Anulación completa</Badge>
               <p className={styles.muted} style={{ marginTop: "var(--space-2)" }}>
                 Todos los items fueron devueltos. Se emitió una Nota de
                 Crédito que reversa la venta completa.
@@ -614,11 +614,12 @@ export function VentaDetallePage() {
 
       <ConfirmDialog
         open={anularOpen}
-        title="Anular venta"
+        title="Anulación completa"
         description={
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
             <span>
-              Se emitirá una Nota de Crédito que reversa esta venta, el stock y los pagos. Esta acción no se puede deshacer.
+              Se anulará TODA la venta y se emitirá una Nota de Crédito que
+              reversa el stock y los pagos. Esta acción no se puede deshacer.
             </span>
             <Input
               label="Motivo (opcional)"
@@ -628,7 +629,7 @@ export function VentaDetallePage() {
             />
           </div>
         }
-        confirmLabel="Anular venta"
+        confirmLabel="Anulación completa"
         destructive
         onConfirm={handleAnular}
         onClose={() => {

@@ -159,7 +159,7 @@ export function VentasPage() {
         // Mostramos badge ámbar para distinguirla de las intactas.
         cell: (v) => {
           if (v.estado === "ANULADA") {
-            return <Badge variant="danger">Anulación total</Badge>;
+            return <Badge variant="danger">Anulación completa</Badge>;
           }
           if (v.estado === "CONFIRMADA" && v.nc_folios.length > 0) {
             return <Badge variant="warning">Anulación parcial</Badge>;
