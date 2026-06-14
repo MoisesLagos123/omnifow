@@ -5,14 +5,53 @@
   max-width: 1200px;
 }
 
-/* ─── Section heading ────────────────────────────────────────────── */
+/* ─── Section heading ────────────────────────────────────────────
+   Composición: marcador vertical brand + título uppercase tracking
+   + línea horizontal desvanecida. Estilo dashboard moderno (Linear /
+   Stripe) que da jerarquía sin ocupar más espacio vertical. */
 .sectionTitle {
-  margin: 0 0 var(--space-3) 0;
-  font-size: var(--font-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4) 0;
+  font-size: var(--font-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--color-text);
+  line-height: 1;
+}
+
+/* Marker vertical brand a la izquierda — gradiente sutil del color
+   de marca a accent-soft para dar sutil personalidad. */
+.sectionTitle::before {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(
+    180deg,
+    var(--color-brand) 0%,
+    var(--color-brand-soft) 100%
+  );
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  /* Sombra interna sutil para sensación de profundidad. */
+  box-shadow: 0 1px 2px var(--color-brand-glow);
+}
+
+/* Línea horizontal que se desvanece a la derecha — completa el
+   ancho de la sección y "respira" sin competir con el contenido. */
+.sectionTitle::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--color-border-strong) 0%,
+    var(--color-border) 30%,
+    transparent 100%
+  );
 }
 
 /* ─── Dashboard header ───────────────────────────────────────────── */
