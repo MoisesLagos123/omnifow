@@ -69,14 +69,45 @@
   gap: var(--space-1);
 }
 
+/* Saludo principal — gradient text azul → indigo → púrpura → rosa →
+   naranja. Display-size, peso 800, tracking apretado. El gradient se
+   pinta sobre el texto vía background-clip:text — el fallback es
+   `color: var(--color-text)` para browsers sin soporte (raro hoy).
+
+   Tonos saturados para que se vea bien tanto sobre el fondo aurora
+   light (lavanda/cyan claro) como sobre el dark (navy/teal). */
 .greetingTitle {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: var(--font-3xl);
-  font-weight: 700;
-  color: var(--color-text);
+  font-size: var(--font-4xl);          /* 36px, era 30px */
+  font-weight: 800;                     /* era 700 — más display */
   line-height: var(--line-tight);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;             /* un poco más apretado en display */
+  color: var(--color-text);              /* fallback */
+  background: linear-gradient(
+    95deg,
+    #2563EB 0%,       /* azul brand */
+    #4F46E5 25%,      /* indigo */
+    #7C3AED 50%,      /* violet */
+    #EC4899 75%,      /* pink/magenta */
+    #F97316 100%      /* naranja cálido */
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Si el usuario tiene reduced-motion o queremos accesibilidad
+   alta-contraste, podemos forzar el color de texto sólido vía
+   prefers-contrast (no todos los browsers lo soportan, pero el
+   fallback de color sólido ya cubre eso). */
+@media (forced-colors: active) {
+  .greetingTitle {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--color-text);
+  }
 }
 
 .greetingDate {
@@ -401,7 +432,10 @@
 /* Small tablet (768px) */
 @media (max-width: 768px) {
   .greetingTitle {
-    font-size: var(--font-2xl);
+    /* Bajamos a font-3xl en mobile (era font-2xl): aún display pero
+       cabe sin truncar. El gradient se mantiene — luce mejor en
+       textos largos como "Hola, Administrador Dev". */
+    font-size: var(--font-3xl);
   }
 
   .dashHeader {
