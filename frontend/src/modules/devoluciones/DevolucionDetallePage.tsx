@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { ErrorAlert } from "../../components/ui/ErrorAlert";
+import { Modal } from "../../components/ui/Modal";
+import { PrintArea } from "../../components/ui/PrintableReceipt";
+import { PrintableNcReceipt } from "../../components/ui/PrintableNcReceipt";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { Table, type TableColumn } from "../../components/ui/Table";
 import {
@@ -13,6 +16,7 @@ import {
   type Devolucion,
   type DetalleDevolucion,
 } from "../../api/devoluciones";
+import { sucursalesApi, type Sucursal } from "../../api/sucursales";
 import { describeError } from "../../api/errorMessages";
 import { formatCLP, formatCantidad, formatFechaISO } from "../../lib/format";
 import { ROUTES } from "../../routePaths";
@@ -67,8 +71,13 @@ export function DevolucionDetallePage() {
   const navigate = useNavigate();
 
   const [devolucion, setDevolucion] = useState<Devolucion | null>(null);
+  const [sucursal, setSucursal] = useState<Pick<
+    Sucursal,
+    "nombre" | "direccion" | "comuna" | "region" | "rut_emisor"
+  > | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
+  const [printOpen, setPrintOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -83,6 +92,29 @@ export function DevolucionDetallePage() {
       });
     return () => ctl.abort();
   }, [id, reloadTick]);
+
+  // Cargar la sucursal emisora para mostrar nombre + dirección en el
+  // comprobante térmico. No bloqueante — si falla, igual imprimimos sin
+  // esos datos (PrintableNcReceipt cae a "OMNIFLOW" como nombre).
+  useEffect(() => {
+    if (!devolucion?.sucursal_id) return;
+    const ctl = new AbortController();
+    sucursalesApi
+      .obtenerSucursal(devolucion.sucursal_id, ctl.signal)
+      .then((s) =>
+        setSucursal({
+          nombre: s.nombre,
+          direccion: s.direccion ?? null,
+          comuna: s.comuna ?? null,
+          region: s.region ?? null,
+          rut_emisor: s.rut_emisor,
+        })
+      )
+      .catch(() => {
+        /* no crítico */
+      });
+    return () => ctl.abort();
+  }, [devolucion?.sucursal_id]);
 
   if (loadError) {
     return (
@@ -144,11 +176,27 @@ export function DevolucionDetallePage() {
           <p className={styles.subtitle}>{formatFechaISO(d.fecha)}</p>
         </div>
         <div
-          className={styles.numeric}
-          style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--color-danger)" }}
-          aria-label={`Total nota de crédito: ${formatCLP(d.monto_total_clp)}`}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: "var(--space-2)",
+          }}
         >
-          {formatCLP(d.monto_total_clp)}
+          <div
+            className={styles.numeric}
+            style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--color-danger)" }}
+            aria-label={`Total nota de crédito: ${formatCLP(d.monto_total_clp)}`}
+          >
+            {formatCLP(d.monto_total_clp)}
+          </div>
+          <Button
+            variant="accent"
+            leftIcon={<Printer size={16} aria-hidden />}
+            onClick={() => setPrintOpen(true)}
+          >
+            Imprimir NC
+          </Button>
         </div>
       </header>
 
@@ -233,6 +281,45 @@ export function DevolucionDetallePage() {
           </span>
         </div>
       </Card>
+
+      {/* Modal de impresión del comprobante térmico de NC.
+          Preview en pantalla + PrintArea portal que se vuelve visible
+          al disparar window.print(). El comprobante muestra SOLO los
+          items realmente devueltos (con cantidades parciales si aplica). */}
+      {printOpen && (
+        <Modal
+          open
+          onClose={() => setPrintOpen(false)}
+          title="Comprobante Nota de Crédito"
+          size="md"
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setPrintOpen(false)}>
+                Cerrar
+              </Button>
+              <Button
+                leftIcon={<Printer size={16} aria-hidden />}
+                onClick={() => window.print()}
+              >
+                Imprimir
+              </Button>
+            </>
+          }
+        >
+          <div style={{ maxHeight: "70vh", overflowY: "auto" }}>
+            <PrintableNcReceipt
+              devolucion={d}
+              sucursal={sucursal}
+            />
+          </div>
+          <PrintArea>
+            <PrintableNcReceipt
+              devolucion={d}
+              sucursal={sucursal}
+            />
+          </PrintArea>
+        </Modal>
+      )}
     </div>
   );
 }
