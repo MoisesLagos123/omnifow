@@ -23,6 +23,14 @@ class SqlDocumentoTributarioRepository:
         existente = self._uow.session.get(DocumentoTributarioORM, documento.id)
         if existente is None:
             self._uow.session.add(to_orm(documento))
+            # Flush inmediato: garantiza que el INSERT en
+            # documentos_tributarios viaje a la DB AHORA, antes de que
+            # cualquier otra entidad que tenga FK hacia este documento
+            # (ej. Devolucion.nc_documento_id, Venta.documento_tributario_id)
+            # haga su propio flush y SQLAlchemy intente insertarla primero.
+            # Sin este flush, el orden de inserts en el flush global del
+            # UoW puede romper la FK (caso real: anular venta).
+            self._uow.session.flush()
             return
         existente.estado_sii = documento.estado_sii.value
         existente.documento_referencia_id = documento.documento_referencia_id
