@@ -103,11 +103,19 @@ class FakeClock:
 
 
 class FakeUoW:
+    """Fake del UoW SQL con soporte de re-entry (igual que el real).
+
+    Permite que use cases compuestos (un padre que delega a otro) abran
+    `with self._uow:` anidado sin romper la sesión imaginaria.
+    """
+
     def __init__(self) -> None:
         self.committed = False
         self.rolled_back = False
+        self._depth = 0
 
     def __enter__(self) -> "FakeUoW":
+        self._depth += 1
         return self
 
     def __exit__(
@@ -116,6 +124,7 @@ class FakeUoW:
         exc: BaseException | None,
         tb: TracebackType | None,
     ) -> bool | None:
+        self._depth -= 1
         if exc is not None and not self.committed:
             self.rolled_back = True
         return None
