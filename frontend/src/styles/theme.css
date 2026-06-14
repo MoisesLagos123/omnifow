@@ -1,6 +1,6 @@
 /*
  * Sistema de temas — OMNIFLOW
- * Paleta Material You Bento (Purple / Indigo).
+ * Paleta Material You Bento (Blue / Indigo).
  * Light en :root, Dark en [data-theme="dark"].
  * NUNCA hardcodear colores en componentes; usar siempre estas variables.
  *
@@ -12,53 +12,54 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
 
 :root {
-  /* ─── Brand — Purple Material ──────────────────────────────────── */
-  --color-brand: #7C5CFA;
-  --color-brand-hover: #6344E8;
-  --color-brand-active: #4F2EC2;
-  --color-brand-soft: #EBE0FE;
-  --color-brand-glow: rgba(124, 92, 250, 0.35);
+  /* ─── Brand — Blue Material ────────────────────────────────────
+     Migración purple → blue: confiable, profesional, neutro para
+     contextos financieros (POS). Tonos calibrados Tailwind blue-* . */
+  --color-brand: #2563EB;          /* blue-600 — saturado y accesible */
+  --color-brand-hover: #1D4ED8;    /* blue-700 — un paso más oscuro */
+  --color-brand-active: #1E40AF;   /* blue-800 — pressed */
+  --color-brand-soft: #DBEAFE;     /* blue-100 — fondos chip/badge */
+  --color-brand-glow: rgba(37, 99, 235, 0.35);
   --color-on-brand: #FFFFFF;
 
-  /* ─── Accent — mismo purple (sin amber) ────────────────────────── */
-  --color-accent: #7C5CFA;
-  --color-accent-hover: #6344E8;
-  --color-accent-soft: #EBE0FE;
+  /* ─── Accent — mismo azul (consistencia con brand) ─────────────── */
+  --color-accent: #2563EB;
+  --color-accent-hover: #1D4ED8;
+  --color-accent-soft: #DBEAFE;
   --color-on-accent: #FFFFFF;
 
   /* ─── Superficies ───────────────────────────────────────────────
-     `bg` lienzo lavanda muy claro, `surface` cards blancas,
+     `bg` lienzo azul muy claro, `surface` cards blancas,
      `surface-2` áreas anidadas, `surface-strong` hero/dashboards,
      `surface-sunken` chips/slots, `overlay` velo de modales/sheets. */
-  --color-bg: #F5F3FF;
+  --color-bg: #F0F6FF;             /* sky muy claro (era lavanda) */
   --color-surface: #FFFFFF;
-  --color-surface-2: #F5F3FF;
+  --color-surface-2: #F0F6FF;
   --color-surface-strong: #FFFFFF;
-  --color-surface-sunken: #EEEBF8;
+  --color-surface-sunken: #E6EEFA;
   --color-overlay: rgba(15, 23, 42, 0.5);
 
   /* ─── Fondo de la app (gradiente "aurora") ──────────────────────
-     Dos capas:
-       1) Radial top-left: halo lavanda sutil que da profundidad y
-          rompe la planicie sin competir con el contenido.
-       2) Lineal vertical: lavanda muy claro → cyan/sky pálido.
+     Dos capas (variante azul):
+       1) Radial top-left: halo azul sutil que da profundidad.
+       2) Lineal vertical: azul muy claro → cyan/sky pálido.
      Tonos cuidados para que las cards blancas y los textos
-     indigo (color-text) sigan teniendo contraste WCAG AA. */
+     mantengan contraste WCAG AA. */
   --app-bg-gradient:
     radial-gradient(
       ellipse 80% 60% at 20% 0%,
-      rgba(155, 123, 251, 0.18),
+      rgba(96, 165, 250, 0.22),
       transparent 70%
     ),
     linear-gradient(
       180deg,
-      #F5F3FF 0%,
-      #ECEAFE 35%,
-      #E0F2FE 100%
+      #F0F6FF 0%,
+      #DDE9FE 35%,
+      #DBEAFE 100%
     );
 
   /* ─── Texto ───────────────────────────────────────────────────── */
-  --color-text: #1E1B4B;          /* indigo profundo, no negro puro */
+  --color-text: #0F1A33;          /* navy profundo, no negro puro */
   --color-text-muted: #6B7280;
   --color-text-subtle: #9CA3AF;
   --color-text-inverse: #FFFFFF;
@@ -78,19 +79,24 @@
   --color-info-soft: #E0E7FF;
 
   /* ─── Focus ─────────────────────────────────────────────────── */
-  --color-focus-ring: rgba(124, 92, 250, 0.4);
+  --color-focus-ring: rgba(37, 99, 235, 0.4);
 
   /* ─── Tablas ────────────────────────────────────────────────── */
-  --color-table-row-hover: #F5F3FF;
-  --color-table-header-bg: #F5F3FF;
+  --color-table-row-hover: #F0F6FF;
+  --color-table-header-bg: #F0F6FF;
 
   /* ─── Sidebar ───────────────────────────────────────────────── */
   --color-sidebar-bg: #FFFFFF;
-  --color-sidebar-active-bg: #7C5CFA;   /* purple sólido */
+  --color-sidebar-active-bg: #2563EB;   /* blue sólido */
   --color-sidebar-active-fg: #FFFFFF;
-  --color-sidebar-hover-bg: #F5F3FF;
+  --color-sidebar-hover-bg: #F0F6FF;
 
-  /* ─── KPI tonal palettes — para Home / Dashboard ──────────────── */
+  /* ─── KPI tonal palettes — para Home / Dashboard ──────────────
+     Cuatro tonos distintos por KPI para diferenciación visual:
+       ventas → verde
+       tickets → indigo (compatible con brand azul)
+       stock → ámbar (alerta)
+       cxc → cyan/teal (reemplaza el purple anterior, sin morado) */
   --kpi-ventas-bg: #D7F5E6;
   --kpi-ventas-icon-bg: #16A34A;
   --kpi-ventas-text: #0F5132;
@@ -106,10 +112,10 @@
   --kpi-stock-text: #78350F;
   --kpi-stock-pill: #FDE68A;
 
-  --kpi-cxc-bg: #EBE0FE;
-  --kpi-cxc-icon-bg: #7C5CFA;
-  --kpi-cxc-text: #4C1D95;
-  --kpi-cxc-pill: #DDD6FE;
+  --kpi-cxc-bg: #CFFAFE;
+  --kpi-cxc-icon-bg: #0891B2;
+  --kpi-cxc-text: #164E63;
+  --kpi-cxc-pill: #A5F3FC;
 
   /* ─── Breakpoints (referencia para media queries) ──────────────
      Mobile-first: 375 (small phone), 640 (large phone), 768 (tablet),
@@ -193,26 +199,26 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  /* ─── Brand ─────────────────────────────────────────────────── */
-  --color-brand: #9B7BFB;
-  --color-brand-hover: #B99AFC;
-  --color-brand-active: #C4B5FD;
-  --color-brand-soft: #2A1B47;
-  --color-brand-glow: rgba(155, 123, 251, 0.4);
+  /* ─── Brand — Blue (más claro en dark para brillo y legibilidad) */
+  --color-brand: #60A5FA;          /* blue-400 */
+  --color-brand-hover: #93C5FD;    /* blue-300 */
+  --color-brand-active: #BFDBFE;   /* blue-200 */
+  --color-brand-soft: #1E3A8A;     /* blue-900 — fondo oscuro saturado */
+  --color-brand-glow: rgba(96, 165, 250, 0.4);
   --color-on-brand: #FFFFFF;
 
   /* ─── Accent ─────────────────────────────────────────────────── */
-  --color-accent: #9B7BFB;
-  --color-accent-hover: #B99AFC;
-  --color-accent-soft: #2A1B47;
+  --color-accent: #60A5FA;            /* blue-400 — brilla en dark */
+  --color-accent-hover: #93C5FD;       /* blue-300 */
+  --color-accent-soft: #1E3A8A;        /* blue-900 — fondo oscuro saturado */
   --color-on-accent: #FFFFFF;
 
   /* ─── Superficies ─────────────────────────────────────────────── */
-  --color-bg: #0D0B1A;
-  --color-surface: #161228;
-  --color-surface-2: #1F1836;
-  --color-surface-strong: #1F1836;
-  --color-surface-sunken: #100D1F;
+  --color-bg: #0A1428;                  /* navy casi negro */
+  --color-surface: #0F1B33;             /* navy dark — cards */
+  --color-surface-2: #172846;           /* navy elevation */
+  --color-surface-strong: #172846;
+  --color-surface-sunken: #081020;      /* navy más profundo */
   --color-overlay: rgba(0, 0, 0, 0.7);
 
   /* ─── Fondo de la app (gradiente "aurora") ──────────────────────
@@ -226,7 +232,7 @@
   --app-bg-gradient:
     radial-gradient(
       ellipse 60% 50% at 80% 0%,
-      rgba(124, 92, 250, 0.28),
+      rgba(59, 130, 246, 0.32),
       transparent 60%
     ),
     radial-gradient(
@@ -236,21 +242,21 @@
     ),
     linear-gradient(
       180deg,
-      #1A0E47 0%,
+      #0F1A47 0%,
       #0F1F47 40%,
       #0E3A52 75%,
       #115E5A 100%
     );
 
   /* ─── Texto ───────────────────────────────────────────────────── */
-  --color-text: #EDE9FF;
+  --color-text: #E0EAFE;
   --color-text-muted: #9CA3AF;
   --color-text-subtle: #6B7280;
-  --color-text-inverse: #0D0B1A;
+  --color-text-inverse: #0A1428;
 
   /* ─── Borde ───────────────────────────────────────────────────── */
-  --color-border: #2A2040;
-  --color-border-strong: #3D3060;
+  --color-border: #1F3357;
+  --color-border-strong: #2D4675;
 
   /* ─── Estado ──────────────────────────────────────────────────── */
   --color-success: #4ADE80;
@@ -263,17 +269,17 @@
   --color-info-soft: #1E2447;
 
   /* ─── Focus ───────────────────────────────────────────────────── */
-  --color-focus-ring: rgba(155, 123, 251, 0.5);
+  --color-focus-ring: rgba(96, 165, 250, 0.5);
 
   /* ─── Tablas ──────────────────────────────────────────────────── */
-  --color-table-row-hover: #1F1836;
-  --color-table-header-bg: #161228;
+  --color-table-row-hover: #172846;
+  --color-table-header-bg: #0F1B33;
 
   /* ─── Sidebar ─────────────────────────────────────────────────── */
-  --color-sidebar-bg: #120F22;
-  --color-sidebar-active-bg: #9B7BFB;
+  --color-sidebar-bg: #0B1424;
+  --color-sidebar-active-bg: #60A5FA;
   --color-sidebar-active-fg: #FFFFFF;
-  --color-sidebar-hover-bg: #1F1836;
+  --color-sidebar-hover-bg: #172846;
 
   /* ─── KPI tonal palettes dark ─────────────────────────────────── */
   --kpi-ventas-bg: #1A3A28;
@@ -291,10 +297,10 @@
   --kpi-stock-text: #FCD34D;
   --kpi-stock-pill: #92400E;
 
-  --kpi-cxc-bg: #2A1B47;
-  --kpi-cxc-icon-bg: #9B7BFB;
-  --kpi-cxc-text: #C4B5FD;
-  --kpi-cxc-pill: #5B21B6;
+  --kpi-cxc-bg: #164E63;
+  --kpi-cxc-icon-bg: #06B6D4;
+  --kpi-cxc-text: #67E8F9;
+  --kpi-cxc-pill: #155E75;
 
   /* ─── Sombras dark ─────────────────────────────────────────────── */
   --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
