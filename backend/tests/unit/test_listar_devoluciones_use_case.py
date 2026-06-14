@@ -23,7 +23,7 @@ from erp.domain.entities.devolucion import Devolucion
 from erp.domain.entities.detalle_devolucion import DetalleDevolucion
 from erp.domain.exceptions import PermisoDenegadoError
 from erp.domain.utils.ids import new_uuid7
-from tests.fakes import FakeDevolucionRepo
+from tests.fakes import FakeDevolucionRepo, FakeUoW
 
 _AHORA = datetime(2026, 6, 6, 12, 0, tzinfo=timezone.utc)
 
@@ -61,7 +61,7 @@ def test_listar_devoluciones_happy_path() -> None:
         dev, dets = _make_devolucion()
         repo.guardar(dev, dets)
 
-    uc = ListarDevolucionesUseCase(devoluciones=repo)
+    uc = ListarDevolucionesUseCase(uow=FakeUoW(), devoluciones=repo)
     result = uc.execute(ListarDevolucionesCommand(contexto=_make_ctx()))
 
     assert isinstance(result, DevolucionesPagina)
@@ -81,7 +81,7 @@ def test_listar_devoluciones_filtro_sucursal() -> None:
     dev_b, dets_b = _make_devolucion(sucursal_id=suc_b)
     repo.guardar(dev_b, dets_b)
 
-    uc = ListarDevolucionesUseCase(devoluciones=repo)
+    uc = ListarDevolucionesUseCase(uow=FakeUoW(), devoluciones=repo)
     result = uc.execute(ListarDevolucionesCommand(contexto=_make_ctx(), sucursal_id=suc_a))
 
     assert result.total == 2
@@ -102,7 +102,7 @@ def test_listar_devoluciones_filtro_usuario() -> None:
     dev_x2, dets_x2 = _make_devolucion(usuario_id=usr_x)
     repo.guardar(dev_x2, dets_x2)
 
-    uc = ListarDevolucionesUseCase(devoluciones=repo)
+    uc = ListarDevolucionesUseCase(uow=FakeUoW(), devoluciones=repo)
     result = uc.execute(ListarDevolucionesCommand(contexto=_make_ctx(), usuario_id=usr_x))
 
     assert result.total == 2
@@ -111,7 +111,7 @@ def test_listar_devoluciones_filtro_usuario() -> None:
 def test_listar_devoluciones_sin_permiso_falla() -> None:
     """Sin permiso 'devolucion.consultar' → PermisoDenegadoError."""
     repo = FakeDevolucionRepo()
-    uc = ListarDevolucionesUseCase(devoluciones=repo)
+    uc = ListarDevolucionesUseCase(uow=FakeUoW(), devoluciones=repo)
 
     with pytest.raises(PermisoDenegadoError):
         uc.execute(ListarDevolucionesCommand(contexto=_make_ctx(con_permiso=False)))

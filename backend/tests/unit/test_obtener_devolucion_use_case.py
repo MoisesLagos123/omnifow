@@ -22,7 +22,7 @@ from erp.domain.entities.devolucion import Devolucion
 from erp.domain.entities.detalle_devolucion import DetalleDevolucion
 from erp.domain.exceptions import DevolucionNoEncontradaError, PermisoDenegadoError
 from erp.domain.utils.ids import new_uuid7
-from tests.fakes import FakeDevolucionRepo
+from tests.fakes import FakeDevolucionRepo, FakeUoW
 
 _AHORA = datetime(2026, 6, 6, 12, 0, tzinfo=timezone.utc)
 
@@ -62,7 +62,7 @@ def test_obtener_devolucion_happy_path() -> None:
     dev, dets = _make_devolucion()
     repo.guardar(dev, dets)
 
-    uc = ObtenerDevolucionUseCase(devoluciones=repo)
+    uc = ObtenerDevolucionUseCase(uow=FakeUoW(), devoluciones=repo)
     result = uc.execute(ObtenerDevolucionCommand(contexto=_make_ctx(), devolucion_id=dev.id))
 
     assert isinstance(result, DevolucionConDetalles)
@@ -72,7 +72,7 @@ def test_obtener_devolucion_happy_path() -> None:
 
 def test_obtener_devolucion_no_existe_falla() -> None:
     """Devolución inexistente → DevolucionNoEncontradaError."""
-    uc = ObtenerDevolucionUseCase(devoluciones=FakeDevolucionRepo())
+    uc = ObtenerDevolucionUseCase(uow=FakeUoW(), devoluciones=FakeDevolucionRepo())
 
     with pytest.raises(DevolucionNoEncontradaError):
         uc.execute(ObtenerDevolucionCommand(contexto=_make_ctx(), devolucion_id=new_uuid7()))
@@ -88,7 +88,7 @@ def test_obtener_devolucion_idor_sucursal_diferente_falla() -> None:
     repo.guardar(dev, dets)
 
     ctx_b = _make_ctx(sucursales_permitidas=frozenset({suc_b}))
-    uc = ObtenerDevolucionUseCase(devoluciones=repo)
+    uc = ObtenerDevolucionUseCase(uow=FakeUoW(), devoluciones=repo)
 
     with pytest.raises(PermisoDenegadoError):
         uc.execute(ObtenerDevolucionCommand(contexto=ctx_b, devolucion_id=dev.id))

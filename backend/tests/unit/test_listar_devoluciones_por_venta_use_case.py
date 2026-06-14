@@ -25,7 +25,7 @@ from erp.domain.entities.venta import Venta
 from erp.domain.exceptions import PermisoDenegadoError, RecursoNoEncontradoError
 from erp.domain.utils.ids import new_uuid7
 from erp.domain.value_objects.tipo_documento import TipoDocumento
-from tests.fakes import FakeDevolucionRepo, FakeVentaRepo
+from tests.fakes import FakeDevolucionRepo, FakeUoW, FakeVentaRepo
 
 _AHORA = datetime(2026, 6, 6, 12, 0, tzinfo=timezone.utc)
 
@@ -80,7 +80,7 @@ def test_listar_devoluciones_por_venta_happy_path() -> None:
     dev, dets = _make_devolucion(venta_id=venta.id, sucursal_id=sucursal_id)
     devoluciones.guardar(dev, dets)
 
-    uc = ListarDevolucionesPorVentaUseCase(ventas=ventas, devoluciones=devoluciones)
+    uc = ListarDevolucionesPorVentaUseCase(uow=FakeUoW(), ventas=ventas, devoluciones=devoluciones)
     result = uc.execute(
         ListarDevolucionesPorVentaCommand(contexto=_make_ctx(), venta_id=venta.id)
     )
@@ -92,7 +92,7 @@ def test_listar_devoluciones_por_venta_happy_path() -> None:
 def test_listar_devoluciones_por_venta_no_encontrada_falla() -> None:
     """Venta inexistente → RecursoNoEncontradoError."""
     uc = ListarDevolucionesPorVentaUseCase(
-        ventas=FakeVentaRepo(), devoluciones=FakeDevolucionRepo()
+        uow=FakeUoW(), ventas=FakeVentaRepo(), devoluciones=FakeDevolucionRepo()
     )
 
     with pytest.raises(RecursoNoEncontradoError):
@@ -114,7 +114,7 @@ def test_listar_devoluciones_por_venta_idor_falla() -> None:
 
     # Usuario solo puede operar en suc_b
     ctx_b = _make_ctx(sucursales_permitidas=frozenset({suc_b}))
-    uc = ListarDevolucionesPorVentaUseCase(ventas=ventas, devoluciones=devoluciones)
+    uc = ListarDevolucionesPorVentaUseCase(uow=FakeUoW(), ventas=ventas, devoluciones=devoluciones)
 
     with pytest.raises(PermisoDenegadoError):
         uc.execute(ListarDevolucionesPorVentaCommand(contexto=ctx_b, venta_id=venta.id))

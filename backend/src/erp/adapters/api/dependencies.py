@@ -2285,7 +2285,10 @@ def build_listar_devoluciones_uc(
     )
 
     uow = _build_uow(session_factory)
-    return ListarDevolucionesUseCase(devoluciones=SqlDevolucionRepository(uow))
+    return ListarDevolucionesUseCase(
+        uow=uow,
+        devoluciones=SqlDevolucionRepository(uow),
+    )
 
 
 def build_obtener_devolucion_uc(
@@ -2296,7 +2299,10 @@ def build_obtener_devolucion_uc(
     )
 
     uow = _build_uow(session_factory)
-    return ObtenerDevolucionUseCase(devoluciones=SqlDevolucionRepository(uow))
+    return ObtenerDevolucionUseCase(
+        uow=uow,
+        devoluciones=SqlDevolucionRepository(uow),
+    )
 
 
 def build_listar_devoluciones_por_venta_uc(
@@ -2309,6 +2315,7 @@ def build_listar_devoluciones_por_venta_uc(
 
     uow = _build_uow(session_factory)
     return ListarDevolucionesPorVentaUseCase(
+        uow=uow,
         ventas=SqlVentaRepository(uow),
         devoluciones=SqlDevolucionRepository(uow),
     )
