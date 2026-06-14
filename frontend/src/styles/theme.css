@@ -37,6 +37,26 @@
   --color-surface-sunken: #EEEBF8;
   --color-overlay: rgba(15, 23, 42, 0.5);
 
+  /* ─── Fondo de la app (gradiente "aurora") ──────────────────────
+     Dos capas:
+       1) Radial top-left: halo lavanda sutil que da profundidad y
+          rompe la planicie sin competir con el contenido.
+       2) Lineal vertical: lavanda muy claro → cyan/sky pálido.
+     Tonos cuidados para que las cards blancas y los textos
+     indigo (color-text) sigan teniendo contraste WCAG AA. */
+  --app-bg-gradient:
+    radial-gradient(
+      ellipse 80% 60% at 20% 0%,
+      rgba(155, 123, 251, 0.18),
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      #F5F3FF 0%,
+      #ECEAFE 35%,
+      #E0F2FE 100%
+    );
+
   /* ─── Texto ───────────────────────────────────────────────────── */
   --color-text: #1E1B4B;          /* indigo profundo, no negro puro */
   --color-text-muted: #6B7280;
@@ -195,6 +215,33 @@
   --color-surface-sunken: #100D1F;
   --color-overlay: rgba(0, 0, 0, 0.7);
 
+  /* ─── Fondo de la app (gradiente "aurora") ──────────────────────
+     Inspirado en aurora boreal: púrpura indigo → azul navy → teal.
+     Tres capas para riqueza sin saturar:
+       1) Radial top-right: halo violeta brand (acento de marca).
+       2) Radial bottom-left: halo cyan/teal sutil.
+       3) Lineal vertical: indigo profundo → azul navy → teal oscuro.
+     Las superficies (cards) usan --color-surface sólido para
+     destacar sobre el gradiente — no se pierde la jerarquía. */
+  --app-bg-gradient:
+    radial-gradient(
+      ellipse 60% 50% at 80% 0%,
+      rgba(124, 92, 250, 0.28),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 70% 60% at 10% 100%,
+      rgba(20, 184, 166, 0.22),
+      transparent 65%
+    ),
+    linear-gradient(
+      180deg,
+      #1A0E47 0%,
+      #0F1F47 40%,
+      #0E3A52 75%,
+      #115E5A 100%
+    );
+
   /* ─── Texto ───────────────────────────────────────────────────── */
   --color-text: #EDE9FF;
   --color-text-muted: #9CA3AF;
@@ -291,15 +338,17 @@ body {
   font-size: var(--font-base);
   line-height: var(--line-normal);
   color: var(--color-text);
-  /* Fondo bitono degradado — diagonal sutil 135° desde el bg lavanda
-     hacia un tono ligeramente más profundo (surface-sunken). */
-  background: linear-gradient(
-    135deg,
-    var(--color-bg) 0%,
-    var(--color-surface-sunken) 100%
-  );
+  /* Fondo "aurora" multi-capa definido por tema en --app-bg-gradient.
+     Cada modo tiene su paleta propia (lavanda+cyan en light, indigo+
+     teal en dark). El gradiente es fijo (no scrollea) para mantener
+     la sensación de "lienzo" continuo. */
+  background: var(--app-bg-gradient);
   background-attachment: fixed;
   background-repeat: no-repeat;
+  background-size: cover;
+  /* Color sólido de fallback para zonas que extiendan más allá del
+     gradient (raro pero defensivo: print, partial render). */
+  background-color: var(--color-bg);
   min-height: 100vh;
   /* Anti-scroll-x: refuerzo del overflow-x:hidden del html. */
   overflow-x: hidden;
