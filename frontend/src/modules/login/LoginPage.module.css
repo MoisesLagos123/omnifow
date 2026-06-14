@@ -72,12 +72,36 @@
   flex-shrink: 0;
 }
 
+/* Wordmark OMNIFLOW — gradient text con la misma paleta que el saludo
+   del Home (azul → indigo → violet → pink → naranja). Display size
+   para que el branding tenga peso al primer vistazo de la app.
+   Fallback `color` antes del clip para browsers sin soporte. */
 .logoText {
-  font-size: var(--font-xl);
-  font-weight: 700;
-  color: var(--color-text);
-  letter-spacing: -0.02em;
+  font-size: var(--font-3xl);          /* 30px, era 20px */
+  font-weight: 800;                     /* era 700 */
+  letter-spacing: -0.025em;
   line-height: var(--line-tight);
+  color: var(--color-text);              /* fallback */
+  background: linear-gradient(
+    95deg,
+    #2563EB 0%,       /* azul brand */
+    #4F46E5 25%,      /* indigo */
+    #7C3AED 50%,      /* violet */
+    #EC4899 75%,      /* pink */
+    #F97316 100%      /* naranja */
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+@media (forced-colors: active) {
+  .logoText {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--color-text);
+  }
 }
 
 .title {
