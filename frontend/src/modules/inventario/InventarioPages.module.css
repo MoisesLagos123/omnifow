@@ -387,6 +387,76 @@
   flex-wrap: wrap;
 }
 
+/* ── Reflow de itemsTable en mobile ────────────────────────────────
+   En desktop la tabla es horizontal (producto / cantidad / costo /
+   acciones). En mobile las columnas no caben — antes se cortaban a
+   la derecha rompiendo el layout. Aquí convertimos cada <tr> en una
+   "card stack": las celdas pasan a apilarse verticalmente, el thead
+   se oculta, y cada celda obtiene su propio label vía ::before con
+   el texto del header de la columna. Sin tocar el JSX. */
+@media (max-width: 768px) {
+  .itemsTable,
+  .itemsTable tbody,
+  .itemsTable tr,
+  .itemsTable td {
+    display: block;
+    width: 100%;
+  }
+  .itemsTable thead {
+    /* No tiene sentido visual en stack vertical. Los labels los
+       reintroducimos por celda vía ::before. */
+    display: none;
+  }
+  .itemsTable tr {
+    margin-bottom: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    background: var(--color-surface-2);
+    /* Evita que celdas con inputs largos empujen al padre. */
+    min-width: 0;
+  }
+  .itemsTable tr:last-child {
+    margin-bottom: 0;
+  }
+  .itemsTable td {
+    padding: var(--space-2) 0;
+    border-bottom: none;
+    min-width: 0;
+  }
+  /* Labels por columna — inyectados con pseudo-elemento para no
+     duplicar texto en desktop (donde el thead cumple ese rol). */
+  .itemsTable td:nth-child(1)::before {
+    content: "Producto";
+  }
+  .itemsTable td:nth-child(2)::before {
+    content: "Cantidad";
+  }
+  .itemsTable td:nth-child(3)::before {
+    content: "Costo unitario";
+  }
+  .itemsTable td:not(:last-child)::before {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-1);
+  }
+  /* Última celda (acciones — botón "Quitar"): alinear a la derecha
+     y sin pseudo-label. */
+  .itemsTable td:last-child {
+    text-align: right;
+    padding-top: var(--space-3);
+  }
+  /* Fila secundaria de lote (perecibles) — el <td colSpan={4}> con
+     loteFields. Resetea el ancho 100% que aplicamos. */
+  .itemsTable td[colspan] {
+    width: 100%;
+  }
+}
+
 /* ── Summary footer (totales) ───────────────────────────────────── */
 .summaryFoot {
   display: flex;
