@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OMNIFLOW · Seguridad y RBAC</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="./index.html" class="brand-mark">
+      <span class="brand-mark-icon">OF</span>
+      <span class="brand-mark-text">OMNIFLOW</span>
+    </a>
+    <nav class="topnav">
+      <a href="./index.html">Inicio</a>
+      <a href="./modulos.html">Módulos</a>
+      <a href="./casos-de-uso.html">Casos de uso</a>
+      <a href="./seguridad.html" class="active">Seguridad</a>
+      <a href="./changelog.html">Changelog</a>
+      <a href="/">Acceder a la app →</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <h1>Seguridad y RBAC</h1>
+    <p class="lead">
+      Modelo de seguridad basado en perfiles configurables, permisos atómicos,
+      JWT con rotación y audit log inmutable.
+    </p>
+  </section>
+
+  <section>
+    <h2>1. Modelo RBAC (Role-Based Access Control)</h2>
+    <p>
+      <strong>Principio fundamental:</strong> NO existen usuarios genéricos compartidos.
+      Cada persona física que opera el sistema tiene su propia cuenta nominativa,
+      con RUT y email únicos, asociada a uno o más <strong>Perfiles</strong>.
+    </p>
+
+    <h3>1.1 Conceptos</h3>
+    <table>
+      <thead>
+        <tr><th>Concepto</th><th>Descripción</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Usuario</strong></td>
+          <td>Persona física. Trazable e individual. Email + RUT únicos.</td>
+        </tr>
+        <tr>
+          <td><strong>Perfil</strong></td>
+          <td>Agrupación de permisos que representa una responsabilidad organizacional. Configurable, no hardcoded.</td>
+        </tr>
+        <tr>
+          <td><strong>Permiso</strong></td>
+          <td>Acción atómica sobre un recurso. Ej. <code>venta.crear</code>, <code>precio.modificar</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>Sucursal asignada</strong></td>
+          <td>Un usuario puede estar restringido a una o varias sucursales. Sin asignación, no opera en ninguna.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>1.2 Cardinalidades</h3>
+    <ul class="feature-list">
+      <li>Usuario N—M Perfil (una persona puede tener varios perfiles, ej. "Vendedor" + "Cajero")</li>
+      <li>Perfil N—M Permiso (cada perfil tiene un conjunto de permisos atómicos)</li>
+      <li>Usuario N—M Sucursal (restricción explícita de dónde puede operar)</li>
+    </ul>
+
+    <h3>1.3 Perfiles sugeridos (configurables)</h3>
+    <table>
+      <thead>
+        <tr><th>Perfil</th><th>Permisos típicos</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Vendedor / Cajero</strong></td>
+          <td><code>venta.crear</code> · <code>pago.registrar</code> · <code>stock.consultar</code> · <code>cliente.consultar</code> · <code>caja.operar</code></td>
+        </tr>
+        <tr>
+          <td><strong>Reponedor</strong></td>
+          <td><code>inventario.ajustar</code> · <code>mercaderia.recepcionar</code> · <code>stock.consultar</code></td>
+        </tr>
+        <tr>
+          <td><strong>Jefe de Sucursal</strong></td>
+          <td>Todo lo anterior + <code>caja.cerrar</code> · <code>devolucion.autorizar</code> · <code>descuento.aprobar</code></td>
+        </tr>
+        <tr>
+          <td><strong>Contador</strong></td>
+          <td><code>finanzas.ver</code> · <code>reportes.ver</code> · <code>cxc.gestionar</code> · <code>cxp.gestionar</code></td>
+        </tr>
+        <tr>
+          <td><strong>Administrador</strong></td>
+          <td><code>precio.gestionar</code> · <code>producto.gestionar</code> · <code>proveedor.gestionar</code> · <code>reportes.ver</code></td>
+        </tr>
+        <tr>
+          <td><strong>Sysadmin</strong> <span class="badge danger">Inmutable</span></td>
+          <td>TODOS los permisos del sistema. Perfil protegido: no se puede editar ni desactivar. Cualquier permiso nuevo se asigna automáticamente.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>1.4 Verificación en defensa en profundidad</h3>
+    <p>
+      Cada Use Case verifica el permiso requerido <strong>independientemente</strong>
+      de lo que muestre la UI. Aunque alguien encuentre cómo llegar a una pantalla
+      sin pasar por el menú, el backend rechaza la operación.
+    </p>
+    <pre>@requires_permission("venta.anular")
+def execute(self, cmd: AnularVentaCommand) -> AnularVentaResult:
+    ...</pre>
+  </section>
+
+  <section>
+    <h2>2. Autenticación: JWT con refresh</h2>
+    <p>
+      Esquema dual de tokens — access corto + refresh largo. La rotación
+      detecta replay attacks y la revocación es inmediata server-side.
+    </p>
+
+    <h3>2.1 Características</h3>
+    <ul class="feature-list">
+      <li>Algoritmo <strong>RS256</strong> (par de claves rotables). Firma asimétrica.</li>
+      <li>Access token TTL: 15 minutos. En header <code>Authorization: Bearer</code>.</li>
+      <li>Refresh token TTL: 7 días. Persistido en DB con jti.</li>
+      <li><strong>Rotación</strong>: cada vez que se usa un refresh, se emite uno nuevo y se invalida el anterior.</li>
+      <li><strong>Replay detection</strong>: si llega un refresh ya revocado → todos los tokens del usuario se invalidan (potencial robo).</li>
+      <li>Logout server-side: <code>POST /auth/logout</code> marca el refresh como revocado.</li>
+      <li>Cambio de contraseña: <strong>revoca TODOS los refresh tokens del usuario</strong> (forzar re-login en otros dispositivos).</li>
+      <li>Desactivación de usuario: <strong>revoca refresh tokens</strong> inmediatamente (sin esto un "usuario desactivado" podría operar 7 días).</li>
+      <li>Frontend tiene interceptor de 401 que refresca transparentemente y reintenta el request fallido (single-flight pattern).</li>
+    </ul>
+
+    <h3>2.2 Política de contraseñas</h3>
+    <ul class="feature-list">
+      <li><strong>Argon2id</strong> para hashing (memory-hard, resistente a GPU/ASIC).</li>
+      <li>Mínimo 12 caracteres.</li>
+      <li>Validación contra lista de contraseñas comunes (HIBP / pwned).</li>
+      <li>Bloqueo temporal tras N intentos fallidos (rate limiting).</li>
+      <li>Anti shoulder-surfing en POS: campos password con <code>autoComplete</code> bloqueado y copy/paste/cut bloqueados (contextos multi-usuario en caja).</li>
+    </ul>
+
+    <h3>2.3 Reset por email</h3>
+    <ul class="feature-list">
+      <li>Usuario solicita reset con su email.</li>
+      <li>Backend genera <code>PasswordResetToken</code> de un solo uso, válido 1 hora.</li>
+      <li>Email enviado por SMTP (Resend o Gmail configurable).</li>
+      <li>Link al frontend con token en URL → pantalla de reset.</li>
+      <li>Al usar el token, se invalida + se hashea la nueva password.</li>
+      <li>Confirmación visual (no se filtra si el email existía o no — anti enumeración).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>3. Audit Log inmutable</h2>
+    <p>
+      Bitácora completa de acciones sensibles. No se borra, no se edita.
+      Retención mínima 1 año por exigencia financiera.
+    </p>
+
+    <h3>3.1 Qué se audita</h3>
+    <ul class="feature-list">
+      <li>Login (success / fail con razón)</li>
+      <li>Logout (server-side)</li>
+      <li>Cambio de password (sin guardar la password)</li>
+      <li>Reset de password (con email del solicitante)</li>
+      <li>Procesar venta (con folio, monto, cliente)</li>
+      <li>Anular venta / devolución (con motivo)</li>
+      <li>Cambios de precio (con valor anterior y nuevo)</li>
+      <li>Ajustes de inventario manual (con motivo)</li>
+      <li>Apertura / cierre de sesión de caja</li>
+      <li>Cambios RBAC: alta/baja de usuario, perfil, asignación de permisos</li>
+      <li>Cambios de configuración global</li>
+    </ul>
+
+    <h3>3.2 Datos persistidos por evento</h3>
+    <table>
+      <thead>
+        <tr><th>Campo</th><th>Descripción</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>usuario_id</code></td><td>Quién hizo la acción</td></tr>
+        <tr><td><code>ip</code></td><td>Dirección IP (IPv4 o IPv6)</td></tr>
+        <tr><td><code>user_agent</code></td><td>Navegador / cliente</td></tr>
+        <tr><td><code>accion</code></td><td>Código del evento (ej. <code>venta.procesar</code>)</td></tr>
+        <tr><td><code>resultado</code></td><td>OK / FALLO</td></tr>
+        <tr><td><code>recurso_tipo</code></td><td>Tipo de entidad (Venta, Usuario, etc.)</td></tr>
+        <tr><td><code>recurso_id</code></td><td>UUID del recurso afectado</td></tr>
+        <tr><td><code>before</code></td><td>JSON del estado anterior (cuando aplica)</td></tr>
+        <tr><td><code>after</code></td><td>JSON del estado nuevo (cuando aplica)</td></tr>
+        <tr><td><code>timestamp</code></td><td>UTC</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.3 Visualización</h3>
+    <p>
+      Administración → Auditoría. Tabla filtrable por usuario, fecha, acción.
+      Solo accesible con permiso <code>audit.ver</code> (típicamente Sysadmin / Contador).
+    </p>
+  </section>
+
+  <section>
+    <h2>4. Validación de entrada</h2>
+    <p>
+      Toda entrada se valida en la frontera (DTO Pydantic). Coerción explícita
+      de tipos. Rechazo por defecto (allowlist sobre denylist).
+    </p>
+
+    <h3>4.1 Validaciones críticas</h3>
+    <ul class="feature-list">
+      <li><strong>RUT</strong> — módulo 11 verificado (no aceptamos RUTs inválidos)</li>
+      <li><strong>Email</strong> — formato + longitud máxima</li>
+      <li><strong>Monto CLP</strong> — entero positivo, sin decimales</li>
+      <li><strong>UUID</strong> — formato v7 verificado</li>
+      <li><strong>Fecha</strong> — ISO 8601, UTC en DB</li>
+      <li><strong>Cantidad</strong> — Decimal(14,3), no negativa</li>
+      <li><strong>Idempotency-Key</strong> — header obligatorio en mutaciones críticas (POST venta, devolución, etc.)</li>
+    </ul>
+
+    <h3>4.2 Defensa OWASP</h3>
+    <ul class="feature-list">
+      <li><strong>SQLi</strong>: queries parametrizadas (SQLAlchemy + driver psycopg). Nunca f-strings ni concatenación SQL.</li>
+      <li><strong>XSS</strong>: React escapa por defecto. <code>dangerouslySetInnerHTML</code> está prohibido.</li>
+      <li><strong>CSRF</strong>: cookies HttpOnly + SameSite=Strict para refresh.</li>
+      <li><strong>IDOR</strong>: cada use case scope-ea queries por sucursales permitidas del contexto. Sin sucursal explícita y sin pertenecer a la del recurso → 403.</li>
+      <li><strong>Mass assignment</strong>: DTOs Pydantic con campos explícitos. Nada de <code>**body</code> al constructor.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>5. Transporte</h2>
+    <ul class="feature-list">
+      <li>HTTPS obligatorio en producción (HSTS habilitado).</li>
+      <li>Headers de seguridad: <code>Content-Security-Policy</code>, <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: DENY</code>, <code>Referrer-Policy: strict-origin-when-cross-origin</code>.</li>
+      <li>CORS restrictivo: solo se permiten orígenes en allowlist (configurable por env).</li>
+      <li>Rate limiting por IP en endpoints sensibles: login, password reset.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>6. Datos sensibles y secretos</h2>
+    <ul class="feature-list">
+      <li><code>.env</code> en <code>.gitignore</code>. Plantilla <code>.env.example</code> sin valores reales.</li>
+      <li>Credenciales nunca en código ni en logs.</li>
+      <li>Hashes Argon2id de contraseñas. Texto plano nunca.</li>
+      <li>Tokens JWT firmados, no encriptados — no llevan datos sensibles. RUT, email, permisos en el payload.</li>
+      <li>RUT y datos PII guardados como están (Chile no requiere encriptación de RUT, pero sí integridad).</li>
+      <li>Backups automáticos cifrados (Neon Postgres encrypted at rest).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>7. Sysadmin inmutable</h2>
+    <p>
+      El perfil <strong>Sysadmin</strong> tiene protecciones especiales para evitar
+      lock-out accidental del sistema:
+    </p>
+    <ul class="feature-list">
+      <li>Marcado <code>es_sistema=true</code> en DB → no se puede editar nombre</li>
+      <li>No se puede desactivar</li>
+      <li>No se le pueden quitar permisos manualmente</li>
+      <li>Al sembrar nuevos permisos, Sysadmin los recibe automáticamente</li>
+      <li>UI: badge "Sistema" en su fila, botones de edición/desactivación deshabilitados</li>
+      <li>Excepción <code>PerfilSistemaInmutableError</code> en backend en 4 use cases (editar, desactivar, reactivar, asignar permisos)</li>
+    </ul>
+    <div class="card warning">
+      <strong>Por qué importa:</strong> si alguien con intent maligno (o por error)
+      desactiva el último Sysadmin, el sistema queda inoperable. Esta inmutabilidad
+      es un guard-rail crítico.
+    </div>
+  </section>
+
+  <section>
+    <h2>8. Pruebas de seguridad</h2>
+    <ul class="feature-list">
+      <li><strong>616 tests backend</strong>: lógica de autorización en cada use case (acceso permitido vs. denegado).</li>
+      <li><strong>266 tests frontend</strong>: rutas protegidas con RequireAuth y RequirePermission.</li>
+      <li>Tests específicos de IDOR (acceso a recursos de otra sucursal → 403).</li>
+      <li>Pen-test interno antes de cada release mayor.</li>
+      <li>OWASP ASVS nivel 2 como referencia mínima.</li>
+      <li>Mypy strict en todo el backend (0 errores) → tipo-safety previene clase entera de bugs.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer class="docs-footer">
+  <p>
+    OMNIFLOW · Documentación pública ·
+    <a href="./index.html">Inicio</a> ·
+    <a href="./modulos.html">Módulos</a> ·
+    <a href="./changelog.html">Changelog</a>
+  </p>
+</footer>
+
+</body>
+</html>

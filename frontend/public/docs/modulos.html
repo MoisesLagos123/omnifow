@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OMNIFLOW · Módulos</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="./index.html" class="brand-mark">
+      <span class="brand-mark-icon">OF</span>
+      <span class="brand-mark-text">OMNIFLOW</span>
+    </a>
+    <nav class="topnav">
+      <a href="./index.html">Inicio</a>
+      <a href="./modulos.html" class="active">Módulos</a>
+      <a href="./casos-de-uso.html">Casos de uso</a>
+      <a href="./seguridad.html">Seguridad</a>
+      <a href="./changelog.html">Changelog</a>
+      <a href="/">Acceder a la app →</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <h1>Módulos del sistema</h1>
+    <p class="lead">
+      12 módulos en operación. Cada uno detalla sus funcionalidades,
+      permisos asociados y entidades de dominio.
+    </p>
+  </section>
+
+  <!-- ────────── AUTENTICACIÓN ────────── -->
+  <section>
+    <h2>1. Autenticación</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Login, refresh y password</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        JWT firmado con RS256 (par de claves), access tokens cortos (15 min)
+        y refresh tokens largos (7 días) con rotación y replay detection.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>Login con email + password (Argon2id)</li>
+        <li>Refresh token con rotación automática + revocación al cambiar password</li>
+        <li>Logout server-side (invalida refresh)</li>
+        <li>Cambiar contraseña con validación de actual</li>
+        <li>Solicitar reset por email (envío SMTP via Resend / Gmail)</li>
+        <li>Reset password con token de un solo uso</li>
+        <li>Bloqueo temporal por intentos fallidos (rate limit)</li>
+        <li>Interceptor HTTP de 401 con refresh transparente en frontend</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p><code>Usuario</code> · <code>RefreshToken</code> · <code>PasswordResetToken</code></p>
+      <h4>Permisos requeridos</h4>
+      <p><code>auth.login</code> es público. El resto de operaciones requieren JWT válido.</p>
+    </div>
+  </section>
+
+  <!-- ────────── ADMINISTRACIÓN ────────── -->
+  <section>
+    <h2>2. Administración</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Usuarios, perfiles, permisos y audit log</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Identidad y seguridad. Perfiles RBAC configurables (no hardcoded),
+        permisos atómicos, restricción multi-sucursal y audit log inmutable.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>CRUD de Usuario (alta, edición, desactivación — nunca borrado físico)</li>
+        <li>CRUD de Perfil (Sysadmin, Contador, Vendedor, etc. — configurables)</li>
+        <li>Asignar permisos a perfil (M:N)</li>
+        <li>Asignar perfiles a usuario (M:N)</li>
+        <li>Restringir usuario a sucursales específicas</li>
+        <li>Listado de permisos disponibles</li>
+        <li>Visualización del audit log filtrable</li>
+        <li>Perfil <strong>Sysadmin inmutable</strong>: protegido contra ediciones</li>
+        <li>Al desactivar usuario, se revocan todos sus refresh tokens (seguridad)</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        <code>Usuario</code> · <code>Perfil</code> · <code>Permiso</code> ·
+        <code>UsuarioPerfil</code> · <code>PerfilPermiso</code> ·
+        <code>UsuarioSucursal</code> · <code>AuditLog</code>
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>usuario.gestionar</code> · <code>perfil.gestionar</code> ·
+        <code>permiso.ver</code> · <code>audit.ver</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── SUCURSALES Y CAJAS ────────── -->
+  <section>
+    <h2>3. Sucursales y Cajas</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Estructura organizacional multi-sucursal</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Cada sucursal tiene RUT emisor propio, dirección, cajas físicas y
+        rangos de folios SII independientes. Diseñado para N sucursales
+        desde el día 1.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>CRUD de Sucursal (código, nombre, RUT emisor, dirección)</li>
+        <li>CRUD de Caja por sucursal</li>
+        <li>Activación/desactivación con preservación de historial</li>
+        <li>Gestión de Rangos de Folios SII por sucursal y tipo de documento</li>
+        <li>Tab dedicado de Folios en el detalle de Sucursal</li>
+        <li>Validación de no-solapamiento de rangos</li>
+        <li>Asignación pesimista de folios (lock SELECT FOR UPDATE) — evita duplicados en concurrencia</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        <code>Sucursal</code> · <code>Caja</code> · <code>RangoFolios</code>
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>sucursal.gestionar</code> · <code>caja.gestionar</code> ·
+        <code>folio.gestionar</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── INVENTARIO ────────── -->
+  <section>
+    <h2>4. Inventario</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Productos, categorías, bodegas, stock y lotes</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Control completo de catálogo y stock con costo promedio ponderado
+        y soporte opt-in de vencimiento por lote (FEFO en egresos).
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>CRUD de Categoría, Bodega y Producto</li>
+        <li>Producto con SKU, nombre, precio venta, IVA, control de vencimiento opt-in</li>
+        <li>Días de alerta de vencimiento configurables por producto u override global</li>
+        <li>Stock agregado por (producto, bodega) con costo promedio ponderado</li>
+        <li>Lotes individuales por (producto, bodega) cuando aplica vencimiento</li>
+        <li>Egreso FEFO automático en ventas (First Expired First Out)</li>
+        <li>Ajuste manual de stock con motivo obligatorio + audit</li>
+        <li>Recepción de mercadería con creación/actualización de lotes</li>
+        <li>Transferencia entre bodegas</li>
+        <li>Movimientos de inventario filtables (entrada / salida / ajuste / transferencia)</li>
+        <li>Cambio de precio con historial</li>
+        <li>Reporte "Por vencer" con valor en riesgo (vencidos / críticos ≤7d / por vencer ≤N)</li>
+        <li>Consulta de stock disponible</li>
+        <li>Invariante: SUM(lotes vivos) == stock.cantidad para perecibles</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        <code>Producto</code> · <code>Categoria</code> · <code>Bodega</code> ·
+        <code>Stock</code> · <code>LoteInventario</code> · <code>MovInventario</code> ·
+        <code>ReservaStock</code>
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>producto.gestionar</code> · <code>precio.gestionar</code> ·
+        <code>inventario.ajustar</code> · <code>mercaderia.recepcionar</code> ·
+        <code>stock.consultar</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── POS / VENTAS ────────── -->
+  <section>
+    <h2>5. POS (Punto de Venta)</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Venta atómica con pagos mixtos</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Procesa una venta completa en una sola transacción atómica: descuenta
+        stock, registra pagos, emite documento tributario, genera CxC si es
+        a crédito y publica audit log. Si cualquier paso falla, rollback total.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>Búsqueda de productos por SKU, código de barras o nombre (debounced)</li>
+        <li>Carrito con cantidades, precios, descuentos por línea</li>
+        <li>Cliente identificado por RUT (opcional para boleta, requerido para factura/crédito)</li>
+        <li>Pagos mixtos: N pagos por venta (efectivo + tarjeta + transferencia)</li>
+        <li>Pago parcial al contado + saldo a crédito → genera CxC con vencimiento</li>
+        <li>Validación: suma de pagos = total exacto</li>
+        <li>Idempotency-Key obligatorio para operaciones mutables críticas</li>
+        <li>Reserva folio + emite boleta/factura</li>
+        <li>Reverso de pagos en efectivo → genera MovimientoCaja en sesión activa</li>
+        <li>Imprimir comprobante térmico 80mm (boleta/factura)</li>
+        <li>Anular venta (con motivo) → emite NC + reversa stock + reversa caja</li>
+        <li>Devolver items parcialmente → NC parcial + reversa de cantidades seleccionadas</li>
+        <li>Listado de ventas con folio + folios de NCs asociadas (cards en mobile)</li>
+        <li>Atajos de teclado: F2 buscar, F4 confirmar</li>
+        <li>Badge de estado: Confirmada / Anulación parcial / Anulación completa</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        <code>Venta</code> · <code>DetalleVenta</code> · <code>Pago</code> ·
+        <code>DocumentoTributario</code>
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>venta.crear</code> · <code>venta.consultar</code> ·
+        <code>venta.anular</code> · <code>pago.registrar</code> ·
+        <code>descuento.aprobar</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── CAJA ────────── -->
+  <section>
+    <h2>6. Caja</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Apertura, movimientos y cierre con arqueo</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Ciclo completo de una sesión de caja por turno, con desglose por método
+        de pago en el cierre.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>Abrir sesión con monto inicial declarado por el operador</li>
+        <li>Registrar movimientos durante el turno: ingresos varios (cobros no-venta), egresos (gastos, retiros, devoluciones)</li>
+        <li>Cierre con arqueo: declarar montos finales por método de pago</li>
+        <li>Cálculo automático de diferencia (esperado vs declarado)</li>
+        <li>Solo una sesión ABIERTA por caja a la vez (constraint en DB)</li>
+        <li>Historial de sesiones cerradas con detalles</li>
+        <li>Reporte por sesión con desglose</li>
+        <li>Ventas en efectivo generan MovimientoCaja automáticamente en sesión activa</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        <code>SesionCaja</code> · <code>MovimientoCaja</code>
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>caja.operar</code> · <code>caja.cerrar</code> · <code>caja.consultar</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── CLIENTES ────────── -->
+  <section>
+    <h2>7. Clientes</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Maestro de clientes</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Personas físicas o jurídicas que pueden recibir documentos tributarios
+        y comprar a crédito. RUT como identificador estable.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>CRUD con RUT validado por módulo 11</li>
+        <li>Razón social, giro, comuna, región, contacto</li>
+        <li>Activación/desactivación (soft delete)</li>
+        <li>Búsqueda en POS por RUT con autocompletado</li>
+        <li>Vista de detalle con estado de cuenta CxC vinculado</li>
+        <li>Historial de ventas del cliente</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p><code>Cliente</code></p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>cliente.consultar</code> · <code>cliente.gestionar</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── COMPRAS / PROVEEDORES ────────── -->
+  <section>
+    <h2>8. Compras y Proveedores</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Ciclo de compra a proveedores</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Registro de compras que ingresa mercadería al stock y crea CxP automáticamente.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>CRUD de Proveedor (RUT, razón social, giro, contacto)</li>
+        <li>Registrar compra con detalles (productos, cantidades, costos)</li>
+        <li>Recepción genera MovInventario de entrada + actualiza costo promedio ponderado</li>
+        <li>Genera CxP con fecha de vencimiento</li>
+        <li>Historial de compras filtrable por proveedor, fecha, estado</li>
+        <li>Detalle de compra con productos recibidos</li>
+        <li>Anulación de compra con reverso de stock + CxP</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        <code>Proveedor</code> · <code>Compra</code> · <code>DetalleCompra</code>
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>proveedor.gestionar</code> · <code>compra.crear</code> ·
+        <code>compra.consultar</code> · <code>compra.anular</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── CXC ────────── -->
+  <section>
+    <h2>9. Cuentas por Cobrar (CxC)</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Saldos de clientes por ventas a crédito</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Auto-generado al confirmar venta con componente a crédito. Soporta
+        abonos parciales y consulta por cliente.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>Auto-creación al confirmar venta con monto_credito > 0</li>
+        <li>Fecha de vencimiento configurable</li>
+        <li>Registrar abono (parcial o total) con método de pago</li>
+        <li>Estado: pendiente / parcialmente pagada / pagada / vencida</li>
+        <li>Listado filtrable por cliente, estado, vencimiento</li>
+        <li>Detalle con historial de abonos</li>
+        <li>Estado de cuenta por cliente</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        <code>CuentaPorCobrar</code> · <code>AbonoCxC</code>
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>cxc.consultar</code> · <code>cxc.gestionar</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── CXP ────────── -->
+  <section>
+    <h2>10. Cuentas por Pagar (CxP)</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Saldos pendientes con proveedores</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Espejo de CxC pero para el lado de proveedores. Auto-generado al
+        registrar una compra.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>Auto-creación al registrar compra</li>
+        <li>Registrar abono al proveedor con método de pago</li>
+        <li>Listado filtrable por proveedor, estado, vencimiento</li>
+        <li>Detalle con historial de abonos</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        <code>CuentaPorPagar</code> · <code>AbonoCxP</code>
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>cxp.consultar</code> · <code>cxp.gestionar</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── DEVOLUCIONES ────────── -->
+  <section>
+    <h2>11. Devoluciones</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Devolución parcial o total con NC automática</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Una venta puede tener múltiples devoluciones parciales hasta cubrir
+        el total. El sistema emite Nota de Crédito por cada devolución.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>Selección de items y cantidades a devolver (no más de lo vendido)</li>
+        <li>Motivo obligatorio</li>
+        <li>Emite NC con folio del rango SII de la sucursal</li>
+        <li>Reversa stock por cada item (al lote original si aplica)</li>
+        <li>Reversa pago según método: efectivo → egreso de caja; tarjeta → registro contable</li>
+        <li>Si todos los items fueron devueltos → venta pasa a ANULADA</li>
+        <li>"Anular venta" es atajo que devuelve todo (100%)</li>
+        <li>Una venta puede tener múltiples devoluciones parciales</li>
+        <li>Modal automático de impresión de NC al confirmar</li>
+        <li>Listado global de devoluciones filtrable por fecha</li>
+        <li>Detalle con productos devueltos + botón "Imprimir NC"</li>
+        <li>Comprobante térmico 80mm de NC con detalle</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        <code>Devolucion</code> · <code>DetalleDevolucion</code>
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>devolucion.crear</code> · <code>devolucion.consultar</code> ·
+        <code>devolucion.autorizar</code> · <code>venta.anular</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── DOCUMENTOS TRIBUTARIOS ────────── -->
+  <section>
+    <h2>12. Documentos Tributarios</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Boleta, Factura, NC, ND y Guía de Despacho</h3>
+        <span class="badge success">Operativo (sin envío SII)</span>
+      </div>
+      <p class="module-desc">
+        Catálogo de los 5 tipos de documento SII chileno. Folios reservados
+        por rango por sucursal. Emisión interna — la integración con el
+        SII real está pendiente (ver <a href="/docs/ARQUITECTURA_SII.md">arquitectura SII</a>).
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>Boleta — emitida con la venta al consumidor final</li>
+        <li>Factura — emitida con la venta a contribuyentes</li>
+        <li>Nota de Crédito (NC) — emitida en devoluciones / anulaciones</li>
+        <li>Nota de Débito (ND) — emitida para recargos posteriores con motivo</li>
+        <li>Guía de Despacho — emitida para traslado de mercadería con detalles de envío</li>
+        <li>Listado global filtrable por tipo, sucursal, fecha, folio, RUT receptor</li>
+        <li>Detalle con productos, totales, partes (emisor / receptor)</li>
+        <li>Para NC/ND/Guía: link al documento referenciado</li>
+        <li>Reimprimir comprobante térmico 80mm</li>
+        <li>Campo estado_sii (PENDIENTE/ENVIADO/ACEPTADO/RECHAZADO/ANULADO) — listo para integración futura</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        <code>DocumentoTributario</code> · <code>NotaDebitoMeta</code> ·
+        <code>GuiaDespacho</code> · <code>DetalleGuia</code>
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>documento.consultar</code> · <code>guia.crear</code> ·
+        <code>nota_debito.crear</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── REPORTES ────────── -->
+  <section>
+    <h2>13. Reportes Financieros</h2>
+    <div class="module">
+      <div class="module-header">
+        <h3>Resumen del día y análisis de productos</h3>
+        <span class="badge success">Operativo</span>
+      </div>
+      <p class="module-desc">
+        Dashboard ejecutivo con métricas financieras en tiempo real.
+      </p>
+      <h4>Funcionalidades</h4>
+      <ul class="feature-list">
+        <li>Resumen financiero: ingresos por ventas, IVA débito, IVA crédito, costo de ventas, utilidad bruta</li>
+        <li>Filtros por sucursal y rango de fechas</li>
+        <li>Top productos vendidos (por unidades y por valor)</li>
+        <li>KPIs en home: ventas hoy, tickets emitidos, stock crítico, CxC pendiente</li>
+        <li>Datos en tiempo real desde el backend (no caché)</li>
+      </ul>
+      <h4>Entidades</h4>
+      <p>
+        Reportes son cálculos sin entidades propias (queries agregadas sobre Venta + DetalleVenta).
+      </p>
+      <h4>Permisos requeridos</h4>
+      <p>
+        <code>reportes.ver</code> · <code>finanzas.ver</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ────────── PRÓXIMO ────────── -->
+  <section>
+    <h2>En evaluación</h2>
+    <div class="module" style="border-left-color: var(--warning);">
+      <div class="module-header">
+        <h3>Rediseño tributario (ILA / IABA)</h3>
+        <span class="badge warning">En diseño</span>
+      </div>
+      <p class="module-desc">
+        Modelo de Categoría > Subcategoría > Régimen tributario para soportar
+        impuestos en cascada (ILA alcoholes, IABA bebidas azucaradas).
+      </p>
+      <p>
+        Ver propuesta completa en
+        <a href="/docs/PLAN_IMPUESTOS.html"><strong>Plan de Rediseño Tributario</strong></a>.
+      </p>
+    </div>
+
+    <div class="module" style="border-left-color: var(--warning);">
+      <div class="module-header">
+        <h3>Integración SII (DTE)</h3>
+        <span class="badge warning">En diseño</span>
+      </div>
+      <p class="module-desc">
+        Microservicio aparte (sii-service) que firma documentos con
+        certificado digital y envía al SII. POS llama por HTTP y recibe
+        callbacks. NO operar legalmente sin completarla.
+      </p>
+      <p>
+        Ver diseño en
+        <a href="/docs/arquitectura.html"><strong>Arquitectura técnica</strong></a>
+        (sección SII).
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<footer class="docs-footer">
+  <p>
+    OMNIFLOW · Documentación pública ·
+    <a href="./index.html">Inicio</a> ·
+    <a href="./casos-de-uso.html">Casos de uso</a> ·
+    <a href="./changelog.html">Changelog</a>
+  </p>
+</footer>
+
+</body>
+</html>

@@ -225,7 +225,14 @@ export function LoginPage() {
           </Card>
 
           <p className={styles.footer}>
-            &copy; 2026 OMNIFLOW &middot; Hecho con cuidado
+            &copy; 2026 OMNIFLOW &middot; Hecho con cuidado &middot;{" "}
+            <a
+              href="/docs/index.html"
+              className={styles.forgotLink}
+              style={{ marginTop: 0 }}
+            >
+              Documentación
+            </a>
           </p>
         </div>
       </div>

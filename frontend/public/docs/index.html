@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OMNIFLOW · Documentación</title>
+  <meta name="description" content="Documentación pública de OMNIFLOW — sistema POS chileno con módulo financiero. Módulos, casos de uso, changelog, seguridad y arquitectura." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="./index.html" class="brand-mark">
+      <span class="brand-mark-icon">OF</span>
+      <span class="brand-mark-text">OMNIFLOW</span>
+    </a>
+    <nav class="topnav">
+      <a href="./index.html" class="active">Inicio</a>
+      <a href="./modulos.html">Módulos</a>
+      <a href="./casos-de-uso.html">Casos de uso</a>
+      <a href="./seguridad.html">Seguridad</a>
+      <a href="./changelog.html">Changelog</a>
+      <a href="/">Acceder a la app →</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <h1>Documentación OMNIFLOW</h1>
+    <p class="lead">
+      Sistema POS chileno con módulo financiero integrado. Multi-sucursal,
+      cumple SII (boletas / facturas / NC / ND / guías), control de inventario
+      con lotes y vencimiento, ventas a crédito, devoluciones parciales y
+      reportes financieros.
+    </p>
+    <span class="meta">
+      <strong>v1.0</strong> · Producción · Stack Python 3.11 + React 18
+    </span>
+  </section>
+
+  <section>
+    <h2>Qué encontrarás aquí</h2>
+    <div class="portal-grid">
+
+      <a href="./modulos.html" class="portal-card">
+        <div class="ico">📦</div>
+        <h3>Módulos del sistema</h3>
+        <p style="color: var(--text-muted); margin: 0;">
+          Los 12 módulos en operación con sus funcionalidades, permisos asociados
+          y estado actual.
+        </p>
+        <span class="arrow">Ver catálogo →</span>
+      </a>
+
+      <a href="./casos-de-uso.html" class="portal-card">
+        <div class="ico">🔄</div>
+        <h3>Casos de uso</h3>
+        <p style="color: var(--text-muted); margin: 0;">
+          Flujos paso a paso para vender, anular, devolver, abrir/cerrar caja,
+          generar reportes, configurar nuevas sucursales.
+        </p>
+        <span class="arrow">Ver flujos →</span>
+      </a>
+
+      <a href="./seguridad.html" class="portal-card">
+        <div class="ico">🛡️</div>
+        <h3>Seguridad y RBAC</h3>
+        <p style="color: var(--text-muted); margin: 0;">
+          Modelo de roles, perfiles y permisos. JWT con refresh, audit log,
+          principio de mínimo privilegio.
+        </p>
+        <span class="arrow">Ver controles →</span>
+      </a>
+
+      <a href="./changelog.html" class="portal-card">
+        <div class="ico">📜</div>
+        <h3>Control de cambios</h3>
+        <p style="color: var(--text-muted); margin: 0;">
+          Historial completo de features implementadas: 76+ tareas
+          desarrolladas con fechas y descripción.
+        </p>
+        <span class="arrow">Ver historial →</span>
+      </a>
+
+      <a href="/docs/arquitectura.html" class="portal-card">
+        <div class="ico">🏗️</div>
+        <h3>Arquitectura técnica</h3>
+        <p style="color: var(--text-muted); margin: 0;">
+          Clean Architecture, capas del backend, repositorios, Unit of Work
+          y patrones de diseño aplicados.
+        </p>
+        <span class="arrow">Ver diagrama →</span>
+      </a>
+
+      <a href="/docs/PLAN_IMPUESTOS.html" class="portal-card">
+        <div class="ico">🧾</div>
+        <h3>Plan tributario</h3>
+        <p style="color: var(--text-muted); margin: 0;">
+          Diseño en evaluación para soportar ILA e IABA (alcoholes y bebidas
+          azucaradas) con regímenes tributarios.
+        </p>
+        <span class="arrow">Ver propuesta →</span>
+      </a>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Resumen del producto</h2>
+    <div class="card">
+      <h3 style="margin-top: 0;">¿Para quién es OMNIFLOW?</h3>
+      <p>
+        Pensado para retail chileno con múltiples sucursales y cajas:
+        almacenes, minimarkets, distribuidoras, tiendas de barrio que
+        emiten documentos tributarios (boleta / factura) y necesitan
+        control de inventario serio (lotes, vencimiento, costos
+        promediados).
+      </p>
+
+      <h4>Lo que ya hace</h4>
+      <ul class="feature-list">
+        <li>Vender desde un POS con búsqueda por SKU o código de barras, pagos mixtos (efectivo + tarjeta + transferencia)</li>
+        <li>Emitir boletas y facturas con folios asignados por SII por sucursal</li>
+        <li>Vender a crédito generando Cuentas por Cobrar automáticamente</li>
+        <li>Devoluciones parciales con cantidades por línea + Nota de Crédito automática</li>
+        <li>Anulación total de venta con NC + reverso de stock y caja</li>
+        <li>Notas de Débito (recargos posteriores) y Guías de Despacho</li>
+        <li>Recepción de mercadería con compras a proveedores → genera CxP</li>
+        <li>Control de stock por bodega y sucursal, costo promedio ponderado</li>
+        <li>Control de vencimiento por lote (FEFO en egresos), reporte "Por vencer"</li>
+        <li>Caja: apertura, movimientos, cierre con arqueo desglosado por método</li>
+        <li>Reportes financieros: utilidad bruta, top productos, resumen del día</li>
+        <li>RBAC granular: perfiles configurables con permisos atómicos</li>
+        <li>Audit log inmutable de acciones sensibles</li>
+        <li>Multi-sucursal con restricción de operación por usuario</li>
+      </ul>
+
+      <h4>Estándares y cumplimiento</h4>
+      <ul class="feature-list">
+        <li>Chile — IVA 19%, RUT validado, formatos SII (preparado para envío DTE futuro)</li>
+        <li>Clean Architecture: dominio puro, use cases, adapters, infrastructure</li>
+        <li>Tests: 616 backend + 266 frontend en verde</li>
+        <li>JWT RS256 con refresh tokens revocables (rotación + replay detection)</li>
+        <li>Mypy strict en todo el backend (0 errores)</li>
+        <li>WCAG AA en toda la UI (contraste, focus visible, keyboard nav, reduced motion)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Acceso rápido</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Entorno</th>
+          <th>URL</th>
+          <th>Para qué</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>App de producción</strong></td>
+          <td><a href="/">omnifow-seven.vercel.app</a></td>
+          <td>Acceder al sistema con credenciales</td>
+        </tr>
+        <tr>
+          <td><strong>API de producción</strong></td>
+          <td><a href="https://omnifow-api.onrender.com/docs" target="_blank">omnifow-api.onrender.com/docs</a></td>
+          <td>Swagger UI del backend</td>
+        </tr>
+        <tr>
+          <td><strong>Repositorio</strong></td>
+          <td><a href="https://github.com/MoisesLagos123/omnifow" target="_blank">github.com/MoisesLagos123/omnifow</a></td>
+          <td>Código fuente público</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer class="docs-footer">
+  <p>
+    OMNIFLOW · Documentación pública · v1.0 ·
+    <a href="https://github.com/MoisesLagos123/omnifow" target="_blank">GitHub</a>
+  </p>
+</footer>
+
+</body>
+</html>

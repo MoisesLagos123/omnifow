@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OMNIFLOW · Changelog</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="./index.html" class="brand-mark">
+      <span class="brand-mark-icon">OF</span>
+      <span class="brand-mark-text">OMNIFLOW</span>
+    </a>
+    <nav class="topnav">
+      <a href="./index.html">Inicio</a>
+      <a href="./modulos.html">Módulos</a>
+      <a href="./casos-de-uso.html">Casos de uso</a>
+      <a href="./seguridad.html">Seguridad</a>
+      <a href="./changelog.html" class="active">Changelog</a>
+      <a href="/">Acceder a la app →</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <h1>Control de cambios</h1>
+    <p class="lead">
+      Historial completo de las funcionalidades desarrolladas, ordenadas
+      cronológicamente y agrupadas por área. 76+ tareas implementadas
+      hasta junio 2026.
+    </p>
+    <span class="meta">
+      <strong>Total:</strong> 76 tareas completadas · 616 tests backend · 266 tests frontend
+    </span>
+  </section>
+
+  <!-- ════════════ JUN 2026 ════════════ -->
+  <section>
+    <h2>Junio 2026 — UX polish y producción</h2>
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · Documentación pública</div>
+        <div class="tl-title">Sitio de documentación abierto al público</div>
+        <p class="tl-desc">
+          Nueva sección <code>/docs/</code> servida sin login: módulos en operación,
+          casos de uso paso a paso, modelo de seguridad RBAC, este changelog.
+          Plus: plan tributario de evaluación (ILA/IABA).
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · Documentación técnica</div>
+        <div class="tl-title">Plan de Rediseño Tributario (HTML interactivo)</div>
+        <p class="tl-desc">
+          Diseño completo para soportar impuestos en cascada (ILA alcoholes,
+          IABA bebidas azucaradas) con modelo Categoría → Subcategoría →
+          Régimen Tributario. Snapshots inmutables en DetalleVenta.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · UX</div>
+        <div class="tl-title">Variant warning del Button + renombre botones</div>
+        <p class="tl-desc">
+          "Devolver items" → "Anulación parcial" (ámbar) y "Anular venta" →
+          "Anulación completa" (rojo). Coherencia cromática botón ↔ badge.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · UI</div>
+        <div class="tl-title">Badge "Anulación parcial / completa" según devoluciones previas</div>
+        <p class="tl-desc">
+          La pantalla de detalle de venta y el listado distinguen visualmente
+          ventas intactas, parcialmente devueltas y totalmente anuladas.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · Feature</div>
+        <div class="tl-title">Comprobante térmico de NC con detalle de devolución</div>
+        <p class="tl-desc">
+          Nuevo PrintableNcReceipt: comprobante 80mm específico para NC con
+          items realmente devueltos, totales, motivo. Apertura automática al
+          confirmar anulación o devolución parcial.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · Bug fixes</div>
+        <div class="tl-title">Cadena de bugs en flujo de anulación</div>
+        <p class="tl-desc">
+          1) UseCases de devoluciones y anular no abrían UnitOfWork. 2) UoW
+          ahora soporta re-entry anidado (use cases compuestos comparten sesión).
+          3) documento.guardar() faltaba flush — generaba FK violation con NC.
+          4) Frontend hacía setData con response no-compatible → pantalla en blanco.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · Feature</div>
+        <div class="tl-title">Listado de ventas con folio + NCs asociadas</div>
+        <p class="tl-desc">
+          Backend agrega <code>nc_folios: list[int]</code> al ListItem (una query extra
+          O(1) por página). Frontend muestra columnas "Documento" (Tipo + folio) y "NC"
+          (folios separados por coma, +N si son muchos).
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · UX</div>
+        <div class="tl-title">Detalle enriquecido en boleta impresa</div>
+        <p class="tl-desc">
+          Sección "Detalle de la compra" con jerarquía visual mejorada: nombre
+          en sans, SKU en pill mono, cant × precio tabular, pie con "N productos · M unidades".
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · UI mobile</div>
+        <div class="tl-title">Tablas como cards expandibles en mobile</div>
+        <p class="tl-desc">
+          Componente Table: en &lt;768px cada fila se vuelve una card con disclosure
+          pattern. Sin scroll horizontal. Animación grid-template-rows 0fr↔1fr.
+          Detección via matchMedia (sin doble render).
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · UI mobile</div>
+        <div class="tl-title">Drawer del sidebar profesional</div>
+        <p class="tl-desc">
+          Material 3 emphasized easing (0.2,0,0,1 entrada 320ms / 0.3,0,0.8,0.15
+          salida 260ms). Scrim con fade + backdrop-filter blur. Scroll-lock del body
+          mientras abierto. Logo como toggle en mobile (elimina hamburger separado).
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · Theme</div>
+        <div class="tl-title">Rebrand purple → blue + fondo aurora</div>
+        <p class="tl-desc">
+          Marca migrada de morado #7C5CFA a azul #2563EB. Fondo "aurora" gradient
+          con paleta distinta por modo (lavanda+cyan en light, navy+teal en dark).
+          Sección titles con marker vertical + línea desvanecida.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · Theme</div>
+        <div class="tl-title">Título gradient en Home + Login</div>
+        <p class="tl-desc">
+          "Hola, Administrador Dev" y wordmark "OMNIFLOW" con gradient text
+          (azul→indigo→violet→pink→naranja). Tamaño display, peso 800.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · Mobile</div>
+        <div class="tl-title">KPIs Home conectados a datos reales</div>
+        <p class="tl-desc">
+          Ventas hoy, Tickets emitidos, Stock crítico, CxC pendiente. Carga en
+          paralelo con Promise.allSettled (tolerante a fallos por permiso).
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · Theme</div>
+        <div class="tl-title">Material You Bento → Propuesta E</div>
+        <p class="tl-desc">
+          Migración a sistema de diseño Material You Bento: cards con border-radius
+          XL (28px), tonal palettes por KPI, Outfit + DM Mono. Layout bento
+          asimétrico en Home.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 Jun 2026 · Theme</div>
+        <div class="tl-title">View Transitions API en toggle de tema</div>
+        <p class="tl-desc">
+          Animación moderna circular reveal desde el botón de toggle (Chrome 111+,
+          Safari 18+, Firefox 129+). Fallback CSS transition para browsers antiguos.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════ MAY-JUN 2026 ════════════ -->
+  <section>
+    <h2>Mayo–Junio 2026 — Reportes, deploy y devoluciones</h2>
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-date">Jun 2026 · Reportes</div>
+        <div class="tl-title">Reportes financieros: Resumen + Top productos</div>
+        <p class="tl-desc">
+          Backend: use cases resumen_financiero + top_productos. Frontend:
+          pantalla Reportes con filtros sucursal/fecha.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">Jun 2026 · Documentos</div>
+        <div class="tl-title">Nota de Débito + Guía de Despacho + GET documentos</div>
+        <p class="tl-desc">
+          Backend completo de los 5 tipos SII (BOLETA, FACTURA, NC, ND, GUIA).
+          Frontend: pantalla Documentos con listado y detalle.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">Jun 2026 · Devoluciones</div>
+        <div class="tl-title">Devoluciones parciales</div>
+        <p class="tl-desc">
+          Contrato + backend + frontend. Modal de selección de items y cantidades.
+          NC automática. Integración con VentaDetalle.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">Jun 2026 · CxC + crédito</div>
+        <div class="tl-title">Venta a crédito + Cuentas por Cobrar</div>
+        <p class="tl-desc">
+          Backend + frontend (agentes paralelos). CxC auto-generada al confirmar
+          venta con componente a crédito. Abonos parciales.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · Compras</div>
+        <div class="tl-title">Compras + Proveedores + CxP</div>
+        <p class="tl-desc">
+          Ciclo completo de compras a proveedores. Genera CxP automáticamente.
+          Pantallas de proveedores, registro de compra, historial.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · Deploy</div>
+        <div class="tl-title">Despliegue gratuito: Vercel + Render + Neon</div>
+        <p class="tl-desc">
+          Frontend en Vercel, backend en Render, Postgres en Neon. SMTP via
+          Resend/Gmail con App Password. Guía completa documentada.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · Auth</div>
+        <div class="tl-title">Forgot/Reset password con SMTP</div>
+        <p class="tl-desc">
+          Use cases backend + pantallas frontend. Token de un uso, válido 1 hora.
+          Anti enumeración de emails. Envío real por SMTP.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · Auth</div>
+        <div class="tl-title">Cambio de contraseña + modal</div>
+        <p class="tl-desc">
+          Use case backend con validación de actual. Modal con anti shoulder-surfing
+          (bloqueo copy/paste/cut/autocomplete).
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · Auth</div>
+        <div class="tl-title">Refresh token + Logout server-side</div>
+        <p class="tl-desc">
+          JWT refresh con rotación, replay detection (token revocado → invalidar
+          todos del usuario). Interceptor frontend con single-flight pattern.
+          Audit log de cada refresh.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · GitHub</div>
+        <div class="tl-title">Respaldo inicial en GitHub público</div>
+        <p class="tl-desc">
+          Repositorio omnifow público, código completo respaldado.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · Admin</div>
+        <div class="tl-title">Audit Log viewer</div>
+        <p class="tl-desc">
+          Use case backend + pantalla frontend con filtros por usuario/fecha/acción.
+          Visualización del before/after en JSON.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════ ABR-MAY 2026 ════════════ -->
+  <section>
+    <h2>Abril–Mayo 2026 — Fundaciones y tests</h2>
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · Calidad</div>
+        <div class="tl-title">Plan de pruebas funcionales + cobertura P0-P3</div>
+        <p class="tl-desc">
+          Auditoría de tests, plan funcional por módulo. Tests críticos:
+          inventario mutación, producto, costos, administración, caja, RUT,
+          ventas IDOR, devoluciones FEFO/CxC, frontend RequireAuth, store, páginas.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · Seguridad</div>
+        <div class="tl-title">Fix bug crítico: desactivar usuario revoca refresh tokens</div>
+        <p class="tl-desc">
+          P0: sin esto, un "usuario desactivado" podía operar 7 días con tokens
+          vigentes.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · Seguridad</div>
+        <div class="tl-title">Fix IDOR latente en listar_ventas</div>
+        <p class="tl-desc">
+          listar_ventas ahora scope-ea por sucursales permitidas cuando no se
+          pasa filtro explícito. Previene acceso a ventas de otras sucursales.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · Admin</div>
+        <div class="tl-title">Sysadmin inmutable</div>
+        <p class="tl-desc">
+          Backend: migración + guards + seed sync de permisos.
+          Frontend: badge "Sistema" + acciones deshabilitadas.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">May 2026 · UI fixes</div>
+        <div class="tl-title">Múltiples fixes mobile y dropdowns</div>
+        <p class="tl-desc">
+          Header desbordaba en mobile. SucursalDetalle pantalla en blanco.
+          Crear caja enviaba sucursal_id undefined. Dropdown usuario tapado.
+          Boleta POS sin detalle de productos.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">Abr 2026 · Rediseño</div>
+        <div class="tl-title">Rediseño FASE 1-3</div>
+        <p class="tl-desc">
+          FASE 1: theme tokens + Fira Sans/Code.
+          FASE 2: componentes UI base modernos (Button, Input, Card, Badge).
+          FASE 3: 47 pantallas migradas (6 agentes paralelos).
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">Abr 2026 · Rebrand</div>
+        <div class="tl-title">OMNIFOW → OMNIFLOW</div>
+        <p class="tl-desc">
+          Cambio de nombre. Logo OMNIFLOW SVG inline. Aero Glass effect en
+          Cards + Header + Sidebar.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════ MAR-ABR 2026 ════════════ -->
+  <section>
+    <h2>Marzo–Abril 2026 — Polish profesional y arquitectura</h2>
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-date">Abr 2026 · Arquitectura</div>
+        <div class="tl-title">Documentar arquitectura SII como microservicio aparte</div>
+        <p class="tl-desc">
+          Diseño completo del sii-service externo: firma + envío al SII, callbacks
+          al POS. Decisión: NO va dentro del backend POS.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">Mar 2026 · UI/UX</div>
+        <div class="tl-title">Polish profesional con ui-ux-pro-max</div>
+        <p class="tl-desc">
+          Auditoría completa con skill UI/UX: tema y tokens CSS (WCAG, focus,
+          spacing), componentes UI base, layout y navegación. Mejoras prioritarias
+          aplicadas.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">Mar 2026 · POS</div>
+        <div class="tl-title">Atajos de teclado en POS</div>
+        <p class="tl-desc">
+          F2 buscar producto, F4 confirmar venta. Productividad del operador.
+        </p>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">Mar 2026 · Componentes</div>
+        <div class="tl-title">Sistema de tooltips + variante compact de Table + EmptyState</div>
+        <p class="tl-desc">
+          Tooltips consistentes con Radix. Tablas densas para movimientos/historiales.
+          EmptyState y PageHeader en todas las páginas.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<footer class="docs-footer">
+  <p>
+    OMNIFLOW · Documentación pública ·
+    <a href="./index.html">Inicio</a> ·
+    <a href="./modulos.html">Módulos</a> ·
+    <a href="./seguridad.html">Seguridad</a>
+  </p>
+</footer>
+
+</body>
+</html>

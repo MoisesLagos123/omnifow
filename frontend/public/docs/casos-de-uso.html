@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OMNIFLOW · Casos de uso</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="./index.html" class="brand-mark">
+      <span class="brand-mark-icon">OF</span>
+      <span class="brand-mark-text">OMNIFLOW</span>
+    </a>
+    <nav class="topnav">
+      <a href="./index.html">Inicio</a>
+      <a href="./modulos.html">Módulos</a>
+      <a href="./casos-de-uso.html" class="active">Casos de uso</a>
+      <a href="./seguridad.html">Seguridad</a>
+      <a href="./changelog.html">Changelog</a>
+      <a href="/">Acceder a la app →</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <h1>Casos de uso</h1>
+    <p class="lead">
+      Flujos paso a paso de las operaciones más comunes. Cada uno termina
+      con el resultado esperado y los efectos en el sistema.
+    </p>
+  </section>
+
+  <!-- ────────── 1. VENTA NORMAL ────────── -->
+  <section>
+    <h2>1. Hacer una venta normal</h2>
+    <p>
+      El operador (Vendedor / Cajero / Jefe de Sucursal) registra una venta
+      con uno o más productos y la confirma con pago.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h4>Verificar sesión de caja activa</h4>
+          <p>El sistema valida que haya una <code>SesionCaja</code> con estado ABIERTA en la caja seleccionada. Sin sesión activa, no se puede vender en efectivo.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h4>Buscar productos</h4>
+          <p>Por SKU, código de barras o nombre. El sistema muestra precio + stock disponible. Productos con stock 0 quedan deshabilitados.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h4>Agregar al carrito</h4>
+          <p>Cantidad por defecto = 1. Se puede editar. Si el producto controla vencimiento, el sistema reservará del lote FEFO automáticamente al confirmar.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div>
+          <h4>Cliente (opcional para boleta, obligatorio para factura/crédito)</h4>
+          <p>RUT con autocompletado. Si no existe, se ofrece "Crear cliente nuevo" inline.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">5</span>
+        <div>
+          <h4>Pagos mixtos</h4>
+          <p>Se agregan N pagos (efectivo / tarjeta débito / tarjeta crédito / transferencia). La suma debe coincidir exactamente con el total. Para tarjetas se piden referencia + últimos 4 dígitos.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">6</span>
+        <div>
+          <h4>Confirmar venta — transacción atómica</h4>
+          <p>El backend en una sola transacción: valida stock, reserva folio, emite boleta/factura, descuenta inventario (FEFO), registra pagos, genera MovimientoCaja para pagos en efectivo, publica audit log. Si falla cualquier paso → rollback total.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">7</span>
+        <div>
+          <h4>Imprimir comprobante</h4>
+          <p>Modal con preview del documento térmico 80mm. Botón "Imprimir" lanza diálogo nativo del navegador.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card success">
+      <strong>Resultado:</strong> Venta CONFIRMADA con folio asignado, stock descontado,
+      caja actualizada, audit log publicado y documento listo para imprimir.
+    </div>
+  </section>
+
+  <!-- ────────── 2. VENTA A CRÉDITO ────────── -->
+  <section>
+    <h2>2. Vender a crédito</h2>
+    <p>
+      Variante de venta donde una parte (o todo) queda como Cuenta por Cobrar.
+      Requiere cliente identificado.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <span class="step-num">1-4</span>
+        <div>
+          <h4>Igual que venta normal</h4>
+          <p>Sesión activa, productos en carrito, cliente identificado (OBLIGATORIO en crédito).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">5</span>
+        <div>
+          <h4>Indicar componente a crédito</h4>
+          <p>En el panel de pagos, el operador define cuánto pagará el cliente AHORA y cuánto queda a crédito. Por ejemplo: total $50.000, paga $20.000 en efectivo y $30.000 quedan a crédito.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">6</span>
+        <div>
+          <h4>Fecha de vencimiento</h4>
+          <p>El operador elige cuándo vence el saldo a crédito. Default = 30 días.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">7</span>
+        <div>
+          <h4>Confirmar venta</h4>
+          <p>El backend, en la misma transacción atómica, crea una <code>CuentaPorCobrar</code> vinculada a la venta y al cliente con el saldo del crédito y la fecha de vencimiento.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">8</span>
+        <div>
+          <h4>Cobro posterior</h4>
+          <p>Cuando el cliente paga, el operador va a Cuentas por Cobrar → detalle de la CxC → "Registrar abono" con monto + método de pago. El sistema actualiza el saldo y el estado (pendiente / parcialmente pagada / pagada).</p>
+        </div>
+      </div>
+    </div>
+    <div class="card success">
+      <strong>Resultado:</strong> Venta confirmada + CxC pendiente con saldo,
+      vencimiento, historial de abonos disponible.
+    </div>
+  </section>
+
+  <!-- ────────── 3. DEVOLUCIÓN PARCIAL ────────── -->
+  <section>
+    <h2>3. Devolución parcial</h2>
+    <p>
+      Cliente devuelve algunos items (no todos) o devuelve cantidad menor a
+      la vendida. Sistema emite Nota de Crédito por el monto correspondiente.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h4>Buscar la venta original</h4>
+          <p>POS → Historial de ventas → click en la fila. Se abre el detalle.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h4>"Anulación parcial"</h4>
+          <p>Botón ámbar arriba a la derecha (requiere permiso <code>devolucion.crear</code>). Se abre el modal.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h4>Seleccionar items y cantidades</h4>
+          <p>Una fila por cada producto de la venta original. El operador define cuántas unidades de cada uno devolverá (no puede superar lo vendido ni lo ya devuelto en devoluciones previas).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div>
+          <h4>Motivo</h4>
+          <p>Campo libre. Quedará en el audit log y en la NC.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">5</span>
+        <div>
+          <h4>Confirmar — transacción atómica</h4>
+          <p>El backend: crea <code>Devolucion</code> con sus <code>DetalleDevolucion</code>, reversa stock (al lote original si controla vencimiento), reserva folio NC del rango SII de la sucursal, emite <code>DocumentoTributario</code> tipo NC, reversa pago (efectivo → egreso de caja; tarjeta → registro contable), publica audit log.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">6</span>
+        <div>
+          <h4>Modal automático de NC</h4>
+          <p>Al confirmar, se abre automáticamente el modal de impresión del comprobante térmico de la NC, con detalle de items devueltos y motivo.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card success">
+      <strong>Resultado:</strong> NC emitida con folio, stock restaurado, pago reversado,
+      venta queda en estado "Anulación parcial" (si quedan items pendientes) o "Anulación completa"
+      (si fue total). NC accesible desde Historial de devoluciones.
+    </div>
+  </section>
+
+  <!-- ────────── 4. ANULACIÓN COMPLETA ────────── -->
+  <section>
+    <h2>4. Anulación completa de venta</h2>
+    <p>
+      Atajo para devolver el 100% de una venta. Equivale a una devolución
+      parcial con todos los items en cantidad completa.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h4>Detalle de la venta → "Anulación completa"</h4>
+          <p>Botón rojo arriba a la derecha (requiere permiso <code>venta.anular</code>).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h4>Confirm dialog con motivo</h4>
+          <p>Confirma "Se anulará TODA la venta y se emitirá una Nota de Crédito que reversa el stock y los pagos."</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h4>Procesa como devolución del 100%</h4>
+          <p>Internamente delega a <code>ProcesarDevolucionUseCase</code> con todos los items en cantidad completa.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div>
+          <h4>Estado venta → ANULADA</h4>
+          <p>Badge "Anulación completa" en rojo. Ya no se puede operar sobre ella (no hay "Devolver" ni "Anular" disponibles).</p>
+        </div>
+      </div>
+    </div>
+    <div class="card success">
+      <strong>Resultado:</strong> Venta ANULADA con NC completa, stock totalmente restaurado.
+    </div>
+  </section>
+
+  <!-- ────────── 5. ABRIR Y CERRAR CAJA ────────── -->
+  <section>
+    <h2>5. Abrir y cerrar caja con arqueo</h2>
+    <p>
+      Ciclo de turno de cajero. Sin caja abierta no se puede vender en efectivo.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h4>Caja → Operación</h4>
+          <p>El operador ve el estado de la caja seleccionada: CERRADA / ABIERTA.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h4>"Abrir sesión"</h4>
+          <p>Indica el monto inicial declarado (fondo de vuelto). Sistema crea SesionCaja con estado ABIERTA y registra audit.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h4>Operación normal</h4>
+          <p>Las ventas en efectivo generan MovimientoCaja INGRESO_VENTA automáticamente. El operador puede registrar movimientos manuales: INGRESO_OTRO (cobros no-venta), EGRESO_GASTO (compra de bolsas), EGRESO_RETIRO (envío a banco).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div>
+          <h4>"Cerrar sesión"</h4>
+          <p>Al terminar el turno. Sistema muestra el saldo esperado por método de pago basado en movimientos.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">5</span>
+        <div>
+          <h4>Arqueo declarado</h4>
+          <p>El operador declara el monto real contado por cada método: efectivo, débito, crédito, transferencia. El sistema calcula la diferencia esperado vs declarado.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">6</span>
+        <div>
+          <h4>Confirmar cierre</h4>
+          <p>Sesión queda CERRADA con la información del arqueo. Auditable. Se puede reabrir solo con permiso especial.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card success">
+      <strong>Resultado:</strong> Sesión cerrada con arqueo registrado. Visible en
+      "Historial de sesiones" para auditoría.
+    </div>
+  </section>
+
+  <!-- ────────── 6. RECEPCIÓN DE MERCADERÍA ────────── -->
+  <section>
+    <h2>6. Recepción de mercadería (compra)</h2>
+    <p>
+      Ingreso de productos al inventario desde un proveedor. Genera Cuenta
+      por Pagar automáticamente.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h4>Compras → "Nueva compra"</h4>
+          <p>Seleccionar proveedor + sucursal + bodega destino.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h4>Agregar productos</h4>
+          <p>Por cada item: SKU, cantidad recibida, costo unitario. Si el producto controla vencimiento, se piden fecha de vencimiento + número de lote opcional.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h4>Fecha de vencimiento de pago + monto</h4>
+          <p>Total + condiciones de pago (cuándo se debe pagar al proveedor).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div>
+          <h4>Confirmar — transacción atómica</h4>
+          <p>Backend: crea <code>Compra</code> + <code>DetalleCompra</code>, ingresa stock al inventario actualizando costo promedio ponderado, crea lotes si aplica, registra MovInventario tipo ENTRADA, genera <code>CuentaPorPagar</code> con vencimiento.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card success">
+      <strong>Resultado:</strong> Stock ingresado, costo actualizado, CxP pendiente, audit registrado.
+    </div>
+  </section>
+
+  <!-- ────────── 7. CONFIGURAR NUEVA SUCURSAL ────────── -->
+  <section>
+    <h2>7. Configurar una nueva sucursal</h2>
+    <p>
+      Flujo del administrador para incorporar una nueva sucursal al sistema.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h4>Administración → Sucursales → "Crear sucursal"</h4>
+          <p>Código, nombre, RUT emisor (validado por módulo 11), dirección, comuna, región.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h4>Crear cajas físicas</h4>
+          <p>Detalle de sucursal → tab Cajas → "Crear caja" por cada caja física (C1, C2, C3...).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h4>Asignar folios SII</h4>
+          <p>Tab Folios → crear rango por cada tipo de documento: BOLETA (1-5000), FACTURA (1-2000), NC (1-500), ND (1-500), GUIA (1-500).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div>
+          <h4>Crear bodega</h4>
+          <p>Inventario → Bodegas → "Crear" con código B1 (default) asignada a la sucursal.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">5</span>
+        <div>
+          <h4>Asignar usuarios a la sucursal</h4>
+          <p>Administración → Usuarios → editar → marcar sucursales permitidas. Solo esos usuarios podrán operar en la nueva sucursal.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">6</span>
+        <div>
+          <h4>Stock inicial</h4>
+          <p>Compras → registrar compra inicial con todos los productos a stockear, O Inventario → Ajustes → ingresar manualmente con motivo "stock inicial".</p>
+        </div>
+      </div>
+    </div>
+    <div class="card success">
+      <strong>Resultado:</strong> Sucursal operativa con cajas, folios, bodega, usuarios autorizados y stock.
+    </div>
+  </section>
+
+  <!-- ────────── 8. CREAR USUARIO ────────── -->
+  <section>
+    <h2>8. Crear usuario y asignar perfil</h2>
+    <p>
+      Onboarding de un colaborador. Cada persona tiene su cuenta nominativa
+      (no usuarios genéricos compartidos).
+    </p>
+    <div class="flow">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h4>Administración → Usuarios → "Crear usuario"</h4>
+          <p>Nombre, email único, RUT, password inicial (se le pedirá cambiarlo al primer login).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h4>Asignar perfiles</h4>
+          <p>Un usuario puede tener N perfiles (ej. "Vendedor" + "Cajero"). Los permisos son la unión.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h4>Restringir a sucursales</h4>
+          <p>Sin sucursales asignadas, el usuario no puede operar en ninguna. Marcar las que aplican.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div>
+          <h4>Entregar credenciales</h4>
+          <p>Comunicar email + password inicial al colaborador. El primer login le exige cambiar password.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card success">
+      <strong>Resultado:</strong> Usuario activo con perfiles y sucursales asignadas, audit del alta.
+    </div>
+  </section>
+
+  <!-- ────────── 9. CONSULTAR REPORTES ────────── -->
+  <section>
+    <h2>9. Consultar reportes financieros</h2>
+    <p>
+      Análisis de ventas e indicadores de gestión.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h4>Finanzas → Reportes</h4>
+          <p>Solo accesible con permiso <code>reportes.ver</code> (Contador / Administrador / Sysadmin).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h4>Resumen financiero</h4>
+          <p>Filtros: sucursal + rango de fechas. Muestra ingresos brutos, IVA débito, IVA crédito (cuando hay compras), costo de ventas, utilidad bruta. Datos en tiempo real.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h4>Top productos</h4>
+          <p>Ranking de productos más vendidos por unidades y por valor. Útil para decisiones de reposición.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div>
+          <h4>KPIs del Home (inicio)</h4>
+          <p>Bento con 4 indicadores: Ventas hoy ($CLP), Tickets emitidos, Stock crítico (perecibles por vencer), CxC pendiente. Carga en paralelo, tolerante a fallos.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card success">
+      <strong>Resultado:</strong> Visión ejecutiva del negocio en tiempo real para toma de decisiones.
+    </div>
+  </section>
+
+  <!-- ────────── 10. CAMBIO DE PASSWORD ────────── -->
+  <section>
+    <h2>10. Cambiar contraseña</h2>
+    <p>
+      Operación sensible — requiere actual + nueva. Si el usuario perdió la actual, hay reset por email.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <span class="step-num">1</span>
+        <div>
+          <h4>Menú de usuario (arriba derecha) → "Cambiar contraseña"</h4>
+          <p>Modal con 3 campos: actual, nueva, confirmar nueva.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <div>
+          <h4>Política de contraseña</h4>
+          <p>Mínimo 12 caracteres. Validada contra lista pwned. Hash Argon2id en backend.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <div>
+          <h4>Anti shoulder-surfing</h4>
+          <p>Los campos bloquean copy/paste/autocompletar (POS multi-usuario en cajas compartidas).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">4</span>
+        <div>
+          <h4>Cambio confirmado</h4>
+          <p>Todos los refresh tokens del usuario quedan invalidados (forzar re-login en otras pestañas/dispositivos).</p>
+        </div>
+      </div>
+    </div>
+    <div class="card info">
+      <strong>¿Olvidaste tu contraseña?</strong> En la pantalla de login, "¿Olvidaste tu contraseña?"
+      → ingresar email → recibes link de reset por email (válido 1 hora, un solo uso).
+    </div>
+  </section>
+
+</div>
+
+<footer class="docs-footer">
+  <p>
+    OMNIFLOW · Documentación pública ·
+    <a href="./index.html">Inicio</a> ·
+    <a href="./modulos.html">Módulos</a> ·
+    <a href="./seguridad.html">Seguridad</a>
+  </p>
+</footer>
+
+</body>
+</html>
