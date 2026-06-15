@@ -1,15 +1,24 @@
 /* ─── Layout externo ────────────────────────────────────────────── */
 .page {
-  min-height: 100vh;
+  /* dvh > vh en mobile: cuenta el alto real (excluye barra dirección
+     dinámica del navegador) — evita que el contenido quede oculto
+     bajo la barra inferior. */
+  min-height: 100dvh;
   display: flex;
   align-items: stretch;
   background: var(--color-bg);
   position: relative;
+  /* Defensa anti-overflow horizontal. */
+  overflow-x: hidden;
 }
 
 /* ─── Columna izquierda: formulario ────────────────────────────── */
 .formCol {
   flex: 1;
+  /* min-width:0 — sin esto en flex children, el contenido puede empujar
+     más allá del viewport en mobile. Crítico cuando la card o sus
+     hijos tienen contenidos largos. */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -21,8 +30,10 @@
 
 .toggleSlot {
   position: absolute;
-  top: var(--space-5);
-  right: var(--space-5);
+  top: var(--space-4);
+  right: var(--space-4);
+  /* Ensure no se sale del viewport en móviles muy estrechos. */
+  z-index: 1;
 }
 
 .cardWrap {
@@ -31,6 +42,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  /* min-width:0 + box-sizing seguros para que el max-width:100% se
+     comporte bien dentro del flex parent en mobile. */
+  min-width: 0;
+  box-sizing: border-box;
   animation: fadeUp 240ms ease both;
 }
 
@@ -39,6 +54,9 @@
   flex-direction: column;
   gap: var(--space-6);
   padding: var(--space-8);
+  /* Permite que el wrapper aplique max-width sin que el padding
+     interno desborde. */
+  box-sizing: border-box;
 }
 
 /* ─── Header del form ───────────────────────────────────────────── */
@@ -284,9 +302,52 @@
   .heroCol { display: flex; }
 }
 
-/* ─── Mobile small ──────────────────────────────────────────────── */
-@media (max-width: 480px) {
-  .cardWrap { max-width: 100%; }
-  .card { padding: var(--space-6); }
-  .formCol { padding: var(--space-6) var(--space-4); }
+/* ─── Mobile (≤768px) — engloba phones grandes ──────────────────
+   Antes el query era ≤480px; muchos teléfonos modernos (Pixel,
+   Galaxy, iPhone Pro Max) reportan más ancho CSS — entraban al
+   layout desktop con padding generoso y el card podía quedar muy
+   pegado a los bordes. Ahora hasta 768px aplica el ajuste mobile. */
+@media (max-width: 768px) {
+  .formCol {
+    padding: var(--space-6) var(--space-4);
+  }
+  .cardWrap {
+    max-width: 100%;
+  }
+  .card {
+    padding: var(--space-6);
+    /* Border-radius un poco menor en mobile (el grande del sistema
+       a 28px se ve excesivo en cards full-width). */
+    border-radius: var(--radius-md);
+  }
+  /* Wordmark más compacto en mobile (32px → 24px) — el gradient
+     sigue luciendo pero no domina la pantalla. */
+  .logoText {
+    font-size: var(--font-2xl);
+  }
+  /* Title más balanceado con el wordmark. */
+  .title {
+    font-size: var(--font-xl);
+  }
+  /* Toggle de tema: dejamos más aire del borde derecho en mobile
+     para que el tooltip "Cambiar a tema..." (que se centra debajo
+     del botón) tenga espacio y no se desborde del viewport. */
+  .toggleSlot {
+    top: var(--space-3);
+    right: var(--space-4);
+  }
+}
+
+/* ─── Mobile muy estrecho (≤375px iPhone SE / phones pequeños) ── */
+@media (max-width: 375px) {
+  .formCol {
+    padding: var(--space-5) var(--space-3);
+  }
+  .card {
+    padding: var(--space-5);
+    gap: var(--space-4);
+  }
+  .logoText {
+    font-size: var(--font-xl);
+  }
 }
