@@ -67,11 +67,31 @@
   gap: var(--space-2);
 }
 
+/* Fila que contiene logoMark + ThemeToggle inline (este último sólo
+   visible en mobile). En desktop el toggle vive en el toggleSlot
+   absoluto fuera del card; en mobile lo movemos aquí dentro para que
+   no quede flotando mal-alineado en pantallas chicas. */
+.brandRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  margin-bottom: var(--space-3);
+}
+
 .logoMark {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  /* margin-bottom movido a .brandRow para que envuelva la fila completa. */
+}
+
+/* Toggle inline DENTRO del card — hidden por default (desktop usa
+   el toggleSlot absoluto). Se muestra a partir del media mobile. */
+.toggleSlotInline {
+  display: none;
+  flex-shrink: 0;
 }
 
 .logoIcon {
@@ -329,12 +349,16 @@
   .title {
     font-size: var(--font-xl);
   }
-  /* Toggle de tema: dejamos más aire del borde derecho en mobile
-     para que el tooltip "Cambiar a tema..." (que se centra debajo
-     del botón) tenga espacio y no se desborde del viewport. */
+  /* Toggle de tema en mobile: el externo (esquina absoluta de la
+     pantalla) se oculta — pasa a vivir DENTRO del card, en el
+     toggleSlotInline del header. Evita que quede flotando mal
+     alineado en pantallas chicas y mantiene el control accesible
+     pero sin ocupar espacio fuera del contenido principal. */
   .toggleSlot {
-    top: var(--space-3);
-    right: var(--space-4);
+    display: none;
+  }
+  .toggleSlotInline {
+    display: inline-flex;
   }
 }
 

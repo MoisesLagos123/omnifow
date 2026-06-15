@@ -87,6 +87,10 @@ export function LoginPage() {
     <main className={styles.page}>
       {/* ── Columna formulario ── */}
       <div className={styles.formCol}>
+        {/* Toggle de tema externo — visible sólo en desktop (≥769px)
+            como esquina superior derecha. En mobile lo movemos DENTRO
+            del card via el slot inline del header (más abajo), para
+            que no quede flotando y mal alineado en pantallas chicas. */}
         <div className={styles.toggleSlot}>
           <ThemeToggle />
         </div>
@@ -97,9 +101,17 @@ export function LoginPage() {
             className={`${styles.card} ${shake ? styles.shake : ""}`}
           >
             <header className={styles.header}>
-              <div className={styles.logoMark}>
-                <BrandLogo size={48} framed title="OMNIFLOW" />
-                <span className={styles.logoText}>OMNIFLOW</span>
+              <div className={styles.brandRow}>
+                <div className={styles.logoMark}>
+                  <BrandLogo size={48} framed title="OMNIFLOW" />
+                  <span className={styles.logoText}>OMNIFLOW</span>
+                </div>
+                {/* Toggle inline — visible sólo en mobile (≤768px).
+                    Comparte fila con el wordmark, ocupa el espacio
+                    libre a la derecha. */}
+                <div className={styles.toggleSlotInline}>
+                  <ThemeToggle />
+                </div>
               </div>
               <h1 id="login-title" className={styles.title}>
                 Bienvenido de nuevo
