@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OMNIFLOW · Plan de Rediseño Tributario</title>
+  <style>
+    :root {
+      --bg: #f5f8ff;
+      --surface: #ffffff;
+      --surface-2: #eef4ff;
+      --surface-sunken: #e3ecf9;
+      --text: #0f1a33;
+      --text-muted: #5a6478;
+      --text-subtle: #8892a6;
+      --border: #d9e2f1;
+      --border-strong: #b9c8e0;
+      --brand: #2563eb;
+      --brand-soft: #dbeafe;
+      --success: #16a34a;
+      --success-soft: #dcfce7;
+      --warning: #d97706;
+      --warning-soft: #fef3c7;
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --info: #4338ca;
+      --info-soft: #e0e7ff;
+      --cyan: #0891b2;
+      --cyan-soft: #cffafe;
+      --mono: "DM Mono", "JetBrains Mono", ui-monospace, monospace;
+      --sans: "Outfit", system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(96, 165, 250, 0.18), transparent 70%),
+        linear-gradient(180deg, #f0f6ff 0%, #dde9fe 50%, #dbeafe 100%);
+      background-attachment: fixed;
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    /* ───── Header ───── */
+    .hero {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .hero h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(95deg, #2563eb 0%, #4f46e5 25%, #7c3aed 50%, #ec4899 75%, #f97316 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+    .hero .lead {
+      margin: 0;
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin-inline: auto;
+    }
+    .hero .meta {
+      margin-top: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    /* ───── Section ───── */
+    section {
+      margin: 64px 0;
+    }
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 0 0 24px;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    h2::before {
+      content: "";
+      display: block;
+      width: 5px;
+      height: 28px;
+      background: linear-gradient(180deg, var(--brand), var(--brand-soft));
+      border-radius: 999px;
+    }
+    h3 {
+      margin: 32px 0 12px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    h4 {
+      margin: 20px 0 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    p { margin: 0 0 16px; }
+    /* ───── Card ───── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      margin: 16px 0;
+      box-shadow: 0 1px 3px rgba(15, 26, 51, 0.04);
+    }
+    .card.muted {
+      background: var(--surface-2);
+      border-style: dashed;
+    }
+    .card.danger {
+      background: var(--danger-soft);
+      border-color: var(--danger);
+    }
+    .card.success {
+      background: var(--success-soft);
+      border-color: var(--success);
+    }
+    .card.info {
+      background: var(--info-soft);
+      border-color: var(--info);
+    }
+    .card.warning {
+      background: var(--warning-soft);
+      border-color: var(--warning);
+    }
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .badge.danger { background: var(--danger-soft); color: var(--danger); }
+    .badge.success { background: var(--success-soft); color: var(--success); }
+    .badge.warning { background: var(--warning-soft); color: var(--warning); }
+    .badge.info { background: var(--info-soft); color: var(--info); }
+    .badge.brand { background: var(--brand-soft); color: var(--brand); }
+    .badge.cyan { background: var(--cyan-soft); color: var(--cyan); }
+    /* ───── Table ───── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.92rem;
+    }
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      background: var(--surface-2);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-strong);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    td.num, th.num { text-align: right; font-family: var(--mono); }
+    code, .mono { font-family: var(--mono); font-size: 0.88em; }
+    code {
+      background: var(--surface-sunken);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+    pre {
+      background: var(--surface-sunken);
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      border-radius: 12px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    /* ───── Split (antes/después) ───── */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    @media (max-width: 768px) {
+      .split { grid-template-columns: 1fr; }
+    }
+    .split .card { margin: 0; }
+    .split .label {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.72rem;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+    /* ───── Caso de uso ───── */
+    .case {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--brand);
+      border-radius: 14px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    .case-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .case-title .ico {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .calc-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .calc-step:last-child { border-bottom: none; }
+    .calc-step .op {
+      font-family: var(--mono);
+      font-weight: 700;
+      color: var(--text-muted);
+      min-width: 28px;
+      text-align: center;
+    }
+    .calc-step .desc { flex: 1; }
+    .calc-step .desc small {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+    .calc-step .val {
+      font-family: var(--mono);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .calc-step.total {
+      border-top: 2px solid var(--text);
+      border-bottom: none;
+      margin-top: 6px;
+      padding-top: 12px;
+      font-weight: 700;
+    }
+    .calc-step.total .val { font-size: 1.1rem; }
+    /* ───── Diagram ───── */
+    .erd {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    .erd-entity {
+      display: inline-block;
+      vertical-align: top;
+      background: var(--surface);
+      border: 1.5px solid var(--brand);
+      border-radius: 12px;
+      padding: 0;
+      margin: 8px;
+      min-width: 220px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1);
+    }
+    .erd-entity .erd-head {
+      background: var(--brand);
+      color: white;
+      padding: 8px 14px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      font-family: var(--mono);
+    }
+    .erd-entity .erd-body {
+      padding: 8px 14px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+    .erd-entity .erd-body .field {
+      padding: 3px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .erd-entity .erd-body .field:last-child { border-bottom: none; }
+    .erd-entity .erd-body .field .pk { color: var(--danger); font-weight: 700; }
+    .erd-entity .erd-body .field .fk { color: var(--info); }
+    .erd-entity .erd-body .field .nullable { color: var(--text-muted); }
+    .erd-entity.snapshot { border-color: var(--cyan); }
+    .erd-entity.snapshot .erd-head { background: var(--cyan); }
+    .erd-entity.config { border-color: var(--warning); }
+    .erd-entity.config .erd-head { background: var(--warning); }
+    /* ───── Mockup UI ───── */
+    .mock {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin: 14px 0;
+      box-shadow: 0 4px 12px rgba(15, 26, 51, 0.05);
+    }
+    .mock-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .mock-title {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .mock-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 10px 0;
+    }
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-field label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .form-field .control {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .form-field .help {
+      font-size: 0.75rem;
+      color: var(--text-subtle);
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--brand-soft);
+      color: var(--brand);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin: 2px 4px 2px 0;
+    }
+    /* ───── Phase ───── */
+    .phase {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 16px;
+      margin: 16px 0;
+      align-items: start;
+    }
+    .phase-num {
+      background: var(--brand);
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .phase-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .phase-body h4 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: var(--text);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    /* ───── Legend ───── */
+    .legend {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin: 8px 0 16px;
+      font-size: 0.85rem;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+    }
+    /* TOC */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 24px;
+      margin: 32px 0;
+    }
+    .toc ol {
+      margin: 0;
+      padding-left: 18px;
+      column-count: 2;
+      column-gap: 24px;
+    }
+    @media (max-width: 640px) {
+      .toc ol { column-count: 1; }
+    }
+    .toc li { padding: 4px 0; }
+    .toc a {
+      color: var(--brand);
+      text-decoration: none;
+    }
+    .toc a:hover { text-decoration: underline; }
+    ul.checks { list-style: none; padding: 0; }
+    ul.checks li {
+      padding: 4px 0 4px 26px;
+      position: relative;
+    }
+    ul.checks li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      top: 4px;
+      color: var(--success);
+      font-weight: 700;
+      width: 18px;
+      height: 18px;
+      background: var(--success-soft);
+      border-radius: 999px;
+      text-align: center;
+      line-height: 18px;
+      font-size: 0.75rem;
+    }
+    ul.x li::before {
+      content: "✕";
+      color: var(--danger);
+      background: var(--danger-soft);
+    }
+    .footer-note {
+      text-align: center;
+      margin-top: 64px;
+      color: var(--text-subtle);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <h1>Rediseño Tributario</h1>
+    <p class="lead">
+      Plan completo para migrar el cálculo de IVA, ILA e IABA desde el
+      modelo plano actual a un sistema basado en categorías,
+      subcategorías y regímenes tributarios. Diseñado para Chile
+      (Ley 825) y preparado para evolucionar.
+    </p>
+    <span class="meta">
+      <strong>Proyecto:</strong> OMNIFLOW &nbsp;·&nbsp;
+      <strong>Versión del plan:</strong> 1.0 &nbsp;·&nbsp;
+      <strong>Esfuerzo:</strong> 6-8 días
+    </span>
+  </header>
+
+  <nav class="toc">
+    <strong>Contenido</strong>
+    <ol>
+      <li><a href="#problema">El problema actual</a></li>
+      <li><a href="#realidad">Cómo es la realidad en Chile</a></li>
+      <li><a href="#casos">Casos de uso reales</a></li>
+      <li><a href="#modelo">Modelo de datos propuesto</a></li>
+      <li><a href="#comparacion">Antes vs después</a></li>
+      <li><a href="#ui">UI esperada</a></li>
+      <li><a href="#plan">Plan de implementación</a></li>
+      <li><a href="#riesgos">Riesgos y mitigaciones</a></li>
+    </ol>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section id="problema">
+    <h2>1. El problema actual</h2>
+    <p>
+      Hoy el sistema guarda un campo <code>iva_porcentaje</code> en cada
+      <code>Producto</code> (default 19) y lo copia al <code>DetalleVenta</code>
+      al confirmar la venta. Esto genera 4 problemas críticos:
+    </p>
+
+    <div class="card danger">
+      <div class="card-title"><span class="badge danger">Problema 1</span> Redundancia masiva</div>
+      <p style="margin: 0;">
+        Si tienes 500 productos, hay 500 filas con el valor "19" repetido.
+        Si el SII sube el IVA al 22%, hay que actualizar 500 filas (o ejecutar un UPDATE masivo).
+        Si te olvidas un producto, ese producto sigue cobrando IVA equivocado por meses.
+      </p>
+    </div>
+
+    <div class="card danger">
+      <div class="card-title"><span class="badge danger">Problema 2</span> No soporta impuestos adicionales</div>
+      <p style="margin: 0;">
+        Un vino tinto en Chile no paga solo IVA 19% — paga <strong>ILA 20.5% + IVA 19%</strong>.
+        Una Coca-Cola paga <strong>IABA 18% + IVA 19%</strong>. El modelo actual no tiene
+        forma de representar esto. Si vendes alcohol o bebidas azucaradas, el sistema te
+        calcula impuestos incorrectos. Eso es ilegal frente al SII.
+      </p>
+    </div>
+
+    <div class="card danger">
+      <div class="card-title"><span class="badge danger">Problema 3</span> Granularidad equivocada</div>
+      <p style="margin: 0;">
+        El IVA NO es una propiedad del producto. Es una propiedad del sistema fiscal del país.
+        Asignar el IVA por producto es como asignar la zona horaria a cada timestamp por separado.
+      </p>
+    </div>
+
+    <div class="card danger">
+      <div class="card-title"><span class="badge danger">Problema 4</span> Imposible reportar al SII</div>
+      <p style="margin: 0;">
+        El SII exige reportar IVA débito fiscal por separado del ILA o IABA. Si solo guardas
+        un <code>iva_clp</code> mezclado, no puedes desglosar el ILA de las ventas de vino
+        cuando llega la auditoría. Hay que reconstruir manualmente.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section id="realidad">
+    <h2>2. Cómo es la realidad en Chile</h2>
+    <p>
+      Chile (DL 825) aplica tres tipos principales de impuestos al consumo,
+      a veces en cascada:
+    </p>
+
+    <h3>2.1 Tasas vigentes (2026)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Categoría de producto</th>
+          <th>Impuesto adicional</th>
+          <th>+ IVA</th>
+          <th class="num">Total efectivo*</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Estándar (alimentos, snacks, limpieza, ropa)</td>
+          <td>—</td>
+          <td>19%</td>
+          <td class="num">19%</td>
+        </tr>
+        <tr>
+          <td>Vinos, cervezas, sidra</td>
+          <td>ILA 20.5%</td>
+          <td>19%</td>
+          <td class="num">43.4%</td>
+        </tr>
+        <tr>
+          <td>Licores ≥15° GL (pisco, whisky, ron)</td>
+          <td>ILA 31.5%</td>
+          <td>19%</td>
+          <td class="num">56.5%</td>
+        </tr>
+        <tr>
+          <td>Bebidas analcohólicas <strong>>15g azúcar/100ml</strong></td>
+          <td>IABA 18%</td>
+          <td>19%</td>
+          <td class="num">40.4%</td>
+        </tr>
+        <tr>
+          <td>Bebidas analcohólicas <strong>≤15g azúcar/100ml</strong></td>
+          <td>IABA 10%</td>
+          <td>19%</td>
+          <td class="num">30.9%</td>
+        </tr>
+        <tr>
+          <td>Aguas minerales / saborizadas</td>
+          <td>IABA 10%</td>
+          <td>19%</td>
+          <td class="num">30.9%</td>
+        </tr>
+        <tr>
+          <td>Libros, servicios médicos, educación</td>
+          <td>—</td>
+          <td>Exento</td>
+          <td class="num">0%</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size: 0.85rem; color: var(--text-muted);">
+      * Calculado sobre el precio NETO. El total efectivo no es la suma de las
+      dos tasas porque el IVA se aplica sobre la base CON el recargo adicional incluido.
+    </p>
+
+    <h3>2.2 Fórmula de cálculo en cascada</h3>
+    <div class="card info">
+      <p style="margin: 0 0 12px;"><strong>Regla universal de impuestos chilenos:</strong></p>
+      <pre style="background: white; margin: 0;">precio_total = neto + impuesto_adicional + IVA(neto + impuesto_adicional)
+
+donde:
+  impuesto_adicional = neto × tasa_adicional   (ILA o IABA, si aplica)
+  IVA                = (neto + impuesto_adicional) × 0.19</pre>
+    </div>
+
+    <h3>2.3 Por qué los impuestos adicionales <em>no son IVA</em></h3>
+    <p>
+      ILA e IABA son <strong>impuestos al consumo específicos</strong> distintos
+      del IVA. Se declaran en formularios separados al SII (F-29 mensual),
+      tienen ventajas de retención propias y se contabilizan por separado.
+      Por eso el sistema debe guardarlos como impuestos individuales en el snapshot
+      de cada venta, no mezclarlos en un solo campo <code>iva_clp</code>.
+    </p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section id="casos">
+    <h2>3. Casos de uso reales</h2>
+    <p>
+      Tomemos 5 productos típicos de un minimarket chileno y veamos
+      cómo se calcula cada uno con el modelo propuesto.
+    </p>
+
+    <!-- Caso 1: producto estándar -->
+    <div class="case">
+      <div class="case-title">
+        <span class="ico">1</span> Detergente líquido 1L — <span class="badge brand">Régimen ESTÁNDAR</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">=</span>
+        <span class="desc"><strong>Precio neto</strong><br><small>Definido por el operador en el catálogo</small></span>
+        <span class="val">$2.941</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">+</span>
+        <span class="desc"><strong>IVA 19%</strong> <small>(sobre el neto, no hay impuesto adicional)</small></span>
+        <span class="val">$559</span>
+      </div>
+      <div class="calc-step total">
+        <span class="op">=</span>
+        <span class="desc">Precio total al cliente</span>
+        <span class="val">$3.500</span>
+      </div>
+    </div>
+
+    <!-- Caso 2: Coca-Cola azucarada -->
+    <div class="case">
+      <div class="case-title">
+        <span class="ico">2</span> Coca-Cola 350ml — <span class="badge cyan">Régimen BEBIDA_AZUCARADA_ALTA</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">=</span>
+        <span class="desc"><strong>Precio neto</strong></span>
+        <span class="val">$840</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">+</span>
+        <span class="desc"><strong>IABA 18%</strong> <small>(sobre el neto, porque tiene >15g azúcar/100ml)</small></span>
+        <span class="val">$151</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">+</span>
+        <span class="desc"><strong>IVA 19%</strong> <small>(sobre neto + IABA = $991)</small></span>
+        <span class="val">$188</span>
+      </div>
+      <div class="calc-step total">
+        <span class="op">=</span>
+        <span class="desc">Precio total al cliente</span>
+        <span class="val">$1.179</span>
+      </div>
+    </div>
+
+    <!-- Caso 3: Vino tinto -->
+    <div class="case">
+      <div class="case-title">
+        <span class="ico">3</span> Vino Cabernet Sauvignon 750ml — <span class="badge warning">Régimen VINO_CERVEZA</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">=</span>
+        <span class="desc"><strong>Precio neto</strong></span>
+        <span class="val">$3.500</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">+</span>
+        <span class="desc"><strong>ILA 20.5%</strong> <small>(impuesto a alcoholes, sobre el neto)</small></span>
+        <span class="val">$718</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">+</span>
+        <span class="desc"><strong>IVA 19%</strong> <small>(sobre neto + ILA = $4.218)</small></span>
+        <span class="val">$801</span>
+      </div>
+      <div class="calc-step total">
+        <span class="op">=</span>
+        <span class="desc">Precio total al cliente</span>
+        <span class="val">$5.019</span>
+      </div>
+    </div>
+
+    <!-- Caso 4: Whisky -->
+    <div class="case">
+      <div class="case-title">
+        <span class="ico">4</span> Whisky importado 750ml — <span class="badge danger">Régimen LICOR_FUERTE</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">=</span>
+        <span class="desc"><strong>Precio neto</strong></span>
+        <span class="val">$15.000</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">+</span>
+        <span class="desc"><strong>ILA 31.5%</strong> <small>(licor con ≥15° GL)</small></span>
+        <span class="val">$4.725</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">+</span>
+        <span class="desc"><strong>IVA 19%</strong> <small>(sobre neto + ILA = $19.725)</small></span>
+        <span class="val">$3.748</span>
+      </div>
+      <div class="calc-step total">
+        <span class="op">=</span>
+        <span class="desc">Precio total al cliente</span>
+        <span class="val">$23.473</span>
+      </div>
+    </div>
+
+    <!-- Caso 5: Libro (exento) -->
+    <div class="case">
+      <div class="case-title">
+        <span class="ico">5</span> Libro escolar — <span class="badge success">Régimen EXENTO</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">=</span>
+        <span class="desc"><strong>Precio neto</strong></span>
+        <span class="val">$8.500</span>
+      </div>
+      <div class="calc-step">
+        <span class="op">+</span>
+        <span class="desc"><em>Sin impuestos</em> <small>(art. 12 letra E, DL 825)</small></span>
+        <span class="val">$0</span>
+      </div>
+      <div class="calc-step total">
+        <span class="op">=</span>
+        <span class="desc">Precio total al cliente</span>
+        <span class="val">$8.500</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section id="modelo">
+    <h2>4. Modelo de datos propuesto</h2>
+
+    <h3>4.1 Estrategia: categorías + subcategorías + regímenes</h3>
+    <p>
+      Tres niveles de configuración con responsabilidades claras:
+    </p>
+    <ul class="checks">
+      <li><strong>Categoría</strong> agrupa visualmente (operativa, navegación en POS). NO tiene régimen.</li>
+      <li><strong>Subcategoría</strong> es la unidad tributaria. Pertenece a UNA categoría. SIEMPRE tiene régimen.</li>
+      <li><strong>Producto</strong> pertenece a UNA subcategoría. Puede tener override opcional (caso excepcional).</li>
+    </ul>
+
+    <h3>4.2 Diagrama de entidades</h3>
+    <div class="erd">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+
+        <div class="erd-entity config">
+          <div class="erd-head">configuracion_finanzas</div>
+          <div class="erd-body">
+            <div class="field"><span class="pk">id</span></div>
+            <div class="field">iva_tasa_estandar: int</div>
+            <div class="field">actualizado_en: ts</div>
+            <div class="field">actualizado_por: <span class="fk">FK usuario</span></div>
+          </div>
+        </div>
+
+        <div class="erd-entity">
+          <div class="erd-head">tipo_impuesto</div>
+          <div class="erd-body">
+            <div class="field"><span class="pk">id</span></div>
+            <div class="field">codigo: str (UNIQUE)</div>
+            <div class="field">nombre: str</div>
+            <div class="field">tasa: Decimal(5,2)</div>
+            <div class="field">aplica_sobre: enum</div>
+            <div class="field">orden: int (UNIQUE)</div>
+            <div class="field">activo: bool</div>
+            <div class="field"><span class="nullable">vigente_desde: date</span></div>
+            <div class="field"><span class="nullable">vigente_hasta: date</span></div>
+          </div>
+        </div>
+
+        <div class="erd-entity">
+          <div class="erd-head">regimen_tributario</div>
+          <div class="erd-body">
+            <div class="field"><span class="pk">id</span></div>
+            <div class="field">codigo: str (UNIQUE)</div>
+            <div class="field">nombre: str</div>
+            <div class="field">descripcion: str</div>
+            <div class="field">activo: bool</div>
+          </div>
+        </div>
+
+        <div class="erd-entity">
+          <div class="erd-head">regimen_tipo_impuesto</div>
+          <div class="erd-body">
+            <div class="field"><span class="pk">id</span></div>
+            <div class="field"><span class="fk">regimen_id</span></div>
+            <div class="field"><span class="fk">tipo_impuesto_id</span></div>
+            <div class="field">UNIQUE(regimen, tipo)</div>
+          </div>
+        </div>
+
+        <div class="erd-entity">
+          <div class="erd-head">categoria</div>
+          <div class="erd-body">
+            <div class="field"><span class="pk">id</span></div>
+            <div class="field">nombre: str</div>
+            <div class="field">codigo: str</div>
+            <div class="field">activo: bool</div>
+            <div class="field" style="color: var(--success); font-weight: 700;">SIN regimen aquí</div>
+          </div>
+        </div>
+
+        <div class="erd-entity">
+          <div class="erd-head">subcategoria</div>
+          <div class="erd-body">
+            <div class="field"><span class="pk">id</span></div>
+            <div class="field"><span class="fk">categoria_id</span> NOT NULL</div>
+            <div class="field">nombre: str</div>
+            <div class="field">codigo: str</div>
+            <div class="field"><span class="fk">regimen_id</span> NOT NULL</div>
+            <div class="field">activo: bool</div>
+            <div class="field">UNIQUE(cat, nombre)</div>
+          </div>
+        </div>
+
+        <div class="erd-entity">
+          <div class="erd-head">producto</div>
+          <div class="erd-body">
+            <div class="field"><span class="pk">id</span></div>
+            <div class="field"><span class="fk">subcategoria_id</span> NOT NULL</div>
+            <div class="field"><span class="fk nullable">regimen_id NULL</span> ← override</div>
+            <div class="field">sku, nombre, precio...</div>
+          </div>
+        </div>
+
+        <div class="erd-entity snapshot">
+          <div class="erd-head">detalle_venta (snapshot)</div>
+          <div class="erd-body">
+            <div class="field"><span class="pk">id</span></div>
+            <div class="field"><span class="fk">venta_id, producto_id</span></div>
+            <div class="field">cantidad, precio_unitario</div>
+            <div class="field">subtotal_neto_clp</div>
+            <div class="field" style="color: var(--cyan); font-weight: 700;">impuestos_aplicados: jsonb</div>
+            <div class="field">total_impuestos_clp</div>
+            <div class="field">total_clp</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch" style="background: var(--brand);"></span> Catálogo configurable</span>
+        <span class="legend-item"><span class="legend-swatch" style="background: var(--warning);"></span> Configuración global</span>
+        <span class="legend-item"><span class="legend-swatch" style="background: var(--cyan);"></span> Snapshot inmutable</span>
+      </div>
+    </div>
+
+    <h3>4.3 Resolución del régimen efectivo</h3>
+    <p>Al procesar una venta, el sistema resuelve el régimen así:</p>
+    <pre>def regimen_efectivo(producto):
+    # 1. ¿El producto tiene override explícito?
+    if producto.regimen_tributario_id is not None:
+        return producto.regimen_tributario
+    # 2. Si no, hereda de su subcategoría (que siempre tiene régimen)
+    return producto.subcategoria.regimen_tributario</pre>
+
+    <h3>4.4 Snapshot de impuestos en la venta</h3>
+    <p>
+      Cada <code>DetalleVenta</code> guarda el desglose completo en JSON.
+      Inmutable — si mañana cambia el IVA, las ventas viejas siguen mostrando el cálculo original.
+    </p>
+    <pre>{
+  "impuestos_aplicados": [
+    {
+      "codigo": "ILA_VINO",
+      "nombre": "ILA Vinos 20.5%",
+      "tasa": 20.5,
+      "base": 3500,
+      "monto": 718
+    },
+    {
+      "codigo": "IVA",
+      "nombre": "IVA 19%",
+      "tasa": 19.0,
+      "base": 4218,
+      "monto": 801
+    }
+  ],
+  "subtotal_neto_clp": 3500,
+  "total_impuestos_clp": 1519,
+  "total_clp": 5019
+}</pre>
+
+    <h3>4.5 Seed inicial de regímenes</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Impuestos asociados</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">ESTANDAR</td>
+          <td>Estándar</td>
+          <td><span class="chip">IVA 19%</span></td>
+        </tr>
+        <tr>
+          <td class="mono">EXENTO</td>
+          <td>Exento de IVA</td>
+          <td><em style="color: var(--text-muted);">Sin impuestos</em></td>
+        </tr>
+        <tr>
+          <td class="mono">VINO_CERVEZA</td>
+          <td>Vinos, cervezas, sidra</td>
+          <td><span class="chip">ILA 20.5%</span><span class="chip">IVA 19%</span></td>
+        </tr>
+        <tr>
+          <td class="mono">LICOR_FUERTE</td>
+          <td>Licores ≥15° GL</td>
+          <td><span class="chip">ILA 31.5%</span><span class="chip">IVA 19%</span></td>
+        </tr>
+        <tr>
+          <td class="mono">BEBIDA_AZUCARADA_ALTA</td>
+          <td>Bebidas >15g azúcar</td>
+          <td><span class="chip">IABA 18%</span><span class="chip">IVA 19%</span></td>
+        </tr>
+        <tr>
+          <td class="mono">BEBIDA_AZUCARADA_BAJA</td>
+          <td>Bebidas ≤15g azúcar / aguas</td>
+          <td><span class="chip">IABA 10%</span><span class="chip">IVA 19%</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section id="comparacion">
+    <h2>5. Antes vs después — comparación visual</h2>
+
+    <h3>5.1 Editar producto en catálogo</h3>
+    <div class="split">
+      <div>
+        <div class="label">❌ Hoy</div>
+        <div class="mock">
+          <div class="mock-header">
+            <div class="mock-title">Editar producto</div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>SKU</label>
+              <div class="control mono">BEB-COLA-350</div>
+            </div>
+            <div class="form-field">
+              <label>Categoría</label>
+              <div class="control">Bebidas ▾</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Precio venta CLP</label>
+              <div class="control mono">$1.179</div>
+            </div>
+            <div class="form-field">
+              <label style="color: var(--danger);">% IVA</label>
+              <div class="control" style="border-color: var(--danger);">19</div>
+              <span class="help" style="color: var(--danger);">⚠ ¿Qué pasa con el IABA 18%?</span>
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--danger); margin: 12px 0 0;">
+            <strong>Problema:</strong> el operador no tiene forma de decir que esta
+            Coca-Cola lleva IABA. Solo IVA 19%. El cálculo es ilegal.
+          </p>
+        </div>
+      </div>
+      <div>
+        <div class="label">✅ Propuesto</div>
+        <div class="mock">
+          <div class="mock-header">
+            <div class="mock-title">Editar producto</div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>SKU</label>
+              <div class="control mono">BEB-COLA-350</div>
+            </div>
+            <div class="form-field">
+              <label>Subcategoría</label>
+              <div class="control">Bebidas azucaradas ▾</div>
+              <span class="help">Hereda de Bebidas</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Precio neto CLP</label>
+              <div class="control mono">$840</div>
+            </div>
+            <div class="form-field">
+              <label>Régimen efectivo</label>
+              <div class="control">
+                <span class="badge cyan">BEBIDA_AZUCARADA_ALTA</span>
+                <small>via subcategoría</small>
+              </div>
+              <span class="help">Override... (uso excepcional)</span>
+            </div>
+          </div>
+          <div class="card success" style="margin: 12px 0 0; padding: 12px;">
+            <p style="margin: 0; font-size: 0.82rem;">
+              <strong>Impuestos a aplicar:</strong> <span class="chip">IABA 18%</span><span class="chip">IVA 19%</span>
+              → Total al cliente <strong>$1.179</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>5.2 Cálculo de venta de Coca-Cola</h3>
+    <div class="split">
+      <div>
+        <div class="label">❌ Hoy</div>
+        <div class="mock">
+          <table style="margin: 0;">
+            <tr><td>Subtotal neto</td><td class="num">$991</td></tr>
+            <tr><td>IVA 19%</td><td class="num">$188</td></tr>
+            <tr style="font-weight: 700; border-top: 2px solid var(--border-strong);">
+              <td>Total</td><td class="num">$1.179</td>
+            </tr>
+          </table>
+          <p style="font-size: 0.82rem; color: var(--danger); margin: 12px 0 0;">
+            ⚠ El IABA está oculto dentro del "neto" para que el total cuadre.
+            No se reporta como impuesto separado al SII.
+          </p>
+        </div>
+      </div>
+      <div>
+        <div class="label">✅ Propuesto</div>
+        <div class="mock">
+          <table style="margin: 0;">
+            <tr><td>Subtotal neto</td><td class="num">$840</td></tr>
+            <tr>
+              <td><span class="badge cyan">IABA 18%</span></td>
+              <td class="num">$151</td>
+            </tr>
+            <tr>
+              <td><span class="badge brand">IVA 19%</span> <small>(sobre $991)</small></td>
+              <td class="num">$188</td>
+            </tr>
+            <tr style="font-weight: 700; border-top: 2px solid var(--border-strong);">
+              <td>Total</td><td class="num">$1.179</td>
+            </tr>
+          </table>
+          <p style="font-size: 0.82rem; color: var(--success); margin: 12px 0 0;">
+            ✓ Cada impuesto se desglosa y guarda por separado. Reporte SII directo.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <h3>5.3 Subir el IVA del 19% al 22% (cambio de ley)</h3>
+    <div class="split">
+      <div>
+        <div class="label">❌ Hoy</div>
+        <div class="card">
+          <pre style="margin: 0; font-size: 0.82rem;">-- Actualizar 500 productos uno por uno
+UPDATE productos
+SET iva_porcentaje = 22
+WHERE iva_porcentaje = 19;
+
+-- Riesgo: olvidar productos con
+-- iva_porcentaje distinto (0 exentos)
+-- Necesitas migración Alembic.</pre>
+        </div>
+      </div>
+      <div>
+        <div class="label">✅ Propuesto</div>
+        <div class="card success">
+          <p style="margin: 0 0 12px;">Admin: <strong>Tributación → Tipos de impuesto → IVA → editar tasa</strong></p>
+          <pre style="margin: 0; font-size: 0.82rem; background: white;">UPDATE tipo_impuesto
+SET tasa = 22, vigente_desde = '2027-01-01'
+WHERE codigo = 'IVA';</pre>
+          <p style="margin: 12px 0 0; font-size: 0.82rem;">
+            Una fila. Todas las ventas futuras toman 22%. Las viejas
+            siguen mostrando 19% por snapshot.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section id="ui">
+    <h2>6. UI esperada</h2>
+
+    <h3>6.1 Pantalla de Tributación (Admin)</h3>
+    <div class="mock">
+      <div class="mock-header">
+        <div>
+          <div class="mock-title">Tributación</div>
+          <p class="mock-subtitle">Configuración fiscal del sistema · solo Contador / Sysadmin</p>
+        </div>
+        <span class="badge brand">CHILE · DL 825</span>
+      </div>
+
+      <h4 style="margin-top: 0;">Tipos de impuesto</h4>
+      <table style="margin: 4px 0 16px;">
+        <thead>
+          <tr>
+            <th>Código</th><th>Nombre</th><th class="num">Tasa</th><th>Aplica sobre</th><th>Activo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">IVA</td><td>IVA Chile</td><td class="num">19.00%</td><td>Subtotal acumulado</td><td><span class="badge success">Sí</span></td></tr>
+          <tr><td class="mono">ILA_VINO</td><td>ILA Vinos/Cervezas</td><td class="num">20.50%</td><td>Neto</td><td><span class="badge success">Sí</span></td></tr>
+          <tr><td class="mono">ILA_LICOR</td><td>ILA Licores fuertes</td><td class="num">31.50%</td><td>Neto</td><td><span class="badge success">Sí</span></td></tr>
+          <tr><td class="mono">IABA_18</td><td>IABA Azucaradas altas</td><td class="num">18.00%</td><td>Neto</td><td><span class="badge success">Sí</span></td></tr>
+          <tr><td class="mono">IABA_10</td><td>IABA Azucaradas bajas</td><td class="num">10.00%</td><td>Neto</td><td><span class="badge success">Sí</span></td></tr>
+        </tbody>
+      </table>
+
+      <h4>Regímenes tributarios</h4>
+      <table style="margin: 4px 0;">
+        <thead>
+          <tr>
+            <th>Código</th><th>Nombre</th><th>Impuestos</th><th class="num">Total efectivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">ESTANDAR</td><td>Estándar</td><td><span class="chip">IVA</span></td><td class="num">19.0%</td></tr>
+          <tr><td class="mono">EXENTO</td><td>Exento</td><td><em style="color: var(--text-muted);">—</em></td><td class="num">0.0%</td></tr>
+          <tr><td class="mono">VINO_CERVEZA</td><td>Vinos y cervezas</td><td><span class="chip">ILA_VINO</span><span class="chip">IVA</span></td><td class="num">43.4%</td></tr>
+          <tr><td class="mono">LICOR_FUERTE</td><td>Licores ≥15° GL</td><td><span class="chip">ILA_LICOR</span><span class="chip">IVA</span></td><td class="num">56.5%</td></tr>
+          <tr><td class="mono">BEB_AZUC_ALTA</td><td>Bebidas azucaradas altas</td><td><span class="chip">IABA_18</span><span class="chip">IVA</span></td><td class="num">40.4%</td></tr>
+          <tr><td class="mono">BEB_AZUC_BAJA</td><td>Bebidas azucaradas bajas</td><td><span class="chip">IABA_10</span><span class="chip">IVA</span></td><td class="num">30.9%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6.2 Editar subcategoría</h3>
+    <div class="mock">
+      <div class="mock-header">
+        <div class="mock-title">Inventario / Catálogo / Bebidas / Subcategorías</div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Subcategoría</th><th>Régimen</th><th class="num">Productos</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Bebidas azucaradas altas</td><td><span class="badge cyan">BEB_AZUC_ALTA</span></td><td class="num">23</td><td>Editar · Productos</td></tr>
+          <tr><td>Bebidas azucaradas bajas</td><td><span class="badge cyan">BEB_AZUC_BAJA</span></td><td class="num">12</td><td>Editar · Productos</td></tr>
+          <tr><td>Aguas minerales</td><td><span class="badge cyan">BEB_AZUC_BAJA</span></td><td class="num">8</td><td>Editar · Productos</td></tr>
+          <tr><td>Vinos</td><td><span class="badge warning">VINO_CERVEZA</span></td><td class="num">47</td><td>Editar · Productos</td></tr>
+          <tr><td>Cervezas</td><td><span class="badge warning">VINO_CERVEZA</span></td><td class="num">31</td><td>Editar · Productos</td></tr>
+          <tr><td>Licores fuertes</td><td><span class="badge danger">LICOR_FUERTE</span></td><td class="num">19</td><td>Editar · Productos</td></tr>
+          <tr><td>Sin alcohol natural</td><td><span class="badge brand">ESTANDAR</span></td><td class="num">14</td><td>Editar · Productos</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section id="plan">
+    <h2>7. Plan de implementación</h2>
+    <p>
+      Implementación dividida en 6 fases. Cada fase es independiente,
+      mergeable y reversible. Total estimado: <strong>6-8 días reales</strong>.
+    </p>
+
+    <div class="phase">
+      <div class="phase-num">1</div>
+      <div class="phase-body">
+        <h4>Dominio + cálculo (sin tocar DB) <span class="badge brand" style="margin-left: 8px;">Día 1</span></h4>
+        <ul class="checks">
+          <li>Entidades de dominio: <code>TipoImpuesto</code>, <code>RegimenTributario</code>, <code>Categoria</code>, <code>Subcategoria</code></li>
+          <li>Service <code>CalculoImpuestos.aplicar(regimen, neto)</code> con tests exhaustivos (los 5 casos de uso + edge cases: exento, sin recargo, recargo + IVA)</li>
+          <li>Snapshot helper <code>impuestos_aplicados_a_json(...)</code></li>
+        </ul>
+        <p style="margin: 8px 0 0; font-size: 0.85rem; color: var(--text-muted);">
+          <strong>Entregable:</strong> tests de dominio en verde con cálculos correctos para vino, cerveza, Coca-Cola, libro, detergente.
+        </p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">2</div>
+      <div class="phase-body">
+        <h4>Modelo ORM + migración Alembic <span class="badge brand" style="margin-left: 8px;">Día 2</span></h4>
+        <ul class="checks">
+          <li>Tablas nuevas: <code>tipo_impuesto</code>, <code>regimen_tributario</code>, <code>regimen_tipo_impuesto</code>, <code>subcategoria</code>, <code>configuracion_finanzas</code></li>
+          <li>Migración Alembic: agregar columnas a <code>producto</code>, <code>detalle_venta</code>, <code>categoria</code></li>
+          <li>Data migration: convertir <code>producto.iva_porcentaje</code> existente a régimen apropiado</li>
+          <li>Seed: tipos de impuesto + 6 regímenes base (ESTANDAR, EXENTO, VINO_CERVEZA, etc.)</li>
+        </ul>
+        <p style="margin: 8px 0 0; font-size: 0.85rem; color: var(--text-muted);">
+          <strong>Entregable:</strong> migración corre limpia, base de datos tiene seed completo, tests de integración con DB real pasan.
+        </p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">3</div>
+      <div class="phase-body">
+        <h4>Use cases nuevos <span class="badge brand" style="margin-left: 8px;">Día 3-4</span></h4>
+        <ul class="checks">
+          <li>CRUD de Tipos de impuesto, Regímenes, Subcategorías (admin only)</li>
+          <li><code>CambiarTasaTipoImpuestoUseCase</code> — con audit log</li>
+          <li><code>AsignarRegimenSubcategoriaUseCase</code></li>
+          <li>Refactor <code>ProcesarVentaUseCase</code> para usar el nuevo cálculo</li>
+          <li>Refactor <code>EmitirGuiaDespachoUseCase</code></li>
+          <li>Eliminar usos de <code>producto.iva_porcentaje</code> (deprecar)</li>
+        </ul>
+        <p style="margin: 8px 0 0; font-size: 0.85rem; color: var(--text-muted);">
+          <strong>Entregable:</strong> backend ya calcula impuestos correctamente. Toda venta nueva tiene snapshot correcto.
+        </p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">4</div>
+      <div class="phase-body">
+        <h4>Frontend: pantalla Tributación <span class="badge brand" style="margin-left: 8px;">Día 5</span></h4>
+        <ul class="checks">
+          <li>Nueva ruta <code>/admin/tributacion</code> (rol Sysadmin / Contador)</li>
+          <li>Tab "Tipos de impuesto" con tabla editable</li>
+          <li>Tab "Regímenes" con tabla editable + asignación M:N de impuestos</li>
+          <li>Modal "Crear / editar régimen" con preview de cálculo (caja para probar)</li>
+          <li>Audit log embebido (quién cambió qué)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">5</div>
+      <div class="phase-body">
+        <h4>Frontend: Categorías + Subcategorías + Producto <span class="badge brand" style="margin-left: 8px;">Día 6</span></h4>
+        <ul class="checks">
+          <li>Pantalla Categorías: agregar columna "# Subcategorías"</li>
+          <li>Nueva subpantalla "Subcategorías" dentro de Categoría: tabla con régimen</li>
+          <li>En Producto edit: input "Categoría" → dropdown dependiente "Subcategoría" → preview régimen efectivo</li>
+          <li>Opción "Override de régimen" (collapsed por default, con campo motivo obligatorio)</li>
+          <li>En carrito POS: cada línea muestra desglose <code>neto · ILA · IVA = total</code></li>
+          <li>En boleta impresa: desglose claro de cada impuesto</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">6</div>
+      <div class="phase-body">
+        <h4>Reportes financieros + cierre <span class="badge brand" style="margin-left: 8px;">Día 7-8</span></h4>
+        <ul class="checks">
+          <li>Reporte SII F-29: total IVA débito, total ILA, total IABA</li>
+          <li>Tabla "Productos con override" para revisión periódica del contador</li>
+          <li>Limpieza: drop columna <code>producto.iva_porcentaje</code> después de validar</li>
+          <li>Documentación admin + guía de migración</li>
+          <li>Comunicación al cliente del cambio (correo / changelog)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section id="riesgos">
+    <h2>8. Riesgos y mitigaciones</h2>
+
+    <div class="card warning">
+      <div class="card-title"><span class="badge warning">Riesgo 1</span> Migración rompe ventas históricas</div>
+      <p>
+        <strong>Mitigación:</strong> el snapshot <code>impuestos_aplicados</code>
+        es nuevo y se llena solo para ventas futuras. Las viejas siguen mostrando
+        <code>iva_clp</code> tal cual están. NO se recalculan. Los reportes
+        históricos consultan el formato viejo, los nuevos consultan el snapshot.
+      </p>
+    </div>
+
+    <div class="card warning">
+      <div class="card-title"><span class="badge warning">Riesgo 2</span> Operador asigna régimen incorrecto</div>
+      <p>
+        <strong>Mitigación:</strong> el sistema NO puede validar
+        automáticamente si una Coca-Cola está en régimen LICOR_FUERTE.
+        Pero sí podemos: (1) pedir motivo obligatorio en override de producto,
+        (2) tabla "Productos con override" para revisión periódica,
+        (3) audit log de todos los cambios de régimen.
+      </p>
+    </div>
+
+    <div class="card warning">
+      <div class="card-title"><span class="badge warning">Riesgo 3</span> Cambio de tasa afecta ventas en curso</div>
+      <p>
+        <strong>Mitigación:</strong> al editar la tasa de un <code>tipo_impuesto</code>,
+        confirmar con modal "Esto afectará todas las ventas a partir de AHORA".
+        Recomendar usar <code>vigente_desde</code> futura para programar el cambio.
+      </p>
+    </div>
+
+    <div class="card warning">
+      <div class="card-title"><span class="badge warning">Riesgo 4</span> Subcategoría queda sin régimen</div>
+      <p>
+        <strong>Mitigación:</strong> <code>regimen_tributario_id NOT NULL</code>
+        en el schema de <code>subcategoria</code> (constraint a nivel DB).
+        Crear subcategoría sin régimen es imposible.
+      </p>
+    </div>
+
+    <div class="card warning">
+      <div class="card-title"><span class="badge warning">Riesgo 5</span> Productos huérfanos al desactivar subcategoría</div>
+      <p>
+        <strong>Mitigación:</strong> al desactivar subcategoría, sistema busca
+        productos vivos asignados a ella y bloquea la operación. Si el admin
+        confirma, los marca como "necesitan reasignación" en una vista de mantenimiento.
+        Hard delete prohibido por integridad referencial.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="card info" style="margin-top: 48px;">
+    <div class="card-title"><span class="badge info">Decisión</span> ¿Procedemos?</div>
+    <p style="margin: 0;">
+      Si confirmas este plan, empiezo por la <strong>Fase 1 (dominio + tests)</strong>
+      y avanzamos secuencial con PRs revisables en cada fase. Cada fase es
+      reversible — si surge un blocker, podemos pausar sin que el sistema quede
+      inconsistente.
+    </p>
+  </div>
+
+  <p class="footer-note">
+    Documento generado para OMNIFLOW · Plan de Rediseño Tributario 1.0
+  </p>
+</div>
+</body>
+</html>
